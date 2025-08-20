@@ -16,25 +16,25 @@ import { Progress } from '@radix-ui/react-progress';
  */
 const GoalSetting = () => {
   return (
-    <div>
+    <div className="space-y-6">
       {/* 목표 설정 생성 */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            <Target />
+          <CardTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5"/>
             새로운 목표 설정
           </CardTitle>
           <CardDescription>주별 또는 월별 체중 목표를 설정하여 동기부여를 받아보세요</CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
-            <div>
-              <Label>목표 제목</Label>
-              <Input />
+          <form className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="goalTitle">목표 제목</Label>
+              <Input id="goalTitle" placeholder="예: 여름 준비 다이어트" />
             </div>
-            <div>
-              <div>
-                <Label>목표 기간</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="goalType">목표 기간</Label>
                 <Select>
                   <SelectTrigger>
                     <SelectValue />
@@ -45,53 +45,65 @@ const GoalSetting = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label>목표 체중(kg)</Label>
-                <Input />
+              <div className="space-y-2">
+                <Label htmlFor="targetWeight">목표 체중(kg)</Label>
+                <Input id="targetWeight" type="number" step="0.1" placeholder="예: 65" />
               </div>
             </div>
-            <div>
-              <p>현재 체중: <span>82kg</span></p>
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground">현재 체중: <span className="font-medium">82kg</span></p>
             </div>
-            <Button>목표 설정하기</Button>
+            <Button type="submit" className="w-full">목표 설정하기</Button>
           </form>
         </CardContent>
       </Card>
       {/* Active Goals */}
-      <div>
-        <h3>설정된 목표</h3>
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">설정된 목표</h3>
         <Card>
-          <CardHeader>
-            <div>
-              <CardTitle>목표 제목</CardTitle>
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-center">
+              <CardTitle className="text-lg">목표 제목</CardTitle>
             </div>
-            <CardDescription>
-              <Calendar />
-              <span>2일 남음</span>
+            <CardDescription className="flex items-center gap-1">
+              <Calendar className="h-4 w-4" />
+              <span className="ml-2 text-primary font-medium">2일 남음</span>
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
-                <p>시작 체중</p>
-                <p>23kg</p>
+                <p className="text-muted-foreground">시작 체중</p>
+                <p className="font-medium">23kg</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">목표 체중</p>
+                <p className="font-medium">23kg</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">현재 체중</p>
+                <p className="font-medium">23kg</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">목표까지</p>
+                <p className="font-medium">23kg</p>
               </div>
             </div>
-            <div>
-              <div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
                 <span>진행률</span>
                 <span>23%</span>
-                <Progress />
+                <Progress className="h-2" />
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
       <Card>
-        <CardContent>
-          <Target />
-          <h3>아직 설정된 목표가 없습니다.</h3>
-          <p>첫 번째 체중 목표를 설정하여 건강한 변화를 시작해보세요!</p>
+        <CardContent className="pt-6 text-center">
+          <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg font-medium mb-2">아직 설정된 목표가 없습니다.</h3>
+          <p className="text-muted-foreground">첫 번째 체중 목표를 설정하여 건강한 변화를 시작해보세요!</p>
         </CardContent>
       </Card>
     </div>
