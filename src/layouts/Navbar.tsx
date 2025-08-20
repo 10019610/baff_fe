@@ -2,6 +2,7 @@ import { BarChart3, Scale, Target, Users } from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '../components/ui/badge.tsx';
 import { cn } from '../components/ui/utils.tsx';
+import { useNavigate } from 'react-router-dom';
 
 interface NavMenuItem {
   id: string;
@@ -20,6 +21,8 @@ interface NavMenuItem {
  * @constructor
  */
 const Navbar = () => {
+  // navigator
+  const navigate = useNavigate();
   // navbar 메뉴 active 제어
   const [activeMenu, setActiveMenu] = useState('tracker');
   // Navbar Item 정의 용도 데이터
@@ -50,8 +53,9 @@ const Navbar = () => {
     },
   ];
 
-  const handleNavMenuChange = (navMenuId: string) => {
-    setActiveMenu(navMenuId);
+  const handleNavMenuChange = (navMenu: NavMenuItem) => {
+    setActiveMenu(navMenu.id);
+    navigate(navMenu.url);
   };
 
   return (
@@ -65,7 +69,7 @@ const Navbar = () => {
                 const Icon = item.icon;
                 const isActive = activeMenu === item.id;
                 return (
-                  <button key={item.id} onClick={() => handleNavMenuChange(item.id)}
+                  <button key={item.id} onClick={() => handleNavMenuChange(item)}
                           className={cn('flex items-center gap-3 px-6 py-3 rounded-lg transition-colors relative', isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}>
                     <Icon className="h-5 w-5" />
                     <span className="font-medium">{item.label}</span>
@@ -87,7 +91,7 @@ const Navbar = () => {
             const Icon = item.icon;
             const isActive = activeMenu === item.id;
             return (
-              <button key={item.id} onClick={() => handleNavMenuChange(item.id)}
+              <button key={item.id} onClick={() => handleNavMenuChange(item)}
                       className={cn('flex flex-col items-center justify-center gap-1 relative transition-colors', isActive ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground')}>
                 <div className="relative">
                   <Icon className="h-5 w-5" />
