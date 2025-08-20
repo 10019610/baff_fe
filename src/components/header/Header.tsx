@@ -1,7 +1,7 @@
 import React from 'react';
 import { Scale } from 'lucide-react';
 import { Badge } from '../ui/badge';
-// import UserMenu from './UserMenu';
+import UserMenu from './UserMenu';
 
 interface MenuItem {
   id: string;
@@ -35,9 +35,10 @@ export default function Header({
           </div>
 
           {/* User Menu (Always visible) */}
-          <div>{/* <UserMenu onProfileClick={onProfileClick} /> */}</div>
+          <div>
+            <UserMenu onProfileClick={onProfileClick} />
+          </div>
 
-          {/* Current page indicator (Mobile only, positioned absolutely) */}
           <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-2 sm:hidden">
             {activeMenuItem && (
               <>
