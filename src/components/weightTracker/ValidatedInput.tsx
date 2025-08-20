@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { validateField, ValidationRule } from './utils/validation';
+import { validateField, type ValidationRule } from '../../utils/validation';
 
 interface ValidatedInputProps {
   id: string;
@@ -34,7 +34,7 @@ export default function ValidatedInput({
   className = '',
   showValidIcon = true,
   validateOnBlur = true,
-  validateOnChange = false
+  validateOnChange = false,
 }: ValidatedInputProps) {
   const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
@@ -42,10 +42,12 @@ export default function ValidatedInput({
 
   const validate = (val: string | number) => {
     if (!validationRules) return null;
-    
+
     const errorMessage = validateField(val, validationRules, label);
     setError(errorMessage);
-    setIsValid(!errorMessage && val !== '' && val !== null && val !== undefined);
+    setIsValid(
+      !errorMessage && val !== '' && val !== null && val !== undefined
+    );
     return errorMessage;
   };
 
@@ -56,12 +58,15 @@ export default function ValidatedInput({
   }, [value, touched, validateOnChange]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = type === 'number' ? 
-      (e.target.value === '' ? '' : Number(e.target.value)) : 
-      e.target.value;
-    
+    const newValue =
+      type === 'number'
+        ? e.target.value === ''
+          ? ''
+          : Number(e.target.value)
+        : e.target.value;
+
     onChange(newValue);
-    
+
     if (validateOnChange && touched) {
       validate(newValue);
     }
@@ -86,7 +91,7 @@ export default function ValidatedInput({
         {label}
         {required && <span className="text-destructive">*</span>}
       </Label>
-      
+
       <div className="relative">
         <Input
           id={id}
@@ -97,14 +102,19 @@ export default function ValidatedInput({
           onFocus={handleFocus}
           placeholder={placeholder}
           disabled={disabled}
-          max={type === 'date' ? new Date().toISOString().split('T')[0] : undefined}
+          max={
+            type === 'date' ? new Date().toISOString().split('T')[0] : undefined
+          }
           step={type === 'number' ? '0.1' : undefined}
           className={`pr-10 ${
-            error ? 'border-destructive focus:ring-destructive' : 
-            isValid && showValidIcon ? 'border-green-500 focus:ring-green-500' : ''
+            error
+              ? 'border-destructive focus:ring-destructive'
+              : isValid && showValidIcon
+                ? 'border-green-500 focus:ring-green-500'
+                : ''
           }`}
         />
-        
+
         {/* Validation Icon */}
         <AnimatePresence>
           {showValidIcon && touched && (
@@ -123,7 +133,7 @@ export default function ValidatedInput({
           )}
         </AnimatePresence>
       </div>
-      
+
       {/* Error Message */}
       <AnimatePresence>
         {error && touched && (
