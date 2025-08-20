@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import Header from '../components/header/Header';
 import Navbar from './Navbar.tsx';
+import Footer from '../components/footer/Footer.tsx';
 
 const Layout = () => {
   return (
@@ -10,6 +11,7 @@ const Layout = () => {
       <Header />
       <Outlet />
       {/* footer */}
+      <Footer />
       {/* navbar */}
       <Navbar />
     </div>
