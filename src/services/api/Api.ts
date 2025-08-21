@@ -14,13 +14,13 @@ const setupInterceptors = (instance: AxiosInstance) => {
   instance.interceptors.request.use(
     (config) => {
       // console.log('API 호출:', config.url);
-
-      const accessToken = '11';
-
-      if (accessToken) {
-        config.headers.Authorization = `Bearer ${accessToken}`;
-        config.withCredentials = true;
-      }
+      // TODO (확인필요) (20250821/x) 아래 credential문제 확인 후 해결 필요 -hjkim
+      // const accessToken = '11';
+      //
+      // if (accessToken) {
+      //   config.headers.Authorization = `Bearer ${accessToken}`;
+      //   config.withCredentials = true;
+      // }
 
       return config;
     },
