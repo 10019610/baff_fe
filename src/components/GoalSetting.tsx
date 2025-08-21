@@ -5,6 +5,15 @@ import { Input } from './ui/input.tsx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select.tsx';
 import { Button } from './ui/button.tsx';
 import { Progress } from '@radix-ui/react-progress';
+import type { PresetDurationType } from '../types/Goals.type.ts';
+import type { RecordGoalsRequest } from '../types/Goals.api.type.ts';
+
+interface GoalSettingProps {
+  onClickRecord: () => void;
+  presetDuration: PresetDurationType[];
+  onChangeParam: (key: keyof RecordGoalsRequest, value: string | number) => void;
+  param: RecordGoalsRequest;
+}
 
 /**
  * 체중 목표 설정 관련 컴포넌트
@@ -14,45 +23,48 @@ import { Progress } from '@radix-ui/react-progress';
  * @author hjkim
  * @constructor
  */
-const GoalSetting = () => {
+const GoalSetting = ({ onClickRecord, presetDuration, onChangeParam, param }: GoalSettingProps) => {
   return (
     <div className="space-y-6">
       {/* 목표 설정 생성 */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5"/>
+            <Target className="h-5 w-5" />
             새로운 목표 설정
           </CardTitle>
           <CardDescription>주별 또는 월별 체중 목표를 설정하여 동기부여를 받아보세요</CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={onClickRecord}>
             <div className="space-y-2">
               <Label htmlFor="goalTitle">목표 제목</Label>
-              <Input id="goalTitle" placeholder="예: 여름 준비 다이어트" />
+              <Input id="goalTitle" placeholder="예: 여름 준비 다이어트" value={param.title}
+                     onChange={(e) => onChangeParam('title', e.target.value)} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="goalType">목표 기간</Label>
-                <Select>
+                <Select value={String(param.presetDuration)} onValueChange={(e) => onChangeParam('presetDuration', e)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="weekly">주별 (7일)</SelectItem>
-                    <SelectItem value="monthly">월별 (30일)</SelectItem>
+                    {presetDuration.map((duration) => (
+                      <SelectItem key={duration.label} value={duration.label}>{duration.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="targetWeight">목표 체중(kg)</Label>
-                <Input id="targetWeight" type="number" step="0.1" placeholder="예: 65" />
+                <Input id="targetWeight" type="number" step="0.1" placeholder="예: 65" value={param.startWeight}
+                       onChange={(e) => onChangeParam('startWeight', e.target.value)} />
               </div>
             </div>
-            <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground">현재 체중: <span className="font-medium">82kg</span></p>
-            </div>
+            {/*<div className="p-3 bg-muted rounded-lg">*/}
+            {/*  <p className="text-sm text-muted-foreground">현재 체중: <span className="font-medium">82kg</span></p>*/}
+            {/*</div>*/}
             <Button type="submit" className="w-full">목표 설정하기</Button>
           </form>
         </CardContent>
