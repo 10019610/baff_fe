@@ -23,6 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 package-lock.json
+figma
 
 # 로컬 환경 파일은 git에 포함하지 않음
 .env
