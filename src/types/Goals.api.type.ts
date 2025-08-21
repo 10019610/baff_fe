@@ -12,3 +12,16 @@ export interface RecordGoalsRequest {
   targetWeight: number;
   presetDuration: number;
 }
+
+/**
+ * 저장된 목표 리스트 조회 반환 타입
+ */
+export interface GetGoalListResponse {
+  goalsId: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  startWeight: number;
+  targetWeight: number;
+  // status: 'active' | 'completed';
+}

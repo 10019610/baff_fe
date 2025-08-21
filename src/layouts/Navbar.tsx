@@ -46,8 +46,8 @@ const Navbar = () => {
       url: '/',
     },
     {
-      id: 'dashboard',
-      label: '대시보드',
+      id: 'analytics',
+      label: '분석',
       icon: BarChart3,
       url: '/',
     },
