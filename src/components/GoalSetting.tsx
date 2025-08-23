@@ -90,7 +90,8 @@ const GoalSetting = ({
         <div className="space-y-4">
           <h3 className="text-lg font-medium">설정된 목표</h3>
           {goalList.map((goal) => {
-              const daysRemaining = handleGetDaysRemaining(goal.startDate, goal.endDate);
+              const today = new Date();
+              const daysRemaining = handleGetDaysRemaining(String(today), goal.endDate);
               return (
                 <Card key={goal.goalsId}>
                   <CardHeader className="pb-4">
@@ -99,7 +100,11 @@ const GoalSetting = ({
                     </div>
                     <CardDescription className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      <span className="ml-2 text-primary font-medium">({daysRemaining}일 남음)</span>
+                      {!goal.isExpired ? (
+                        <span className="ml-2 text-primary font-medium">({daysRemaining}일 남음)</span>
+                      ) : (
+                        <span>(종료된 목표)</span>
+                      )}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
