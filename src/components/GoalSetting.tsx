@@ -7,6 +7,7 @@ import { Button } from './ui/button.tsx';
 import { Progress } from '@radix-ui/react-progress';
 import type { PresetDurationType } from '../types/Goals.type.ts';
 import type { GetGoalListResponse, RecordGoalsRequest } from '../types/Goals.api.type.ts';
+import { formatDate } from '../utils/DateUtil.ts';
 
 interface GoalSettingProps {
   onClickRecord: () => void;
@@ -95,6 +96,7 @@ const GoalSetting = ({
               return (
                 <Card key={goal.goalsId}>
                   <CardHeader className="pb-4">
+                    {formatDate(goal.startDate)} - {formatDate(goal.endDate)}
                     <div className="flex items-center justify-center">
                       <CardTitle className="text-lg">{goal.title}</CardTitle>
                     </div>
