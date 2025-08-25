@@ -28,10 +28,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
      * JWT 쿠키를 통해 인증 상태를 확인하고 사용자 정보를 설정합니다.
      */
     const fetchUser = async () => {
+      console.log('fetchUser', isAuthenticated);
       try {
         const response = await api.get<User>(`${baseUrl}/user/me`);
+        console.log(response);
         setUser(response.data);
         setIsAuthenticated(true);
+        console.log('isAuthenticated', isAuthenticated);
       } catch (error) {
         console.log(error);
         // 401 Unauthorized 등의 에러 발생 시 로그인되지 않은 상태로 처리

@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import Header from '../components/header/Header';
 import Navbar from './Navbar.tsx';
 import Footer from '../components/footer/Footer.tsx';
+import { Toaster } from 'react-hot-toast';
 
 const Layout = () => {
   return (
@@ -20,6 +21,7 @@ const Layout = () => {
       <Footer />
       {/* navbar */}
       <Navbar />
+      <Toaster />
     </div>
   );
 };

@@ -15,8 +15,28 @@ import { Separator } from '../components/ui/separator.tsx';
  * @constructor
  */
 const LoginPage = () => {
+  /**
+   * Variables
+   */
+  /* 기본 API 주소(소셜) */
+  const baseUrl = import.meta.env.VITE_GOOGLE_URL;
   const navigate = useNavigate();
   const { login } = useAuth();
+
+  /**
+   * Handlers
+   */
+  /* 로그인 버튼 handler */
+  const onSignInHandler = (provider: string) => {
+    console.log('로그인 시도:', provider);
+    if (provider === 'kakao') {
+      console.log('카카오 로그인 버튼 클릭');
+      window.location.href = `${baseUrl}/oauth2/authorization/${provider}`;
+    } else if (provider === 'google') {
+      console.log('구글 로그인 버튼 클릭');
+      window.location.href = `${baseUrl}/oauth2/authorization/google`;
+    }
+  };
 
   const handleTempLogin = () => {
     // 1. 테스트용 임시 사용자 정보를 생성합니다.
@@ -57,7 +77,8 @@ const LoginPage = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Google Login */}
-            <Button variant="outline" size="lg" className="w-full h-12 text-base gap-3 hover:bg-muted/50 border-2">
+            <Button variant="outline" size="lg" onClick={() => onSignInHandler('google')}
+                    className="w-full h-12 text-base gap-3 hover:bg-muted/50 border-2">
               <GoogleIcon />
               Google로 계속하기
             </Button>
@@ -69,6 +90,7 @@ const LoginPage = () => {
             </div>
             {/* Kakao Login */}
             <Button size="lg"
+                    onClick={() => onSignInHandler('kakao')}
                     className="w-full h-12 text-base gap-3 bg-[#FEE500] hover:bg-[#FCDD00] text-black border-2 border-[#FEE500] hover:border-[#FCDD00]">
               <KakaoIcon />
               카카오로 계속하기
