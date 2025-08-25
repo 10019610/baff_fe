@@ -1,102 +1,102 @@
-import { Button } from '../ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
-import { Badge } from '../ui/badge';
-import { LogOut, User, Settings, Crown } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-
-interface UserMenuProps {
-  onProfileClick?: () => void;
-}
-
-export default function UserMenu({ onProfileClick }: UserMenuProps) {
-  const { user, logout } = useAuth();
-
-  if (!user) return null;
-
-  const getProviderBadge = () => {
-    if (user.provider === 'google') {
-      return (
-        <Badge variant="outline" className="text-xs">
-          Google
-        </Badge>
-      );
-    }
-    if (user.provider === 'kakao') {
-      return (
-        <Badge
-          variant="outline"
-          className="text-xs bg-[#FEE500] text-black border-[#FEE500]"
-        >
-          Kakao
-        </Badge>
-      );
-    }
-    return null;
-  };
-
-  const handleLogout = () => {
-    if (confirm('로그아웃 하시겠습니까?')) {
-      logout();
-    }
-  };
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={user.profileImage} alt={user.name} />
-            <AvatarFallback className="bg-primary text-primary-foreground">
-              {user.name[0]}
-            </AvatarFallback>
-          </Avatar>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-64" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-2">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium leading-none">{user.name}</p>
-              {getProviderBadge()}
-            </div>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
-            </p>
-            <div className="flex items-center gap-2 pt-1">
-              <Crown className="h-3 w-3 text-yellow-500" />
-              <span className="text-xs text-muted-foreground">
-                회원 가입일:{' '}
-                {new Date(user.createdAt).toLocaleDateString('ko-KR')}
-              </span>
-            </div>
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer" onClick={onProfileClick}>
-          <User className="mr-2 h-4 w-4" />
-          <span>프로필</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem className="cursor-pointer">
-          <Settings className="mr-2 h-4 w-4" />
-          <span>설정</span>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20"
-          onClick={handleLogout}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>로그아웃</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
+// import { Button } from '../ui/button';
+// import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+// import {
+//   DropdownMenu,
+//   DropdownMenuContent,
+//   DropdownMenuItem,
+//   DropdownMenuLabel,
+//   DropdownMenuSeparator,
+//   DropdownMenuTrigger,
+// } from '../ui/dropdown-menu';
+// import { Badge } from '../ui/badge';
+// import { LogOut, User, Settings, Crown } from 'lucide-react';
+// // import { useAuth } from '../../context/AuthContext';
+//
+// interface UserMenuProps {
+//   onProfileClick?: () => void;
+// }
+//
+// export default function UserMenu({ onProfileClick }: UserMenuProps) {
+//   // const { user, logout } = useAuth();
+//
+//   if (!user) return null;
+//
+//   const getProviderBadge = () => {
+//     if (user.provider === 'google') {
+//       return (
+//         <Badge variant="outline" className="text-xs">
+//           Google
+//         </Badge>
+//       );
+//     }
+//     if (user.provider === 'kakao') {
+//       return (
+//         <Badge
+//           variant="outline"
+//           className="text-xs bg-[#FEE500] text-black border-[#FEE500]"
+//         >
+//           Kakao
+//         </Badge>
+//       );
+//     }
+//     return null;
+//   };
+//
+//   const handleLogout = () => {
+//     if (confirm('로그아웃 하시겠습니까?')) {
+//       logout();
+//     }
+//   };
+//
+//   return (
+//     <DropdownMenu>
+//       <DropdownMenuTrigger asChild>
+//         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+//           <Avatar className="h-10 w-10">
+//             <AvatarImage src={user.profileImage} alt={user.name} />
+//             <AvatarFallback className="bg-primary text-primary-foreground">
+//               {user.name[0]}
+//             </AvatarFallback>
+//           </Avatar>
+//         </Button>
+//       </DropdownMenuTrigger>
+//       <DropdownMenuContent className="w-64" align="end" forceMount>
+//         <DropdownMenuLabel className="font-normal">
+//           <div className="flex flex-col space-y-2">
+//             <div className="flex items-center justify-between">
+//               <p className="text-sm font-medium leading-none">{user.name}</p>
+//               {getProviderBadge()}
+//             </div>
+//             <p className="text-xs leading-none text-muted-foreground">
+//               {user.email}
+//             </p>
+//             <div className="flex items-center gap-2 pt-1">
+//               <Crown className="h-3 w-3 text-yellow-500" />
+//               <span className="text-xs text-muted-foreground">
+//                 회원 가입일:{' '}
+//                 {new Date(user.createdAt).toLocaleDateString('ko-KR')}
+//               </span>
+//             </div>
+//           </div>
+//         </DropdownMenuLabel>
+//         <DropdownMenuSeparator />
+//         <DropdownMenuItem className="cursor-pointer" onClick={onProfileClick}>
+//           <User className="mr-2 h-4 w-4" />
+//           <span>프로필</span>
+//         </DropdownMenuItem>
+//         <DropdownMenuItem className="cursor-pointer">
+//           <Settings className="mr-2 h-4 w-4" />
+//           <span>설정</span>
+//         </DropdownMenuItem>
+//         <DropdownMenuSeparator />
+//         <DropdownMenuItem
+//           className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20"
+//           onClick={handleLogout}
+//         >
+//           <LogOut className="mr-2 h-4 w-4" />
+//           <span>로그아웃</span>
+//         </DropdownMenuItem>
+//       </DropdownMenuContent>
+//     </DropdownMenu>
+//   );
+// }

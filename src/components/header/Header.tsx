@@ -1,7 +1,7 @@
 import React from 'react';
 import { Scale } from 'lucide-react';
 import { Badge } from '../ui/badge';
-import UserMenu from './UserMenu';
+// import UserMenu from './UserMenu';
 
 interface MenuItem {
   id: string;
@@ -17,7 +17,7 @@ interface HeaderProps {
 
 export default function Header({
   activeMenuItem,
-  onProfileClick,
+  // onProfileClick,
 }: HeaderProps) {
   return (
     <div className="bg-card border-b border-border sticky top-0 z-40">
@@ -36,7 +36,7 @@ export default function Header({
 
           {/* User Menu (Always visible) */}
           <div>
-            <UserMenu onProfileClick={onProfileClick} />
+            {/*<UserMenu onProfileClick={onProfileClick} />*/}
           </div>
 
           <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-2 sm:hidden">

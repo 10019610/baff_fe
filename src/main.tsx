@@ -3,7 +3,8 @@ import './index.css';
 import { BrowserRouter } from 'react-router-dom';
 import Router from './routes/Router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext.tsx';
+// import { AuthProvider } from './context/AuthContext';
 
 // Tanstack Query Setting
 const queryClient = new QueryClient();
@@ -15,5 +16,5 @@ createRoot(document.getElementById('root')!).render(
         <Router />
       </AuthProvider>
     </BrowserRouter>
-  </QueryClientProvider>
+  </QueryClientProvider>,
 );

@@ -1,150 +1,95 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { api } from '../services/api/Api.ts';
+import type { User } from '../types/User.ts'; // User 타입 임포트
 
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  profileImage?: string;
-  provider: 'google' | 'kakao';
-  createdAt: string;
-}
-
+// 인증 컨텍스트의 상태를 정의합니다.
 interface AuthContextType {
-  user: User | null;
-  isLoading: boolean;
-  login: (provider: 'google' | 'kakao') => Promise<void>;
-  logout: () => void;
-  isAuthenticated: boolean;
+  user: User | null; // 현재 로그인된 사용자 정보
+  isAuthenticated: boolean; // 로그인 여부
+  isLoading: boolean; // 인증 상태 로딩 중 여부
+  login: (userData: User) => void; // 로그인 시 사용자 정보 설정 함수
+  logout: () => void; // 로그아웃 처리 함수
 }
 
+// 기본 인증 컨텍스트 값 (초기 상태)
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// AuthProvider 컴포넌트: 인증 상태를 관리하고 자식 컴포넌트에 제공합니다.
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // 초기 로딩 상태는 true
+  const baseUrl = import.meta.env.VITE_APP_API_URL;
+
+  // 컴포넌트 마운트 시 사용자 인증 상태를 확인합니다.
+  useEffect(() => {
+    /**
+     * 현재 로그인된 사용자 정보를 백엔드에서 가져오는 비동기 함수
+     * JWT 쿠키를 통해 인증 상태를 확인하고 사용자 정보를 설정합니다.
+     */
+    const fetchUser = async () => {
+      try {
+        const response = await api.get<User>(`${baseUrl}/user/me`);
+        setUser(response.data);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.log(error);
+        // 401 Unauthorized 등의 에러 발생 시 로그인되지 않은 상태로 처리
+        setUser(null);
+        setIsAuthenticated(false);
+        // console.error('Failed to fetch user info:', error); // 개발 시 디버깅용
+      } finally {
+        setIsLoading(false); // 로딩 완료
+      }
+    };
+
+    fetchUser();
+  }, [baseUrl]); // 컴포넌트 마운트 시 한 번만 실행
+
+  /**
+   * 로그인 처리 함수
+   * @param userData 로그인 성공 후 백엔드에서 받은 사용자 정보
+   */
+  const login = React.useCallback((userData: User) => {
+    console.log('auth Context login', userData);
+    setUser(userData);
+    setIsAuthenticated(true);
+  }, []);
+
+  /**
+   * 로그아웃 처리 함수
+   * 로컬 스토리지에서 토큰을 제거하고, 사용자 상태를 초기화합니다.
+   */
+  const logout = React.useCallback(() => {
+    // 로컬환경과 배포환경 구분하여 처리
+    // if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.VITE_APP_ENV === 'development') {
+      document.cookie = 'accessToken=; path=/; max-age=0;';
+    } else {
+      document.cookie =
+        'accessToken=; path=/; max-age=0; Secure; SameSite=None; Domain=onlymebe.onrender.com;';
+    }
+
+    // 백엔드에서 쿠키를 제거하는 API가 있다면 여기에 호출 로직 추가
+    // 예: apiClient.post('/api/auth/logout');
+    setUser(null);
+    setIsAuthenticated(false);
+    window.location.href = '/';
+  }, []);
+
+  const value = React.useMemo(
+    () => ({ user, isAuthenticated, isLoading, login, logout }),
+    [user, isAuthenticated, isLoading, login, logout],
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+// AuthContext를 쉽게 사용할 수 있도록 커스텀 훅을 제공합니다.
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
-
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  // 퍼블리싱 확인용 Mock 사용자 (개발 중에만 사용)
-  const [user, setUser] = useState<User | null>({
-    id: 'mock_user_123',
-    email: 'test@example.com',
-    name: '테스트 유저',
-    profileImage:
-      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
-    provider: 'google',
-    createdAt: new Date().toISOString(),
-  });
-  const [isLoading, setIsLoading] = useState(false);
-
-  // 페이지 로드 시 저장된 사용자 정보 확인
-  useEffect(() => {
-    const checkAuth = () => {
-      try {
-        const savedUser = localStorage.getItem('user');
-        if (savedUser) {
-          const userData = JSON.parse(savedUser);
-          setUser(userData);
-        }
-      } catch (error) {
-        console.error('Failed to parse saved user data:', error);
-        localStorage.removeItem('user');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
-
-  // Mock 소셜 로그인 함수
-  const login = async (provider: 'google' | 'kakao') => {
-    setIsLoading(true);
-
-    try {
-      // 실제 환경에서는 여기서 OAuth 플로우를 시작합니다
-      // window.location.href = `${API_URL}/auth/${provider}`;
-
-      // Mock 로그인 시뮬레이션
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // 로딩 시뮬레이션
-
-      // Mock 사용자 데이터
-      const mockUsers = {
-        google: {
-          id: 'google_user_123',
-          email: 'user@gmail.com',
-          name: '김체중',
-          profileImage:
-            'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
-          provider: 'google' as const,
-          createdAt: new Date().toISOString(),
-        },
-        kakao: {
-          id: 'kakao_user_456',
-          email: 'user@kakao.com',
-          name: '이다이어트',
-          profileImage:
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face',
-          provider: 'kakao' as const,
-          createdAt: new Date().toISOString(),
-        },
-      };
-
-      const userData = mockUsers[provider];
-
-      // 사용자 정보 저장
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
-
-      // 기존 localStorage 데이터를 현재 사용자에게 연결
-      // 실제 환경에서는 서버에서 사용자별 데이터를 관리합니다
-      const existingData = {
-        weightEntries: localStorage.getItem('weightEntries'),
-        goals: localStorage.getItem('goals'),
-        battleRequests: localStorage.getItem('battleRequests'),
-        weightBattles: localStorage.getItem('weightBattles'),
-      };
-
-      // 사용자별 데이터 키로 저장
-      Object.entries(existingData).forEach(([key, data]) => {
-        if (data) {
-          localStorage.setItem(`${key}_${userData.id}`, data);
-        }
-      });
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const logout = () => {
-    // 사용자 정보 제거
-    localStorage.removeItem('user');
-    setUser(null);
-
-    // 실제 환경에서는 서버에 로그아웃 요청을 보냅니다
-    // fetch('/api/auth/logout', { method: 'POST' });
-  };
-
-  const isAuthenticated = !!user;
-
-  const value: AuthContextType = {
-    user,
-    isLoading,
-    login,
-    logout,
-    isAuthenticated,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
