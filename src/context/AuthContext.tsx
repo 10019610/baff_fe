@@ -31,7 +31,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log('fetchUser', isAuthenticated);
       try {
         const response = await api.get<User>(`${baseUrl}/user/me`);
-        console.log(response);
+        console.log('[/user/me] API 실제 응답 데이터:', response.data);
         setUser(response.data);
         setIsAuthenticated(true);
         console.log('isAuthenticated', isAuthenticated);
