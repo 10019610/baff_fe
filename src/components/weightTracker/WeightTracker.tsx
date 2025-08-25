@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -10,6 +10,16 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../ui/alert-dialog';
+import {
   LineChart,
   Line,
   XAxis,
@@ -18,112 +28,100 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { Calendar, TrendingDown, TrendingUp, Minus, Plus } from 'lucide-react';
+import {
+  Calendar,
+  TrendingDown,
+  TrendingUp,
+  Minus,
+  Plus,
+  AlertTriangle,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AnimatedContainer from './AnimatedContainer';
 import ValidatedInput from './ValidatedInput';
 import { validationRules } from '../../utils/validation';
-import { toast } from 'sonner';
 
-interface WeightEntry {
-  id: string;
-  date: string;
-  weight: number;
-  change?: number;
+import type {
+  RecordWeightRequest,
+  WeightEntry as APIWeightEntry,
+} from '../../types/WeightTracker.api.type';
+
+interface WeightTrackerProps {
+  onClickRecord: () => void;
+  onChangeParam: (
+    key: keyof RecordWeightRequest,
+    value: string | number
+  ) => void;
+  param: RecordWeightRequest;
+  entries?: APIWeightEntry[];
+  isLoading?: boolean;
+  isSubmitting?: boolean;
+  currentWeight?: number;
+  totalChange?: number;
+  recordedDays?: number;
 }
 
-export default function WeightTracker() {
-  const [weight, setWeight] = useState<string | number>('');
-  const [entries, setEntries] = useState<WeightEntry[]>([]);
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split('T')[0]
-  );
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Load data from localStorage on component mount
+const WeightTracker = ({
+  onClickRecord,
+  onChangeParam,
+  param,
+  entries = [],
+  isLoading = false,
+  isSubmitting = false,
+  currentWeight,
+  totalChange,
+  recordedDays,
+}: WeightTrackerProps) => {
+  // 중복 날짜 처리를 위한 상태
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [pendingEntry, setPendingEntry] = useState<{
+    date: string;
+    weight: number;
+    existingWeight: number;
+  } | null>(null);
+  // Update param.recordDate when date changes
   useEffect(() => {
-    const loadData = async () => {
-      // Simulate loading delay for better UX
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const savedEntries = localStorage.getItem('weightEntries');
-      if (savedEntries) {
-        setEntries(JSON.parse(savedEntries));
-      }
-      setIsLoading(false);
-    };
-
-    loadData();
-  }, []);
-
-  // Save data to localStorage whenever entries change
-  useEffect(() => {
-    if (!isLoading) {
-      localStorage.setItem('weightEntries', JSON.stringify(entries));
+    if (!param.recordDate) {
+      // Set today as default
+      const today = new Date().toISOString().split('T')[0];
+      onChangeParam('recordDate', today);
     }
-  }, [entries, isLoading]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!weight || !selectedDate) return;
+    if (!param.weight || !param.recordDate) return;
 
-    const weightValue = Number(weight);
-    if (isNaN(weightValue)) return;
+    // Check if entry for this date already exists
+    const existingEntry = entries.find(
+      (entry) => entry.date === param.recordDate
+    );
 
-    setIsSubmitting(true);
-
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    try {
-      // Check if entry for this date already exists
-      const existingEntryIndex = entries.findIndex(
-        (entry) => entry.date === selectedDate
-      );
-
-      const newEntries = [...entries];
-      const previousEntry = newEntries
-        .filter((entry) => entry.date < selectedDate)
-        .sort((a, b) => b.date.localeCompare(a.date))[0];
-
-      const change = previousEntry ? weightValue - previousEntry.weight : 0;
-
-      const newEntry: WeightEntry = {
-        id: Date.now().toString(),
-        date: selectedDate,
-        weight: weightValue,
-        change: change,
-      };
-
-      if (existingEntryIndex >= 0) {
-        // Update existing entry
-        newEntries[existingEntryIndex] = newEntry;
-        toast.success('체중 기록이 수정되었습니다');
-      } else {
-        // Add new entry
-        newEntries.push(newEntry);
-        toast.success('체중이 성공적으로 기록되었습니다');
-      }
-
-      // Recalculate changes for all entries
-      newEntries.sort((a, b) => a.date.localeCompare(b.date));
-      for (let i = 0; i < newEntries.length; i++) {
-        if (i === 0) {
-          newEntries[i].change = 0;
-        } else {
-          newEntries[i].change =
-            newEntries[i].weight - newEntries[i - 1].weight;
-        }
-      }
-
-      setEntries(newEntries);
-      setWeight('');
-    } catch (error) {
-      toast.error('체중 기록 중 오류가 발생했습니다');
-    } finally {
-      setIsSubmitting(false);
+    if (existingEntry) {
+      // 중복 날짜 발견 - 사용자에게 확인 요청
+      setPendingEntry({
+        date: param.recordDate,
+        weight: param.weight,
+        existingWeight: existingEntry.weight,
+      });
+      setShowDuplicateDialog(true);
+    } else {
+      // 새로운 날짜 - 바로 진행
+      onClickRecord();
     }
+  };
+
+  const handleDuplicateConfirm = async () => {
+    if (pendingEntry) {
+      onClickRecord();
+      setPendingEntry(null);
+    }
+    setShowDuplicateDialog(false);
+  };
+
+  const handleDuplicateCancel = () => {
+    setPendingEntry(null);
+    setShowDuplicateDialog(false);
   };
 
   const formatDate = (dateString: string) => {
@@ -159,15 +157,22 @@ export default function WeightTracker() {
       weight: entry.weight,
     }));
 
-  const currentWeight =
-    entries.length > 0
+  // 백엔드에서 제공하는 통계값 사용, 없으면 기존 계산 방식 사용
+  const displayCurrentWeight =
+    currentWeight ??
+    (entries.length > 0
       ? entries.sort((a, b) => b.date.localeCompare(a.date))[0].weight
-      : null;
+      : null);
 
-  const totalChange =
-    entries.length > 1
-      ? entries[entries.length - 1].weight - entries[0].weight
-      : 0;
+  const displayTotalChange =
+    totalChange ??
+    (entries.length > 1
+      ? entries.sort((a, b) => a.date.localeCompare(b.date))[entries.length - 1]
+          .weight -
+        entries.sort((a, b) => a.date.localeCompare(b.date))[0].weight
+      : 0);
+
+  const displayRecordedDays = recordedDays ?? entries.length;
 
   // Loading skeleton
   if (isLoading) {
@@ -213,6 +218,81 @@ export default function WeightTracker() {
 
   return (
     <div className="space-y-6">
+      {/* 중복 날짜 확인 다이얼로그 */}
+      <AlertDialog
+        open={showDuplicateDialog}
+        onOpenChange={setShowDuplicateDialog}
+      >
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              이미 기록된 날짜입니다
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              선택하신{' '}
+              {pendingEntry &&
+                new Date(pendingEntry.date).toLocaleDateString('ko-KR')}
+              에 이미 체중 기록이 있습니다. 기존 기록을 새로운 값으로
+              업데이트하시겠습니까?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {/* 비교 정보를 별도 섹션으로 분리 */}
+          {pendingEntry && (
+            <div className="px-6 pb-4">
+              <div className="bg-muted rounded-lg p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">
+                    기존 기록:
+                  </span>
+                  <span className="font-semibold">
+                    {pendingEntry.existingWeight}kg
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">
+                    새로운 기록:
+                  </span>
+                  <span className="font-semibold">{pendingEntry.weight}kg</span>
+                </div>
+                <div className="border-t border-border pt-3 flex justify-between items-center">
+                  <span className="text-sm font-medium">변화량:</span>
+                  <span
+                    className={`font-semibold ${
+                      pendingEntry.weight > pendingEntry.existingWeight
+                        ? 'text-red-600'
+                        : pendingEntry.weight < pendingEntry.existingWeight
+                          ? 'text-green-600'
+                          : 'text-gray-600'
+                    }`}
+                  >
+                    {pendingEntry.weight > pendingEntry.existingWeight
+                      ? '+'
+                      : ''}
+                    {(
+                      pendingEntry.weight - pendingEntry.existingWeight
+                    ).toFixed(1)}
+                    kg
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDuplicateCancel}>
+              취소
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDuplicateConfirm}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              업데이트
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {/* Weight Input Form */}
       <AnimatedContainer>
         <Card>
@@ -232,8 +312,10 @@ export default function WeightTracker() {
                   id="date"
                   label="날짜"
                   type="date"
-                  value={selectedDate}
-                  onChange={(value) => setSelectedDate(String(value))}
+                  value={param.recordDate}
+                  onChange={(value) =>
+                    onChangeParam('recordDate', String(value))
+                  }
                   validationRules={{ required: true }}
                   placeholder="날짜를 선택하세요"
                   disabled={isSubmitting}
@@ -243,14 +325,38 @@ export default function WeightTracker() {
                   id="weight"
                   label="체중 (kg)"
                   type="number"
-                  value={weight}
-                  onChange={setWeight}
+                  value={param.weight || ''}
+                  onChange={(value) =>
+                    onChangeParam('weight', Number(value) || 0)
+                  }
                   validationRules={validationRules.weight}
                   placeholder="예: 65.5"
                   disabled={isSubmitting}
                   validateOnChange={true}
                 />
               </div>
+
+              {/* 기존 기록이 있는 경우 안내 */}
+              {(() => {
+                const existingEntry = entries.find(
+                  (entry) => entry.date === param.recordDate
+                );
+                if (existingEntry && !isSubmitting) {
+                  return (
+                    <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                      <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
+                        <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                        <span className="text-sm">
+                          이 날짜에 이미{' '}
+                          <strong>{existingEntry.weight}kg</strong> 기록이
+                          있습니다. 새로 기록하면 기존 값이 업데이트됩니다.
+                        </span>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
 
               <motion.div
                 whileHover={{ scale: 1.02 }}
@@ -259,7 +365,7 @@ export default function WeightTracker() {
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={isSubmitting || !weight || !selectedDate}
+                  disabled={isSubmitting || !param.weight || !param.recordDate}
                 >
                   {isSubmitting ? (
                     <>
@@ -288,19 +394,23 @@ export default function WeightTracker() {
 
       {/* Current Stats */}
       <AnimatePresence>
-        {currentWeight && (
+        {displayCurrentWeight && (
           <AnimatedContainer delay={0.1} direction="up">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
-                { label: '현재 체중', value: `${currentWeight}kg`, icon: null },
+                {
+                  label: '현재 체중',
+                  value: `${displayCurrentWeight}kg`,
+                  icon: null,
+                },
                 {
                   label: '총 변화량',
-                  value: `${totalChange.toFixed(1)}kg`,
-                  icon: getChangeIcon(totalChange),
+                  value: `${displayTotalChange.toFixed(1)}kg`,
+                  icon: getChangeIcon(displayTotalChange),
                 },
                 {
                   label: '기록된 일수',
-                  value: `${entries.length}일`,
+                  value: `${displayRecordedDays}일`,
                   icon: null,
                 },
               ].map((stat, index) => (
@@ -413,4 +523,6 @@ export default function WeightTracker() {
       </AnimatePresence>
     </div>
   );
-}
+};
+
+export default WeightTracker;

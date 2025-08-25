@@ -11,7 +11,7 @@ export default function Footer() {
       <div className="hidden md:block">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* App Info */}
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
@@ -30,29 +30,6 @@ export default function Footer() {
                   <br />
                   스마트한 체중 관리 솔루션
                 </p>
-              </div>
-
-              {/* Features */}
-              <div className="space-y-4">
-                <h4 className="font-medium">주요 기능</h4>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li className="flex items-center gap-2">
-                    <div className="w-1 h-1 bg-primary rounded-full"></div>
-                    일일 체중 기록 및 추적
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-1 h-1 bg-primary rounded-full"></div>
-                    개인별 목표 설정 및 관리
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-1 h-1 bg-primary rounded-full"></div>
-                    친구와의 대결 모드
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-1 h-1 bg-primary rounded-full"></div>
-                    상세한 진행 상황 대시보드
-                  </li>
-                </ul>
               </div>
 
               {/* Contact & Info */}
