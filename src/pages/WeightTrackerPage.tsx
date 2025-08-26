@@ -53,33 +53,17 @@ const WeightTrackerPage = () => {
         const updateInfo = (window as any).updateInfo;
 
         if (updateInfo) {
-          // 업데이트 토스트
-          toast.success('체중 기록이 업데이트되었습니다!', {
-            icon: '✏️',
-            duration: 4000,
-            style: {
-              background: 'hsl(var(--card))',
-              color: 'hsl(var(--card-foreground))',
-              border: '1px solid #98FB98',
-            },
-          });
+          // 업데이트 토스트 - 변화량 정보 포함
+          const change = updateInfo.newWeight - updateInfo.oldWeight;
+          const changeText = `${change > 0 ? '+' : ''}${change.toFixed(1)}kg`;
 
-          // 추가 정보 토스트
-          setTimeout(() => {
-            const change = updateInfo.newWeight - updateInfo.oldWeight;
-            toast(
-              `${updateInfo.oldWeight}kg → ${updateInfo.newWeight}kg (${change > 0 ? '+' : ''}${change.toFixed(1)}kg)`,
-              {
-                icon: '📊',
-                duration: 3000,
-                style: {
-                  background: 'hsl(var(--muted))',
-                  color: 'hsl(var(--muted-foreground))',
-                  fontSize: '13px',
-                },
-              }
-            );
-          }, 500);
+          toast.success(
+            `체중 기록이 업데이트되었습니다!\n${updateInfo.oldWeight}kg → ${updateInfo.newWeight}kg (${changeText})`,
+            {
+              icon: '✏️',
+              duration: 4000,
+            }
+          );
 
           // 전역 변수 정리
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
