@@ -1,7 +1,7 @@
 import GoalSetting from '../components/GoalSetting.tsx';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import type { GetCurrentWeightInfoResponse, GetGoalListResponse, RecordGoalsRequest } from '../types/Goals.api.type.ts';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { goalsInitializer } from '../types/Goal.initializer.ts';
 import type { PresetDurationType } from '../types/Goals.type.ts';
 import GoalSetupGuide from '../components/GoalSetupGuide.tsx';
@@ -47,16 +47,16 @@ const GoalsPage = () => {
   // 임시
   // const currentWeight = 60;
 
-  const { data: getCurrentWeightInfo } = useQuery<GetCurrentWeightInfoResponse>({
+  const { data: getCurrentWeightInfo, isSuccess } = useQuery<GetCurrentWeightInfoResponse>({
     queryKey: ['currentWeight'],
     initialData: { currentWeight: 0 },
     queryFn: () => {
       return api.get('/weight/getCurrentWeight').then((res) => {
         console.log(res);
-        setRecordWeightParam((prevState) => ({
-          ...prevState,
-          startWeight: getCurrentWeightInfo.currentWeight,
-        }));
+        // setRecordWeightParam((prevState) => ({
+        //   ...prevState,
+        //   startWeight: getCurrentWeightInfo.currentWeight,
+        // }));
         return res.data;
       });
     },
@@ -112,6 +112,15 @@ const GoalsPage = () => {
   if (!hasWeightEntry) {
     return <GoalSetupGuide />;
   }
+
+  useEffect(() => {
+    if (isSuccess && getCurrentWeightInfo) {
+      setRecordWeightParam((prevState) => ({
+        ...prevState,
+        startWeight: getCurrentWeightInfo.currentWeight,
+      }));
+    }
+  }, [getCurrentWeightInfo, isSuccess]);
   return (
     <div className="goals-page">
       <GoalSetting onClickRecord={handleRecordWeight} onChangeParam={handleRecordGoalsParam} param={recordWeightParam}

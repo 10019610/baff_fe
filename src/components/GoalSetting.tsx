@@ -109,11 +109,14 @@ const GoalSetting = ({
             <div className="p-3 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">현재 체중: <span
                 className="font-medium">{param.startWeight}kg</span>
-                {param.targetWeight && (
+                {param.targetWeight > 0 && (
                   <>
-                    {' -> 목표 체중: '}<span>{param.targetWeight}kg</span>
+                    {' -> 목표 체중: '}<span className="font-medium">{param.targetWeight}kg</span>
                     {' ('}
-                    <span>kg</span>
+                    <span className={param.targetWeight < currentWeight ? 'text-green-600' : 'text-blue-600'}>
+                      {(param.targetWeight < currentWeight ? '-' : '+')}
+                      {Math.abs(param.targetWeight - currentWeight).toFixed(1)}kg
+                    </span>
                     {')'}
                   </>
                 )}
@@ -182,6 +185,20 @@ const GoalSetting = ({
                         {progress >= 80 && (
                           <p className="text-xs text-green-600 font-medium">🎉 목표 달성이 가까워졌습니다!</p>
                         )}
+                      </div>
+                    )}
+                    {progress === 100 && goal.isExpired && (
+                      <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200">
+                        <p className="text-sm text-green-800">
+                          🎉 축하합니다! 목표를 성공적으로 달성했습니다.
+                        </p>
+                      </div>
+                    )}
+                    {progress < 100 && goal.isExpired && (
+                      <div className="p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200">
+                        <p className="text-sm text-red-800">
+                          💪 목표 달성에 실패했지만, 새로운 목표로 다시 도전해보세요!
+                        </p>
                       </div>
                     )}
                   </CardContent>
