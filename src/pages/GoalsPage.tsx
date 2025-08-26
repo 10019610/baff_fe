@@ -1,6 +1,6 @@
 import GoalSetting from '../components/GoalSetting.tsx';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import type { GetGoalListResponse, RecordGoalsRequest } from '../types/Goals.api.type.ts';
+import type { GetCurrentWeightInfoResponse, GetGoalListResponse, RecordGoalsRequest } from '../types/Goals.api.type.ts';
 import { useState } from 'react';
 import { goalsInitializer } from '../types/Goal.initializer.ts';
 import type { PresetDurationType } from '../types/Goals.type.ts';
@@ -41,11 +41,27 @@ const GoalsPage = () => {
     mutationFn: (param: RecordGoalsRequest) => api.post('/goals/recordGoals', param),
     onSuccess: () => {
       refetchGoalList();
-    }
+    },
   });
   /* 현재 체중기록 확인 api */
   // 임시
-  const currentWeight = 60;
+  // const currentWeight = 60;
+
+  const { data: getCurrentWeightInfo } = useQuery<GetCurrentWeightInfoResponse>({
+    queryKey: ['currentWeight'],
+    initialData: { currentWeight: 0 },
+    queryFn: () => {
+      return api.get('/weight/getCurrentWeight').then((res) => {
+        console.log(res);
+        setRecordWeightParam((prevState) => ({
+          ...prevState,
+          startWeight: getCurrentWeightInfo.currentWeight,
+        }));
+        return res.data;
+      });
+    },
+  });
+
   /* 설정된 목표 리스트 조회 api */
   const { data: goalList, refetch: refetchGoalList } = useQuery<GetGoalListResponse[]>({
     queryKey: ['goal'],
@@ -99,7 +115,8 @@ const GoalsPage = () => {
   return (
     <div className="goals-page">
       <GoalSetting onClickRecord={handleRecordWeight} onChangeParam={handleRecordGoalsParam} param={recordWeightParam}
-                   presetDuration={presetDuration} currentWeight={currentWeight} goalList={goalList}
+                   presetDuration={presetDuration} currentWeight={getCurrentWeightInfo.currentWeight}
+                   goalList={goalList}
                    handleGetDaysRemaining={handleGetDaysRemaining} />
     </div>
   );

@@ -26,3 +26,10 @@ export interface GetGoalListResponse {
   isExpired: boolean;
   // status: 'active' | 'completed';
 }
+
+/**
+ * 현재 체중 조회 반환 타입
+ */
+export interface GetCurrentWeightInfoResponse {
+  currentWeight: number;
+}

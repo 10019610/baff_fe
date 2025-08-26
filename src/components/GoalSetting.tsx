@@ -54,13 +54,17 @@ const GoalSetting = ({
   };
   /* 진행률 계산 handler */
   const calculateProgress = (goal: Goal) => {
+    console.log('targetWeight', goal.targetWeight, 'startWeight', goal.startWeight, 'currentWeight', currentWeight);
     if (!currentWeight) return 0;
     const totalChange = goal.targetWeight - goal.startWeight;
     const currentChange = currentWeight - goal.startWeight;
 
     if (totalChange === 0) return 100;
 
-    const progress = (currentChange - totalChange) * 100;
+    console.log('totalChange', totalChange, 'currentChange', currentChange);
+
+    const progress = (currentChange / totalChange) * 100;
+    console.log('progress', progress);
     return Math.min(Math.max(progress, 0), 100);
   };
   return (
@@ -158,7 +162,7 @@ const GoalSetting = ({
                       </div>
                       <div>
                         <p className="text-muted-foreground">현재 체중</p>
-                        <p className="font-medium">23kg</p>
+                        <p className="font-medium">{currentWeight}kg</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">목표까지</p>
