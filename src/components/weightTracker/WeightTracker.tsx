@@ -43,7 +43,7 @@ import { validationRules } from '../../utils/validation';
 
 import type {
   RecordWeightRequest,
-  WeightEntry as APIWeightEntry,
+  WeightEntry,
 } from '../../types/WeightTracker.api.type';
 
 interface WeightTrackerProps {
@@ -53,7 +53,7 @@ interface WeightTrackerProps {
     value: string | number
   ) => void;
   param: RecordWeightRequest;
-  entries?: APIWeightEntry[];
+  entries?: WeightEntry[];
   isLoading?: boolean;
   isSubmitting?: boolean;
   currentWeight?: number;

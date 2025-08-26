@@ -4,6 +4,7 @@ import type {
   RecordWeightRequest,
   GetWeightListResponse,
   WeightResponseDto,
+  WeightEntry,
 } from '../types/WeightTracker.api.type';
 import { useState } from 'react';
 import { weightTrackerInitializer } from '../types/WeightTracker.initializer';
@@ -123,7 +124,7 @@ const WeightTrackerPage = () => {
     queryKey: ['weightEntries', user?.id],
 
     queryFn: async (): Promise<{
-      entries: any[];
+      entries: WeightEntry[];
       currentWeight?: number;
       totalChange?: number;
       recordedDays?: number;
@@ -131,18 +132,15 @@ const WeightTrackerPage = () => {
       if (!user?.id) return { entries: [] };
 
       try {
-        const response = await api.get('/weight/getWeightList', {
-          userId: user.id,
-        });
-
+        const response = await api.get('/weight/getWeightList');
         const data: GetWeightListResponse = response.data;
 
-        // 백엔드 DTO를 UI에서 사용하는 형태로 변환
-        const convertedEntries = data.dailyWeightRecords.map(
+        // 백엔드 DTO를 UI용 WeightEntry로 변환
+        const convertedEntries: WeightEntry[] = data.dailyWeightRecords.map(
           (record: WeightResponseDto, index: number) => ({
-            id: `${record.recordDate}_${index}`, // 임시 ID 생성
+            id: `${record.recordDate}_${index}`,
             userId: user.id,
-            date: record.recordDate.split('T')[0], // LocalDateTime을 date 형식으로 변환
+            date: record.recordDate.split('T')[0],
             weight: record.recordWeight,
             change: record.weightChange,
             createdAt: record.recordDate,
@@ -156,46 +154,9 @@ const WeightTrackerPage = () => {
           totalChange: data.totalWeightChange,
           recordedDays: data.recordedDays,
         };
-      } catch {
-        console.warn('getWeightList API not available, using mock data');
-
-        // API 실패 시 임시 mock 데이터
-        const mockEntries = [
-          {
-            id: '1',
-            userId: user?.id || '',
-            date: '2024-01-15',
-            weight: 70.5,
-            change: 0,
-            createdAt: '2024-01-15T09:00:00Z',
-            updatedAt: '2024-01-15T09:00:00Z',
-          },
-          {
-            id: '2',
-            userId: user?.id || '',
-            date: '2024-01-16',
-            weight: 70.2,
-            change: -0.3,
-            createdAt: '2024-01-16T09:00:00Z',
-            updatedAt: '2024-01-16T09:00:00Z',
-          },
-          {
-            id: '3',
-            userId: user?.id || '',
-            date: '2024-01-17',
-            weight: 69.8,
-            change: -0.4,
-            createdAt: '2024-01-17T09:00:00Z',
-            updatedAt: '2024-01-17T09:00:00Z',
-          },
-        ];
-
-        return {
-          entries: mockEntries,
-          currentWeight: 69.8,
-          totalChange: -0.7,
-          recordedDays: 3,
-        };
+      } catch (error) {
+        console.warn('getWeightList API not available:', error);
+        return { entries: [] };
       }
     },
     enabled: !!user?.id,
