@@ -138,14 +138,43 @@ const WeightTracker = ({
   };
 
   const getChangeBadge = (change: number) => {
-    const variant =
-      change > 0 ? 'destructive' : change < 0 ? 'default' : 'secondary';
-    const prefix = change > 0 ? '+' : '';
+    if (change === 0) {
+      return (
+        <Badge
+          variant="outline"
+          className="flex items-center gap-1 text-muted-foreground border-muted-foreground/30 bg-muted/20 font-medium text-xs px-2 py-1"
+        >
+          <Minus className="h-3 w-3" />
+          0kg
+        </Badge>
+      );
+    }
+
+    const isIncrease = change > 0;
+    const prefix = isIncrease ? '+' : '';
+    const iconColor = isIncrease ? 'text-red-500' : 'text-emerald-600';
+    const bgColor = isIncrease
+      ? 'bg-red-50 dark:bg-red-950/20'
+      : 'bg-emerald-50 dark:bg-emerald-950/20';
+    const borderColor = isIncrease
+      ? 'border-red-200 dark:border-red-800'
+      : 'border-emerald-200 dark:border-emerald-800';
+    const textColor = isIncrease
+      ? 'text-red-700 dark:text-red-400'
+      : 'text-emerald-700 dark:text-emerald-400';
+
     return (
-      <Badge variant={variant} className="flex items-center gap-1">
-        {getChangeIcon(change)}
+      <Badge
+        variant="outline"
+        className={`flex items-center gap-1 font-semibold text-xs px-2.5 py-1.5 ${bgColor} ${borderColor} ${textColor} hover:scale-105 transition-transform duration-200`}
+      >
+        {isIncrease ? (
+          <TrendingUp className={`h-3.5 w-3.5 ${iconColor}`} />
+        ) : (
+          <TrendingDown className={`h-3.5 w-3.5 ${iconColor}`} />
+        )}
         {prefix}
-        {change.toFixed(1)}kg
+        {Math.abs(change).toFixed(1)}kg
       </Badge>
     );
   };

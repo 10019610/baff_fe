@@ -119,17 +119,30 @@ const WeightTrackerPage = () => {
         const response = await api.get('/weight/getWeightList');
         const data: GetWeightListResponse = response.data;
 
-        // 백엔드 DTO를 UI용 WeightEntry로 변환
-        const convertedEntries: WeightEntry[] = data.dailyWeightRecords.map(
-          (record: WeightResponseDto, index: number) => ({
-            id: `${record.recordDate}_${index}`,
-            userId: user.id,
-            date: record.recordDate.split('T')[0],
-            weight: record.recordWeight,
-            change: record.weightChange,
-            createdAt: record.recordDate,
-            updatedAt: record.recordDate,
-          })
+        // 날짜순으로 정렬 (오래된 것부터)
+        const sortedRecords = data.dailyWeightRecords.sort((a, b) =>
+          a.recordDate.localeCompare(b.recordDate)
+        );
+
+        // 백엔드 DTO를 UI용 WeightEntry로 변환하면서 전일 대비 변화량 계산
+        const convertedEntries: WeightEntry[] = sortedRecords.map(
+          (record: WeightResponseDto, index: number) => {
+            // 전일 대비 변화량 계산 (첫 번째 기록은 변화량 0)
+            const previousRecord = index > 0 ? sortedRecords[index - 1] : null;
+            const change = previousRecord
+              ? record.recordWeight - previousRecord.recordWeight
+              : 0;
+
+            return {
+              id: `${record.recordDate}_${index}`,
+              userId: user.id,
+              date: record.recordDate.split('T')[0],
+              weight: record.recordWeight,
+              change: change,
+              createdAt: record.recordDate,
+              updatedAt: record.recordDate,
+            };
+          }
         );
 
         return {
