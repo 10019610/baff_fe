@@ -3,6 +3,8 @@ import { Scale } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import UserMenu from './UserMenu.tsx';
 import ChangeUpLogo from '../ui/ChangeUpLogo.tsx';
+import { Button } from '../ui/button.tsx';
+import { useNavigate } from 'react-router-dom';
 
 // import UserMenu from './UserMenu';
 
@@ -19,9 +21,21 @@ interface HeaderProps {
 }
 
 export default function Header({
-  activeMenuItem,
-  onProfileClick,
-}: HeaderProps) {
+                                 activeMenuItem,
+                                 onProfileClick,
+                               }: HeaderProps) {
+  /**
+   * Hooks
+   */
+  const navigate = useNavigate();
+  /**
+   * Handlers
+   */
+  /* 페이지 이동 handler */
+  const navigateTo = (to: string) => {
+    console.log(to);
+    navigate(to);
+  };
   return (
     <div className="bg-card border-b border-border sticky top-0 z-40">
       <div className="container mx-auto px-4 py-4">
@@ -39,7 +53,10 @@ export default function Header({
           </div>
 
           {/* User Menu (Always visible) */}
-          <div>
+          <div className="flex items-center gap-3">
+            <div>
+              <Button onClick={() => navigateTo('admin/dashboard')}>관리자</Button>
+            </div>
             <UserMenu onProfileClick={onProfileClick} />
           </div>
 
