@@ -1,5 +1,4 @@
 import React from 'react';
-import { Scale } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import UserMenu from './UserMenu.tsx';
 import ChangeUpLogo from '../ui/ChangeUpLogo.tsx';
@@ -21,9 +20,9 @@ interface HeaderProps {
 }
 
 export default function Header({
-                                 activeMenuItem,
-                                 onProfileClick,
-                               }: HeaderProps) {
+  activeMenuItem,
+  onProfileClick,
+}: HeaderProps) {
   /**
    * Hooks
    */
@@ -55,7 +54,9 @@ export default function Header({
           {/* User Menu (Always visible) */}
           <div className="flex items-center gap-3">
             <div>
-              <Button onClick={() => navigateTo('admin/dashboard')}>관리자</Button>
+              <Button onClick={() => navigateTo('admin/dashboard')}>
+                관리자
+              </Button>
             </div>
             <UserMenu onProfileClick={onProfileClick} />
           </div>
