@@ -40,7 +40,10 @@ export default function Header({
       <div className="container mx-auto px-4 py-4">
         <div className="relative flex items-center justify-between">
           {/* Logo and App Title */}
-          <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigateTo('/')}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg p-1 -m-1 cursor-pointer"
+          >
             {/* <Scale className="h-7 w-7 text-primary" /> */}
             <ChangeUpLogo size="md" />
             <div>
@@ -49,7 +52,7 @@ export default function Header({
                 건강한 변화의 시작
               </p>
             </div>
-          </div>
+          </button>
 
           {/* User Menu (Always visible) */}
           <div className="flex items-center gap-3">

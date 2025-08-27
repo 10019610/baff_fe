@@ -19,15 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../ui/alert-dialog';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import WeightChart from './WeightChart';
 import {
   Calendar,
   TrendingDown,
@@ -124,19 +116,6 @@ const WeightTracker = ({
     setShowDuplicateDialog(false);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR', {
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
-  const getChangeIcon = (change: number) => {
-    if (change > 0) return <TrendingUp className="h-4 w-4 text-red-500" />;
-    if (change < 0) return <TrendingDown className="h-4 w-4 text-green-500" />;
-    return <Minus className="h-4 w-4 text-gray-500" />;
-  };
-
   const getChangeBadge = (change: number) => {
     if (change === 0) {
       return (
@@ -178,13 +157,6 @@ const WeightTracker = ({
       </Badge>
     );
   };
-
-  const chartData = entries
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .map((entry) => ({
-      date: formatDate(entry.date),
-      weight: entry.weight,
-    }));
 
   // 백엔드에서 제공하는 통계값 사용, 없으면 기존 계산 방식 사용
   const displayCurrentWeight =
@@ -430,17 +402,43 @@ const WeightTracker = ({
                 {
                   label: '현재 체중',
                   value: `${displayCurrentWeight}kg`,
-                  icon: null,
+                  icon: '⚖️',
+                  gradient:
+                    'from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20',
+                  border: 'border-blue-200 dark:border-blue-800',
+                  textColor: 'text-blue-700 dark:text-blue-300',
+                  bgIcon: 'bg-blue-100 dark:bg-blue-900/30',
                 },
                 {
                   label: '총 변화량',
-                  value: `${displayTotalChange.toFixed(1)}kg`,
-                  icon: getChangeIcon(displayTotalChange),
+                  value: `${displayTotalChange >= 0 ? '+' : ''}${displayTotalChange.toFixed(1)}kg`,
+                  icon: displayTotalChange >= 0 ? '📈' : '📉',
+                  gradient:
+                    displayTotalChange >= 0
+                      ? 'from-emerald-50 to-emerald-100 dark:from-emerald-950/20 dark:to-emerald-900/20'
+                      : 'from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20',
+                  border:
+                    displayTotalChange >= 0
+                      ? 'border-emerald-200 dark:border-emerald-800'
+                      : 'border-red-200 dark:border-red-800',
+                  textColor:
+                    displayTotalChange >= 0
+                      ? 'text-emerald-700 dark:text-emerald-300'
+                      : 'text-red-700 dark:text-red-300',
+                  bgIcon:
+                    displayTotalChange >= 0
+                      ? 'bg-emerald-100 dark:bg-emerald-900/30'
+                      : 'bg-red-100 dark:bg-red-900/30',
                 },
                 {
                   label: '기록된 일수',
                   value: `${displayRecordedDays}일`,
-                  icon: null,
+                  icon: '📅',
+                  gradient:
+                    'from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20',
+                  border: 'border-purple-200 dark:border-purple-800',
+                  textColor: 'text-purple-700 dark:text-purple-300',
+                  bgIcon: 'bg-purple-100 dark:bg-purple-900/30',
                 },
               ].map((stat, index) => (
                 <motion.div
@@ -448,14 +446,26 @@ const WeightTracker = ({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <Card className="hover:shadow-md transition-shadow">
-                    <CardContent className="pt-6">
-                      <div className="text-2xl font-bold flex items-center gap-2">
-                        {stat.value}
-                        {stat.icon}
+                  <Card
+                    className={`overflow-hidden border-2 ${stat.border} hover:shadow-lg transition-all duration-300`}
+                  >
+                    <CardContent
+                      className={`pt-6 bg-gradient-to-br ${stat.gradient}`}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className={`p-2 rounded-lg ${stat.bgIcon}`}>
+                          <span className="text-lg">{stat.icon}</span>
+                        </div>
+                        <div className={`text-2xl font-bold ${stat.textColor}`}>
+                          {stat.value}
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p
+                        className={`text-sm font-medium ${stat.textColor} opacity-80`}
+                      >
                         {stat.label}
                       </p>
                     </CardContent>
@@ -469,39 +479,22 @@ const WeightTracker = ({
 
       {/* Weight Chart */}
       <AnimatePresence>
-        {chartData.length > 1 && (
+        {entries.length > 0 && (
           <AnimatedContainer delay={0.2} direction="up">
-            <Card>
-              <CardHeader>
-                <CardTitle>체중 변화 차트</CardTitle>
-                <CardDescription>
-                  시간에 따른 체중 변화를 확인해보세요
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 py-4">
+                <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    📈
+                  </div>
+                  체중 변화 차트
+                </CardTitle>
+                <CardDescription className="text-blue-700 dark:text-blue-300">
+                  시간에 따른 체중 변화와 상세 통계를 확인해보세요
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis
-                        domain={['dataMin - 2', 'dataMax + 2']}
-                        tickFormatter={(value) => `${value}kg`}
-                      />
-                      <Tooltip
-                        labelFormatter={(value) => `날짜: ${value}`}
-                        formatter={(value: number) => [`${value}kg`, '체중']}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="weight"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth={2}
-                        dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+              <CardContent className="p-6">
+                <WeightChart entries={entries} />
               </CardContent>
             </Card>
           </AnimatedContainer>
@@ -512,15 +505,20 @@ const WeightTracker = ({
       <AnimatePresence>
         {entries.length > 0 && (
           <AnimatedContainer delay={0.3} direction="up">
-            <Card>
-              <CardHeader>
-                <CardTitle>최근 기록</CardTitle>
-                <CardDescription>
-                  최근 체중 기록들을 확인해보세요
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 py-4">
+                <CardTitle className="flex items-center gap-2 text-indigo-900 dark:text-indigo-100">
+                  <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                    📋
+                  </div>
+                  최근 기록
+                </CardTitle>
+                <CardDescription className="text-indigo-700 dark:text-indigo-300">
+                  최근 체중 기록들과 변화량을 확인해보세요
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
+              <CardContent className="p-6">
+                <div className="space-y-3">
                   {entries
                     .sort((a, b) => b.date.localeCompare(a.date))
                     .slice(0, 7)
@@ -530,21 +528,76 @@ const WeightTracker = ({
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                        whileHover={{ scale: 1.01, x: 4 }}
+                        className="p-4 border-2 border-transparent rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 hover:border-indigo-200 dark:hover:border-indigo-700 hover:shadow-md transition-all duration-200"
                       >
-                        <div className="flex flex-col">
-                          <span className="font-medium">{entry.weight}kg</span>
-                          <span className="text-sm text-muted-foreground">
-                            {new Date(entry.date).toLocaleDateString('ko-KR')}
-                          </span>
-                        </div>
-                        <div>
-                          {entry.change !== undefined &&
-                            getChangeBadge(entry.change)}
+                        {/* 모바일과 데스크톱 모두 가로 레이아웃 유지, 간격만 조정 */}
+                        <div className="flex items-center justify-between gap-3">
+                          {/* 왼쪽: 날짜와 체중 정보 */}
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className="flex flex-col items-center justify-center w-12 h-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm border flex-shrink-0">
+                              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                {new Date(entry.date).getDate()}
+                              </span>
+                              <span className="text-xs text-gray-400 dark:text-gray-500">
+                                {new Date(entry.date).toLocaleDateString(
+                                  'ko-KR',
+                                  { month: 'short' }
+                                )}
+                              </span>
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                                {entry.weight}kg
+                              </span>
+                              {/* 모바일에서는 간단한 날짜 표시 */}
+                              <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">
+                                {new Date(entry.date).toLocaleDateString(
+                                  'ko-KR',
+                                  {
+                                    weekday: 'short',
+                                    month: 'short',
+                                    day: 'numeric',
+                                  }
+                                )}
+                              </span>
+                              {/* 모바일용 더 짧은 날짜 */}
+                              <span className="text-sm text-gray-500 dark:text-gray-400 sm:hidden">
+                                {new Date(entry.date).toLocaleDateString(
+                                  'ko-KR',
+                                  {
+                                    month: 'short',
+                                    day: 'numeric',
+                                  }
+                                )}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* 오른쪽: 배지들 */}
+                          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
+                            {entry.change !== undefined &&
+                              getChangeBadge(entry.change)}
+                            {index === 0 && (
+                              <div className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-xs font-medium rounded-full border border-yellow-200 dark:border-yellow-700">
+                                최신
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </motion.div>
                     ))}
                 </div>
+
+                {/* 더 많은 기록이 있는 경우 안내 */}
+                {entries.length > 7 && (
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+                      총 {entries.length}개의 기록 중 최근 7개를 표시하고
+                      있습니다
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </AnimatedContainer>
