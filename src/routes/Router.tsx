@@ -5,6 +5,7 @@ import WeightTrackerPage from '../pages/WeightTrackerPage.tsx';
 import PrivateRoute from './PrivateRoute.tsx';
 import LoginPage from '../pages/LoginPage.tsx';
 import OAuthPage from '../pages/OAuthPage.tsx';
+import AdminPage from '../pages/AdminPage.tsx';
 
 const Router = () => {
   return (
@@ -15,6 +16,9 @@ const Router = () => {
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<WeightTrackerPage />} />
           <Route path="/goals" element={<GoalsPage />} />
+        </Route>
+        <Route path="/admin">
+          <Route path="dashboard" element={<AdminPage />} />
         </Route>
       </Route>
     </Routes>
