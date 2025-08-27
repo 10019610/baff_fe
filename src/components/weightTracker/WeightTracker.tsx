@@ -393,7 +393,7 @@ const WeightTracker = ({
               >
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="w-full cursor-pointer"
                   disabled={isSubmitting || !param.weight || !param.recordDate}
                 >
                   {isSubmitting ? (
