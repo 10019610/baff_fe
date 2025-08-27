@@ -1,5 +1,7 @@
-import { Scale, Heart, Github, Mail } from 'lucide-react';
+import { Heart, Mail, Github } from 'lucide-react';
 import { Separator } from '../ui/separator';
+import ChangeUpLogo from '../ui/ChangeUpLogo';
+import LumpenLogo from '../ui/LumpenLogo';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -13,22 +15,21 @@ export default function Footer() {
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* App Info */}
-              <div className="space-y-4">
+              <div className="">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-full">
-                    <Scale className="h-5 w-5 text-primary" />
-                  </div>
+                  {/* <ChangeUpLogo size="md" /> */}
+                  <LumpenLogo size="lg" showText={true} />
                   <div>
-                    <h3 className="font-medium">체중 관리 앱</h3>
+                    {/* <h3 className="font-medium">ChangeUp</h3> */}
                     <p className="text-sm text-muted-foreground">
                       v{appVersion}
                     </p>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  건강한 변화의 시작, 친구들과 함께하는
+                  변화의 시작, 건강한 체중 관리
                   <br />
-                  스마트한 체중 관리 솔루션
+                  친구들과 함께하는 스마트한 솔루션
                 </p>
               </div>
 
@@ -38,11 +39,11 @@ export default function Footer() {
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center gap-3 text-muted-foreground">
                     <Mail className="h-4 w-4" />
-                    <span>문의: contact@example.com</span>
+                    <span>문의: a10019610@gmail.com</span>
                   </div>
                   <div className="flex items-center gap-3 text-muted-foreground">
                     <Github className="h-4 w-4" />
-                    <span>GitHub: Open Source</span>
+                    <span>GitHub: https://github.com/20220330jin/baff_be</span>
                   </div>
                 </div>
                 <div className="pt-2">
@@ -63,9 +64,10 @@ export default function Footer() {
           <div className="max-w-6xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-4">
-                <p>© {currentYear} 체중 관리 앱. All rights reserved.</p>
+                <p>© {currentYear} Lumpen. All rights reserved.</p>
               </div>
               <div className="flex items-center gap-4">
+                <Separator orientation="vertical" className="h-4" />
                 <span>개인정보처리방침</span>
                 <Separator orientation="vertical" className="h-4" />
                 <span>이용약관</span>
@@ -82,14 +84,15 @@ export default function Footer() {
         <div className="container mx-auto px-4 py-4">
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-2 text-sm">
-              <Scale className="h-4 w-4 text-primary" />
-              <span className="font-medium">체중 관리 앱</span>
+              <ChangeUpLogo size="xs" />
+              <span className="font-medium">ChangeUp</span>
               <span className="text-muted-foreground">v{appVersion}</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              건강한 변화의 시작 • © {currentYear}
+              변화의 시작 • © {currentYear} Lumpen
             </p>
-            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <span>•</span>
               <span>개인정보처리방침</span>
               <span>•</span>
               <span>이용약관</span>
