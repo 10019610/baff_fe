@@ -2,6 +2,7 @@ import React from 'react';
 import { Scale } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import UserMenu from './UserMenu.tsx';
+import ChangeUpLogo from '../ui/ChangeUpLogo.tsx';
 
 // import UserMenu from './UserMenu';
 
@@ -18,18 +19,19 @@ interface HeaderProps {
 }
 
 export default function Header({
-                                 activeMenuItem,
-                                 onProfileClick,
-                               }: HeaderProps) {
+  activeMenuItem,
+  onProfileClick,
+}: HeaderProps) {
   return (
     <div className="bg-card border-b border-border sticky top-0 z-40">
       <div className="container mx-auto px-4 py-4">
         <div className="relative flex items-center justify-between">
           {/* Logo and App Title */}
           <div className="flex items-center gap-3">
-            <Scale className="h-7 w-7 text-primary" />
+            {/* <Scale className="h-7 w-7 text-primary" /> */}
+            <ChangeUpLogo size="md" />
             <div>
-              <h1 className="text-lg font-medium">체중 관리 앱</h1>
+              {/* <h1 className="text-lg font-bold">ChangeUp</h1> */}
               <p className="text-sm text-muted-foreground hidden sm:block">
                 건강한 변화의 시작
               </p>
