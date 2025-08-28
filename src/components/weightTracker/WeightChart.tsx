@@ -9,6 +9,12 @@ import {
   Tooltip,
   Legend,
   Filler,
+  type ChartData,
+  type ChartOptions,
+  type TooltipItem,
+  type InteractionItem,
+  type ChartEvent,
+  type ScriptableContext,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { motion } from 'framer-motion';
@@ -35,7 +41,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
   entries,
   className = '',
 }) => {
-  const chartRef = useRef<ChartJS>(null);
+  const chartRef = useRef<ChartJS<'line'>>(null);
 
   // 데이터 준비
   const sortedEntries = entries
@@ -66,14 +72,14 @@ const WeightChart: React.FC<WeightChartProps> = ({
     return gradient;
   };
 
-  const data = {
+  const data: ChartData<'line'> = {
     labels,
     datasets: [
       {
         label: '체중',
         data: weightData,
         borderColor: 'rgb(59, 130, 246)', // blue-500
-        backgroundColor: (context: any) => {
+        backgroundColor: (context: ScriptableContext<'line'>) => {
           const chart = context.chart;
           const { ctx } = chart;
           return createGradient(ctx);
@@ -93,12 +99,12 @@ const WeightChart: React.FC<WeightChartProps> = ({
     ],
   };
 
-  const options = {
+  const options: ChartOptions<'line'> = {
     responsive: true,
     maintainAspectRatio: false,
     interaction: {
       intersect: false,
-      mode: 'index',
+      mode: 'index' as const,
     },
     plugins: {
       legend: {
@@ -114,14 +120,14 @@ const WeightChart: React.FC<WeightChartProps> = ({
         padding: 16,
         titleFont: {
           size: 14,
-          weight: '600',
+          weight: 600,
         },
         bodyFont: {
           size: 13,
-          weight: '500',
+          weight: 500,
         },
         callbacks: {
-          title: (context: any[]) => {
+          title: (context: TooltipItem<'line'>[]) => {
             const index = context[0].dataIndex;
             const entry = sortedEntries[index];
             return new Date(entry.date).toLocaleDateString('ko-KR', {
@@ -131,7 +137,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
               weekday: 'short',
             });
           },
-          label: (context: any) => {
+          label: (context: TooltipItem<'line'>) => {
             const weight = context.parsed.y;
             const index = context.dataIndex;
             const entry = sortedEntries[index];
@@ -159,7 +165,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
           color: 'rgb(107, 114, 128)', // gray-500
           font: {
             size: 12,
-            weight: '500',
+            weight: 500,
           },
           maxTicksLimit: 8, // 최대 표시할 틱 수
         },
@@ -169,7 +175,6 @@ const WeightChart: React.FC<WeightChartProps> = ({
         max: maxWeight + padding,
         grid: {
           color: 'rgba(107, 114, 128, 0.1)', // gray-500 with opacity
-          drawBorder: false,
         },
         border: {
           display: false,
@@ -178,9 +183,9 @@ const WeightChart: React.FC<WeightChartProps> = ({
           color: 'rgb(107, 114, 128)', // gray-500
           font: {
             size: 12,
-            weight: '500',
+            weight: 500,
           },
-          callback: function (value: any) {
+          callback: function (value: string | number) {
             return `${value}kg`;
           },
           stepSize: 1, // 0.5kg 단위로 표시
@@ -196,7 +201,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
       duration: 1500,
       easing: 'easeInOutQuart',
     },
-    onHover: (event: any, elements: any[]) => {
+    onHover: (_event: ChartEvent, elements: InteractionItem[]) => {
       const chart = chartRef.current;
       if (chart?.canvas) {
         chart.canvas.style.cursor = elements.length > 0 ? 'pointer' : 'default';
