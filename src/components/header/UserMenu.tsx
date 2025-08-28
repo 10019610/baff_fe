@@ -25,7 +25,7 @@ import { Crown, LogOut, Settings, User } from 'lucide-react';
 import { Badge } from '../ui/badge.tsx';
 
 interface UserMenuProps {
-  onProfileClick?: () => void;
+  onProfileClick: (userId: string) => void;
 }
 
 //
@@ -94,7 +94,7 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer" onClick={onProfileClick}>
+        <DropdownMenuItem className="cursor-pointer" onClick={() => onProfileClick(user?.id)}>
           <User className="mr-2 h-4 w-4" />
           <span>프로필</span>
         </DropdownMenuItem>

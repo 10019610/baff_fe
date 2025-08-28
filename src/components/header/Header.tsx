@@ -16,13 +16,11 @@ interface MenuItem {
 
 interface HeaderProps {
   activeMenuItem?: MenuItem;
-  onProfileClick?: () => void;
 }
 
 export default function Header({
-  activeMenuItem,
-  onProfileClick,
-}: HeaderProps) {
+                                 activeMenuItem,
+                               }: HeaderProps) {
   /**
    * Hooks
    */
@@ -34,6 +32,10 @@ export default function Header({
   const navigateTo = (to: string) => {
     console.log(to);
     navigate(to);
+  };
+  const onProfileClick = (userId: string) => {
+    console.log('onProfileClick', userId);
+    navigate(`/user/profile/${userId}`);
   };
   return (
     <div className="bg-card border-b border-border sticky top-0 z-40">

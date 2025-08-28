@@ -6,6 +6,7 @@ import PrivateRoute from './PrivateRoute.tsx';
 import LoginPage from '../pages/LoginPage.tsx';
 import OAuthPage from '../pages/OAuthPage.tsx';
 import AdminPage from '../pages/AdminPage.tsx';
+import ProfilePage from '../pages/ProfilePage.tsx';
 
 const Router = () => {
   return (
@@ -19,6 +20,9 @@ const Router = () => {
         </Route>
         <Route path="/admin">
           <Route path="dashboard" element={<AdminPage />} />
+        </Route>
+        <Route path="/user">
+          <Route path="profile/:userId" element={<ProfilePage />} />
         </Route>
       </Route>
     </Routes>
