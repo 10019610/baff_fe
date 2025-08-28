@@ -1,8 +1,8 @@
 import { BarChart3, Scale, Target, Users } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Badge } from '../components/ui/badge.tsx';
 import { cn } from '../components/ui/utils.tsx';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface NavMenuItem {
   id: string;
@@ -23,15 +23,16 @@ interface NavMenuItem {
 const Navbar = () => {
   // navigator
   const navigate = useNavigate();
+  const location = useLocation();
   // navbar 메뉴 active 제어
-  const [activeMenu, setActiveMenu] = useState('tracker');
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
   // Navbar Item 정의 용도 데이터
   const navItems: NavMenuItem[] = [
     {
       id: 'tracker',
       label: '체중 기록',
       icon: Scale,
-      url: '/',
+      url: '/weightTracker',
     },
     {
       id: 'goals',
@@ -43,15 +44,34 @@ const Navbar = () => {
       id: 'battle',
       label: '대결 모드',
       icon: Users,
-      url: '/',
+      url: '/battle',
     },
     {
       id: 'analytics',
       label: '분석',
       icon: BarChart3,
-      url: '/',
+      url: '/analytics',
     },
   ];
+
+  // 현재 URL에 따라 활성 메뉴 설정
+  useEffect(() => {
+    const currentPath = location.pathname;
+
+    // Dashboard 페이지("/")에서는 어떤 메뉴도 활성화하지 않음
+    if (currentPath === '/') {
+      setActiveMenu(null);
+      return;
+    }
+
+    // URL과 매칭되는 메뉴 찾기
+    const activeItem = navItems.find((item) => item.url === currentPath);
+    if (activeItem) {
+      setActiveMenu(activeItem.id);
+    } else {
+      setActiveMenu(null);
+    }
+  }, [location.pathname]);
 
   const handleNavMenuChange = (navMenu: NavMenuItem) => {
     setActiveMenu(navMenu.id);
@@ -69,13 +89,25 @@ const Navbar = () => {
                 const Icon = item.icon;
                 const isActive = activeMenu === item.id;
                 return (
-                  <button key={item.id} onClick={() => handleNavMenuChange(item)}
-                          className={cn('flex items-center gap-3 px-6 py-3 rounded-lg transition-colors relative', isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}>
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavMenuChange(item)}
+                    className={cn(
+                      'flex items-center gap-3 px-6 py-3 rounded-lg transition-colors relative cursor-pointer',
+                      isActive
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    )}
+                  >
                     <Icon className="h-5 w-5" />
                     <span className="font-medium">{item.label}</span>
                     {item.badge && item.badge > 0 && (
-                      <Badge variant={isActive ? 'secondary' : 'destructive'}
-                             className="h-5 min-w-5 text-xs px-1.5">{item.badge}</Badge>
+                      <Badge
+                        variant={isActive ? 'secondary' : 'destructive'}
+                        className="h-5 min-w-5 text-xs px-1.5"
+                      >
+                        {item.badge}
+                      </Badge>
                     )}
                   </button>
                 );
@@ -91,20 +123,34 @@ const Navbar = () => {
             const Icon = item.icon;
             const isActive = activeMenu === item.id;
             return (
-              <button key={item.id} onClick={() => handleNavMenuChange(item)}
-                      className={cn('flex flex-col items-center justify-center gap-1 relative transition-colors', isActive ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground')}>
+              <button
+                key={item.id}
+                onClick={() => handleNavMenuChange(item)}
+                className={cn(
+                  'flex flex-col items-center justify-center gap-1 relative transition-colors',
+                  isActive
+                    ? 'text-primary bg-primary/5'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
                 <div className="relative">
                   <Icon className="h-5 w-5" />
                   {item.badge && item.badge > 0 && (
-                    <Badge variant="destructive"
-                           className="absolute -top-2 -right-2 h-4 w-4 rounded-full p-0 text-xs flex items-center justify-center">{item.badge}</Badge>
+                    <Badge
+                      variant="destructive"
+                      className="absolute -top-2 -right-2 h-4 w-4 rounded-full p-0 text-xs flex items-center justify-center"
+                    >
+                      {item.badge}
+                    </Badge>
                   )}
                 </div>
-                <span
-                  className="text-xs font-medium leading-tight text-center">{item.label.includes(' ') ? item.label.split(' ').join('\n') : item.label}</span>
+                <span className="text-xs font-medium leading-tight text-center">
+                  {item.label.includes(' ')
+                    ? item.label.split(' ').join('\n')
+                    : item.label}
+                </span>
                 {isActive && (
-                  <div
-                    className="absolute top-0 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-primary rounded-b-full" />
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-primary rounded-b-full" />
                 )}
               </button>
             );
