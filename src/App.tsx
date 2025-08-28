@@ -47,9 +47,7 @@ function AppContent() {
 
 const queryClient = new QueryClient();
 
-// 루트 App 컴포넌트 (Provider 역할)
-
-export default function App() {
+const App = () => {
   return (
     // Tanstack Query Setting
     <QueryClientProvider client={queryClient}>
@@ -122,4 +120,6 @@ export default function App() {
       </BrowserRouter>
     </QueryClientProvider>
   );
-}
+};
+
+export default App;
