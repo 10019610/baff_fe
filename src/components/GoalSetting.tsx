@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card.tsx';
-import { Calendar, Target } from 'lucide-react';
+import { Calendar, Target, Trash2 } from 'lucide-react';
 import { Label } from './ui/label.tsx';
 import { Input } from './ui/input.tsx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select.tsx';
@@ -18,6 +18,7 @@ interface GoalSettingProps {
   currentWeight: number;
   goalList: GetGoalListResponse[];
   handleGetDaysRemaining: (startDate: string, endDate: string) => number;
+  handleDeleteGoalModal: (goalId: string) => void;
 }
 
 /**
@@ -36,11 +37,16 @@ const GoalSetting = ({
                        currentWeight,
                        goalList,
                        handleGetDaysRemaining,
+                       handleDeleteGoalModal,
                      }: GoalSettingProps) => {
   /**
    * Variables
    */
   const hasWeightData = currentWeight !== null;
+  /**
+   * States
+   */
+
   /**
    * Handlers
    */
@@ -67,6 +73,7 @@ const GoalSetting = ({
     console.log('progress', progress);
     return Math.min(Math.max(progress, 0), 100);
   };
+
   return (
     <div className="space-y-6">
       {/* 목표 설정 생성 */}
@@ -141,7 +148,14 @@ const GoalSetting = ({
                     <div className="flex items-center justify-between">
                       <CardTitle
                         className={`text-lg ${goal.isExpired ? 'text-muted-foreground' : ''}`}>{goal.title}</CardTitle>
-                      {getStatusBadge(goal.isExpired)}
+                      <div className="flex items-center gap-2">
+                        {getStatusBadge(goal.isExpired)}
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteGoalModal(goal.goalsId)}
+                                className="h-8 w-8 p-0 text-muted-foreground hover:text-red-600 hover:bg-red-50"
+                                title="목표 삭제">
+                          <Trash2 />
+                        </Button>
+                      </div>
                     </div>
                     <CardDescription className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />

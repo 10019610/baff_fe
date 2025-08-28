@@ -7,6 +7,7 @@ import type { PresetDurationType } from '../types/Goals.type.ts';
 import GoalSetupGuide from '../components/GoalSetupGuide.tsx';
 import { api } from '../services/api/Api.ts';
 import toast from 'react-hot-toast';
+import GoalsDeleteDialog from '../components/modal/GoalsDeleteDialog.tsx';
 
 /**
  * 체중 목표 설정 페이지
@@ -33,6 +34,10 @@ const GoalsPage = () => {
   const [hasWeightEntry] = useState<boolean>(true);
   /* 페이지 로딩 제어 state */
   // const [isLoading, setIsLoading] = useState<boolean>(true);
+  /* 목표삭제 팝업 오픈 제어 state */
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
+  /* 삭제 대상 목표 ID */
+  const [deleteGoalId, setDeleteGoalId] = useState<string | null>(null);
   /**
    * APIs
    */
@@ -40,6 +45,14 @@ const GoalsPage = () => {
   const { mutate: recordWeightMutation } = useMutation({
     mutationFn: (param: RecordGoalsRequest) => api.post('/goals/recordGoals', param),
     onSuccess: () => {
+      refetchGoalList();
+    },
+  });
+  /* 목표 삭제 api */
+  const { mutate: deleteGoalMutation } = useMutation({
+    mutationFn: (deleteGoalId: string) => api.post(`/goals/deleteGoal/${deleteGoalId}`),
+    onSuccess: () => {
+      console.log('param', deleteGoalId);
       refetchGoalList();
     },
   });
@@ -107,7 +120,21 @@ const GoalsPage = () => {
     const diffTime = end.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return Math.max(diffDays, 0);
-
+  };
+  /**/
+  const handleDeleteGoalModal = (goalsId: string) => {
+    console.log('handleDeleteGoal', goalsId);
+    setIsDeleteModalOpen(true);
+    setDeleteGoalId(goalsId);
+  };
+  /**/
+  const cancelDeleteGoal = () => {
+    setDeleteGoalId(null);
+  };
+  /* 목표 삭제 handler */
+  const handleGoalDelete = (goalId: string) => {
+    console.log('handleGoalDelete', goalId);
+    deleteGoalMutation(goalId);
   };
   if (!hasWeightEntry) {
     return <GoalSetupGuide />;
@@ -126,7 +153,11 @@ const GoalsPage = () => {
       <GoalSetting onClickRecord={handleRecordWeight} onChangeParam={handleRecordGoalsParam} param={recordWeightParam}
                    presetDuration={presetDuration} currentWeight={getCurrentWeightInfo.currentWeight}
                    goalList={goalList}
-                   handleGetDaysRemaining={handleGetDaysRemaining} />
+                   handleGetDaysRemaining={handleGetDaysRemaining} handleDeleteGoalModal={handleDeleteGoalModal} />
+      {/* 목표 삭제 확인 다이얼로그 */}
+      {deleteGoalId && <GoalsDeleteDialog deleteGoalId={deleteGoalId} isDeleteModalOpen={isDeleteModalOpen}
+                                          onClickCloseDelete={cancelDeleteGoal} goalList={goalList}
+                                          handleGoalDelete={handleGoalDelete} />}
     </div>
   );
 };
