@@ -23,6 +23,8 @@ import { Button } from '../ui/button.tsx';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar.tsx';
 import { Crown, LogOut, Settings, User } from 'lucide-react';
 import { Badge } from '../ui/badge.tsx';
+import { api } from '../../services/api/Api.ts';
+import { useNavigate } from 'react-router-dom';
 
 interface UserMenuProps {
   onProfileClick: (userId: string) => void;
@@ -30,7 +32,11 @@ interface UserMenuProps {
 
 //
 export default function UserMenu({ onProfileClick }: UserMenuProps) {
+  /**
+   * Hooks
+   */
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 //
   if (!user) return null;
 //
@@ -58,7 +64,17 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
 
   const handleLogout = () => {
     if (confirm('로그아웃 하시겠습니까?')) {
-      logout();
+      // 개발환경과 배포환경 구분
+      if (import.meta.env.VITE_APP_ENV === 'development') {
+        logout();
+      } else {
+        api.post('/user/logout')
+          .then((res) => {
+            console.log(res);
+            window.location.href = 'https://onlymefe.vercel.app/';
+            navigate('/');
+          });
+      }
     }
   };
 
