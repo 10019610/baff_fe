@@ -1,4 +1,3 @@
-import React from 'react';
 import { Badge } from '../ui/badge';
 import UserMenu from './UserMenu.tsx';
 import ChangeUpLogo from '../ui/ChangeUpLogo.tsx';
@@ -18,9 +17,7 @@ interface HeaderProps {
   activeMenuItem?: MenuItem;
 }
 
-export default function Header({
-                                 activeMenuItem,
-                               }: HeaderProps) {
+export default function Header({ activeMenuItem }: HeaderProps) {
   /**
    * Hooks
    */
@@ -44,7 +41,7 @@ export default function Header({
           {/* Logo and App Title */}
           <button
             onClick={() => navigateTo('/')}
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg p-1 -m-1 cursor-pointer"
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-200 rounded-lg p-1 -m-1 cursor-pointer"
           >
             {/* <Scale className="h-7 w-7 text-primary" /> */}
             <ChangeUpLogo size="md" />

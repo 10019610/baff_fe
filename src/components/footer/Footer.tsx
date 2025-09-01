@@ -1,10 +1,9 @@
 import { Heart, Mail, Github } from 'lucide-react';
 import { Separator } from '../ui/separator';
-import ChangeUpLogo from '../ui/ChangeUpLogo';
 import LumpenLogo from '../ui/LumpenLogo';
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
+  const currentYear = 2025;
   const appVersion = '1.0.0';
 
   return (
@@ -84,12 +83,12 @@ export default function Footer() {
         <div className="container mx-auto px-4 py-4">
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-2 text-sm">
-              <ChangeUpLogo size="xs" />
-              <span className="font-medium">ChangeUp</span>
+              <LumpenLogo size="sm" showText={false} />
+              <span className="font-medium">Lumpen</span>
               <span className="text-muted-foreground">v{appVersion}</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              변화의 시작 • © {currentYear} Lumpen
+              변화의 시작, 건강한 체중 관리 • © {currentYear} Lumpen
             </p>
             <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
               <span>•</span>
