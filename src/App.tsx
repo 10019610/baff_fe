@@ -7,6 +7,7 @@ import { Toaster } from 'react-hot-toast';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import Router from './routes/Router';
+import { HeightModalProvider } from './context/HeightModalContext';
 // 로딩 스켈레톤 컴포넌트
 function LoadingSkeleton() {
   return (
@@ -53,8 +54,10 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <Router />
-          <AppContent />
+          <HeightModalProvider>
+            <Router />
+            <AppContent />
+          </HeightModalProvider>
           <Toaster
             position="top-center"
             reverseOrder={false}

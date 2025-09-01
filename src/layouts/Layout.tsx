@@ -3,9 +3,11 @@ import { motion, AnimatePresence } from 'motion/react';
 import Header from '../components/header/Header';
 import Navbar from './Navbar.tsx';
 import Footer from '../components/footer/Footer.tsx';
+import { useHeightModal } from '../context/HeightModalContext';
 
 const Layout = () => {
   const location = useLocation();
+  const { isHeightModalOpen } = useHeightModal();
 
   // 페이지 전환 애니메이션
   const pageVariants = {
@@ -57,8 +59,8 @@ const Layout = () => {
 
       {/* Footer */}
       <Footer />
-      {/* navbar */}
-      <Navbar />
+      {/* navbar - 키 입력 모달이 열려있을 때는 숨김 */}
+      {!isHeightModalOpen && <Navbar />}
     </div>
   );
 };

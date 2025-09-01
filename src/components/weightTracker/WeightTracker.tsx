@@ -162,15 +162,18 @@ const WeightTracker = ({
   const displayCurrentWeight =
     currentWeight ??
     (entries.length > 0
-      ? entries.sort((a, b) => b.date.localeCompare(a.date))[0].weight
+      ? [...entries].sort((a, b) => b.date.localeCompare(a.date))[0].weight
       : null);
 
   const displayTotalChange =
     totalChange ??
     (entries.length > 1
-      ? entries.sort((a, b) => a.date.localeCompare(b.date))[entries.length - 1]
-          .weight -
-        entries.sort((a, b) => a.date.localeCompare(b.date))[0].weight
+      ? (() => {
+          const sorted = [...entries].sort((a, b) =>
+            a.date.localeCompare(b.date)
+          );
+          return sorted[sorted.length - 1].weight - sorted[0].weight;
+        })()
       : 0);
 
   const displayRecordedDays = recordedDays ?? entries.length;
@@ -519,7 +522,7 @@ const WeightTracker = ({
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-3">
-                  {entries
+                  {[...entries]
                     .sort((a, b) => b.date.localeCompare(a.date))
                     .slice(0, 7)
                     .map((entry, index) => (

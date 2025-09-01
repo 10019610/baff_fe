@@ -35,16 +35,18 @@ ChartJS.register(
 interface WeightChartProps {
   entries: WeightEntry[];
   className?: string;
+  dashboard?: boolean;
 }
 
 const WeightChart: React.FC<WeightChartProps> = ({
   entries,
   className = '',
+  dashboard = true,
 }) => {
   const chartRef = useRef<ChartJS<'line'>>(null);
 
   // 데이터 준비
-  const sortedEntries = entries
+  const sortedEntries = [...entries]
     .filter((entry) => entry.weight && entry.date)
     .sort((a, b) => a.date.localeCompare(b.date));
 
@@ -259,51 +261,53 @@ const WeightChart: React.FC<WeightChartProps> = ({
       </div>
 
       {/* 차트 하단 통계 정보 */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
-        className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center"
-      >
-        <div className="p-3 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">
-            최고 체중
+      {dashboard && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center"
+        >
+          <div className="p-3 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">
+              최고 체중
+            </div>
+            <div className="text-lg font-bold text-blue-700 dark:text-blue-300">
+              {maxWeight.toFixed(1)}kg
+            </div>
           </div>
-          <div className="text-lg font-bold text-blue-700 dark:text-blue-300">
-            {maxWeight.toFixed(1)}kg
-          </div>
-        </div>
 
-        <div className="p-3 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/20 dark:to-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
-          <div className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1">
-            최저 체중
+          <div className="p-3 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/20 dark:to-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
+            <div className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1">
+              최저 체중
+            </div>
+            <div className="text-lg font-bold text-emerald-700 dark:text-emerald-300">
+              {minWeight.toFixed(1)}kg
+            </div>
           </div>
-          <div className="text-lg font-bold text-emerald-700 dark:text-emerald-300">
-            {minWeight.toFixed(1)}kg
-          </div>
-        </div>
 
-        <div className="p-3 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-          <div className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-1">
-            변화 폭
+          <div className="p-3 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+            <div className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-1">
+              변화 폭
+            </div>
+            <div className="text-lg font-bold text-purple-700 dark:text-purple-300">
+              {weightRange.toFixed(1)}kg
+            </div>
           </div>
-          <div className="text-lg font-bold text-purple-700 dark:text-purple-300">
-            {weightRange.toFixed(1)}kg
-          </div>
-        </div>
 
-        <div className="p-3 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-          <div className="text-xs text-amber-600 dark:text-amber-400 font-medium mb-1">
-            평균 체중
+          <div className="p-3 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+            <div className="text-xs text-amber-600 dark:text-amber-400 font-medium mb-1">
+              평균 체중
+            </div>
+            <div className="text-lg font-bold text-amber-700 dark:text-amber-300">
+              {(
+                weightData.reduce((a, b) => a + b, 0) / weightData.length
+              ).toFixed(1)}
+              kg
+            </div>
           </div>
-          <div className="text-lg font-bold text-amber-700 dark:text-amber-300">
-            {(
-              weightData.reduce((a, b) => a + b, 0) / weightData.length
-            ).toFixed(1)}
-            kg
-          </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      )}
     </motion.div>
   );
 };

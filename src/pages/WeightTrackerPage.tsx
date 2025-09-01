@@ -120,7 +120,7 @@ const WeightTrackerPage = () => {
         const data: GetWeightListResponse = response.data;
 
         // 날짜순으로 정렬 (오래된 것부터)
-        const sortedRecords = data.dailyWeightRecords.sort((a, b) =>
+        const sortedRecords = [...data.dailyWeightRecords].sort((a, b) =>
           a.recordDate.localeCompare(b.recordDate)
         );
 

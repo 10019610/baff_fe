@@ -4,4 +4,5 @@ export interface User {
   nickname: string;
   profileImage: string;
   role: string;
+  height?: number; // 키 (cm 단위)
 }

@@ -48,7 +48,7 @@ const DashboardPage = () => {
         const data: GetWeightListResponse = response.data;
 
         // 날짜순으로 정렬 (오래된 것부터)
-        const sortedRecords = data.dailyWeightRecords.sort((a, b) =>
+        const sortedRecords = [...data.dailyWeightRecords].sort((a, b) =>
           a.recordDate.localeCompare(b.recordDate)
         );
 
@@ -64,7 +64,7 @@ const DashboardPage = () => {
             return {
               id: `${record.recordDate}_${index}`,
               userId: user.id,
-              date: record.recordDate.split('T')[0], // "2025-08-25T15:37:26" → "2025-08-25"
+              date: record.recordDate.split('T')[0], // "2025-08-25T15:37:26" -> "2025-08-25"
               weight: record.recordWeight,
               change: Number(change.toFixed(1)), // 소수점 1자리로 반올림
               createdAt: record.recordDate,
