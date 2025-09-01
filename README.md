@@ -1,69 +1,164 @@
-# React + TypeScript + Vite
+# ChangeUp - 소셜 체중 관리 애플리케이션
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 📖 프로젝트 개요
 
-Currently, two official plugins are available:
+ChangeUp 은 친구들과 함께 체중 관리 목표를 달성할 수 있는 소셜 기반 체중 관리 애플리케이션입니다. 단순한 체중 기록을 넘어서 게임화된 대결 시스템을 통해 동기부여를 제공하고, 지속 가능한 건강 관리 습관을 형성할 수 있도록 돕습니다.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🎯 개발 배경 및 목표
 
-## Expanding the ESLint configuration
+### 배경
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **개인적 체중 관리의 한계**: 혼자 하는 다이어트는 지속하기 어려우며 동기부여 부족으로 실패하는 경우가 많음
+- **기존 앱들의 아쉬운 점**: 단순한 기록 위주의 앱들로 재미와 동기부여 요소가 부족
+- **소셜 요소의 필요성**: 함께하는 목표 달성이 개인의 성과를 크게 향상시킨다는 연구 결과
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 목표
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+1. **지속 가능한 습관 형성**: 게임화된 요소로 체중 관리를 재미있고 지속 가능하게 만들기
+2. **소셜 동기부여**: 친구들과의 건전한 경쟁을 통한 동기부여 제공
+3. **데이터 기반 인사이트**: 체중 변화 패턴 분석을 통한 개인 맞춤형 피드백
+4. **접근성**: 웹/모바일 반응형으로 언제 어디서나 쉽게 사용 가능
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## ✨ 주요 기능
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 🔐 인증 시스템
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **소셜 로그인**: 카카오톡, 구글 로그인 지원
+- **보안**: 개인정보 보호를 위한 안전한 인증 시스템
+- **사용자 친화적**: 간편한 원클릭 로그인
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### 📊 체중 기록 및 추적
+
+- **일일 체중 기록**: 직관적인 인터페이스로 빠른 체중 입력
+- **실시간 변화량 계산**: 전날 대비 증감량 자동 계산 및 시각화
+- **데이터 시각화**: 시간별 체중 변화 차트 제공
+- **통계 정보**: 현재 체중, 총 변화량, 기록 일수 등 핵심 지표 표시
+
+### 🎯 목표 설정 및 관리
+
+- **개인 목표 설정**: 목표 체중, 기간, 주간/월간 목표 설정
+- **진행률 추적**: 목표 대비 현재 달성률 시각적 표시
+- **목표 유형**: 체중 감량, 증량, 유지 등 다양한 목표 지원
+- **알림 시스템**: 목표 달성 및 기록 누락 알림
+
+### 🏆 소셜 대결 모드
+
+### 방 생성 시스템
+
+- **방 생성**: 최대 4명까지 참여 가능한 대결 방 생성
+- **보안**: 비밀번호 기반 방 보호 시스템
+- **설정 옵션**: 대결 기간, 목표 유형, 참가자 수 등 커스터마이징
+
+### 초대 및 공유
+
+- **카카오톡 공유**: 방 링크와 비밀번호가 포함된 초대 메시지 자동 생성
+- **간편 입장**: URL 파라미터를 통한 원클릭 방 입장
+- **비회원 지원**: 초대받은 비회원도 회원가입 후 즉시 참여 가능
+
+### 대결 진행
+
+- **실시간 현황**: 참가자들의 실시간 진행 상황 공유
+- **순위 시스템**: 목표 달성률 기반 실시간 순위 표시
+- **동기부여**: 참가자간 응원 및 격려 기능
+
+### 📈 대시보드 및 분석
+
+- **종합 현황**: 개인 기록, 진행 중인 대결, 달성 현황 통합 대시보드
+- **성과 분석**: 주간/월간 성과 분석 및 트렌드 차트
+- **기록 관리**: 과거 대결 기록 및 개인 성과 히스토리
+- **리포트**: 상세한 진행 상황 및 개선 제안
+
+### 🎨 사용자 경험 (UX)
+
+- **반응형 디자인**: 데스크톱, 태블릿, 모바일 최적화
+- **부드러운 애니메이션**: Motion 라이브러리 기반 자연스러운 화면 전환
+- **실시간 검증**: 입력 중 즉시 유효성 검사 및 피드백
+- **스켈레톤 로딩**: 로딩 중에도 자연스러운 사용자 경험 제공
+
+## 🛠 기술 스택
+
+### Frontend
+
+- **React 18**: 컴포넌트 기반 UI 라이브러리
+- **TypeScript**: 타입 안정성을 위한 정적 타입 시스템
+- **Tailwind CSS v4**: 유틸리티 기반 CSS 프레임워크
+- **Motion/React**: 부드러운 애니메이션 및 전환 효과
+- **Recharts**: 데이터 시각화 차트 라이브러리
+- **Lucide React**: 아이콘 라이브러리
+
+### UI Components
+
+- **shadcn/ui**: 재사용 가능한 UI 컴포넌트 라이브러리
+- **Sonner**: 토스트 알림 시스템
+- **React Hook Form**: 폼 상태 관리 및 검증
+
+### 인증 및 상태 관리
+
+- **Context API**: 전역 인증 상태 관리
+- **Local Storage**: 클라이언트 사이드 데이터 저장
+- **카카오 SDK**: 카카오톡 로그인 및 공유 기능
+
+### 개발 도구
+
+- **Vite**: 빠른 개발 서버 및 번들링
+- **ESLint**: 코드 품질 관리
+- **Prettier**: 코드 포맷팅
+
+## 📱 주요 화면 구성
+
+### 📍 내비게이션
+
+- **하단 탭 (모바일)**: 체중 기록, 목표 설정, 대결 모드, 대시보드
+- **사이드바 (데스크톱)**: 고정형 사이드 내비게이션
+- **상단 헤더**: 사용자 정보 및 메뉴
+
+### 📊 체중 기록 페이지
+
+- 체중 입력 폼 (날짜, 체중)
+- 현재 통계 카드 (현재 체중, 총 변화량, 기록 일수)
+- 체중 변화 차트
+- 최근 기록 목록
+
+### 🎯 목표 설정 페이지
+
+- 목표 생성/수정 폼
+- 진행 중인 목표 현황
+- 목표별 달성률 시각화
+- 목표 기록 관리
+
+### 🏆 대결 모드 페이지
+
+- **내 방 탭**: 참여 중인 방 목록
+- **방 찾기 탭**: 새 방 생성 및 참가
+- **진행 중 탭**: 활성 대결 현황
+- **기록 탭**: 완료된 대결 히스토리
+
+### 📈 대시보드 페이지
+
+- 종합 현황 요약
+- 성과 차트 및 분석
+- 최근 활동 피드
+- 개인 통계 및 트렌드
+
+## 🎯 기대 효과
+
+### 개인적 효과
+
+1. **습관 형성**: 꾸준한 체중 기록을 통한 건강 관리 습관 정착
+2. **동기부여 증대**: 친구들과의 경쟁을 통한 지속적인 동기부여
+3. **목표 달성률 향상**: 구체적인 목표 설정과 추적을 통한 성과 개선
+4. **자기 인식 증진**: 데이터 기반으로 자신의 체중 변화 패턴 이해
+
+### 사회적 효과
+
+1. **건강한 경쟁 문화**: 친구들과의 건전한 경쟁을 통한 포지티브 영향
+2. **소셜 네트워킹**: 공통 목표를 가진 사람들 간의 네트워크 형성
+3. **정보 공유**: 효과적인 체중 관리 방법 및 팁 공유
+4. **상호 격려**: 함께하는 목표 달성을 통한 유대감 강화
+
+### 기술적 효과
+
+1. **사용자 참여도 증가**: 게임화 요소로 인한 높은 앱 사용률
+2. **데이터 수집**: 체중 관리 패턴에 대한 유의미한 데이터 축적
+3. **확장 가능성**: 다양한 건강 관리 영역으로의 기능 확장 기반 마련
+4. **플랫폼 가치**: 소셜 기능을 통한 네트워크 효과 창출
