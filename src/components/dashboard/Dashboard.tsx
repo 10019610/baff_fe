@@ -51,7 +51,9 @@ const Dashboard = ({
   const getCurrentStats = () => {
     if (entries.length === 0 || weightStats.currentWeight === 0) return null;
 
-    const sortedEntries = entries.sort((a, b) => a.date.localeCompare(b.date));
+    const sortedEntries = [...entries].sort((a, b) =>
+      a.date.localeCompare(b.date)
+    );
     const currentWeight = weightStats.currentWeight; // 85.9
 
     // 최근 변화량은 마지막 기록의 change 값을 사용
