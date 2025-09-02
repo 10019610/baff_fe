@@ -42,7 +42,7 @@ const GoalsPage = () => {
    * APIs
    */
   /* 체중 목표 설정 api */
-  const { mutate: recordWeightMutation } = useMutation({
+  const { mutate: recordWeightMutation, isPending } = useMutation({
     mutationFn: (param: RecordGoalsRequest) => api.post('/goals/recordGoals', param),
     onSuccess: () => {
       refetchGoalList();
@@ -153,7 +153,7 @@ const GoalsPage = () => {
       <GoalSetting onClickRecord={handleRecordWeight} onChangeParam={handleRecordGoalsParam} param={recordWeightParam}
                    presetDuration={presetDuration} currentWeight={getCurrentWeightInfo.currentWeight}
                    goalList={goalList}
-                   handleGetDaysRemaining={handleGetDaysRemaining} handleDeleteGoalModal={handleDeleteGoalModal} />
+                   handleGetDaysRemaining={handleGetDaysRemaining} handleDeleteGoalModal={handleDeleteGoalModal} isPending={isPending} />
       {/* 목표 삭제 확인 다이얼로그 */}
       {deleteGoalId && <GoalsDeleteDialog deleteGoalId={deleteGoalId} isDeleteModalOpen={isDeleteModalOpen}
                                           onClickCloseDelete={cancelDeleteGoal} goalList={goalList}

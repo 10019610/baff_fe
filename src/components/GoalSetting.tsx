@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card.tsx';
-import { Calendar, Target, Trash2 } from 'lucide-react';
+import { AlertCircle, Calendar, CheckCircle, Target, Trash2 } from 'lucide-react';
 import { Label } from './ui/label.tsx';
 import { Input } from './ui/input.tsx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select.tsx';
@@ -9,6 +9,8 @@ import type { GetGoalListResponse, RecordGoalsRequest } from '../types/Goals.api
 import { formatDate } from '../utils/DateUtil.ts';
 import { Badge } from './ui/badge.tsx';
 import { Progress } from './ui/progress.tsx';
+import { motion } from 'motion/react';
+import LoadingSpinnerForButton from './LoadingSpinnerForButton.tsx';
 
 interface GoalSettingProps {
   onClickRecord: () => void;
@@ -19,6 +21,7 @@ interface GoalSettingProps {
   goalList: GetGoalListResponse[];
   handleGetDaysRemaining: (startDate: string, endDate: string) => number;
   handleDeleteGoalModal: (goalId: string) => void;
+  isPending: boolean;
 }
 
 /**
@@ -38,6 +41,7 @@ const GoalSetting = ({
                        goalList,
                        handleGetDaysRemaining,
                        handleDeleteGoalModal,
+                       isPending,
                      }: GoalSettingProps) => {
   /**
    * Variables
@@ -48,14 +52,25 @@ const GoalSetting = ({
    */
 
   /**
+   * UI
+   */
+  const MotionButton = motion(Button);
+
+  /**
    * Handlers
    */
   /* 설정목표 카드 만료여부 배지 제어 handler */
-  const getStatusBadge = (isExpired: boolean) => {
+  const getStatusBadge = (isExpired: boolean, goal: Goal) => {
+    const progress = calculateProgress(goal);
     if (isExpired) {
-      return <Badge>완료</Badge>;
+      if (progress < 100) {
+        return <Badge variant="destructive"><AlertCircle className="h-3 w-3 mr-1" />실패</Badge>;
+
+      } else if (progress === 100) {
+        return <Badge className="bg-green-500 text-white"><CheckCircle className="h-3 w-3 mr-1" />완료</Badge>;
+      }
     } else {
-      return <Badge>진행중</Badge>;
+      return <Badge variant="secondary">진행중</Badge>;
     }
   };
   /* 진행률 계산 handler */
@@ -91,13 +106,13 @@ const GoalSetting = ({
               <Label htmlFor="goalTitle">목표 제목</Label>
               <Input id="goalTitle" placeholder="예: 여름 준비 다이어트" value={param.title}
                      onChange={(e) => onChangeParam('title', e.target.value)} disabled={!hasWeightData}
-                     className={!hasWeightData ? 'opacity-50 cursor-not-allowed' : ''} />
+                     className={!hasWeightData ? 'opacity-50 cursor-not-allowed h-12' : 'h-12'} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="goalType">목표 기간</Label>
                 <Select value={String(param.presetDuration)} onValueChange={(e) => onChangeParam('presetDuration', e)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full" size="xl">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -110,10 +125,10 @@ const GoalSetting = ({
               <div className="space-y-2">
                 <Label htmlFor="targetWeight">목표 체중(kg)</Label>
                 <Input id="targetWeight" type="number" step="0.1" placeholder="예: 65" value={param.targetWeight}
-                       onChange={(e) => onChangeParam('targetWeight', e.target.value)} />
+                       onChange={(e) => onChangeParam('targetWeight', e.target.value)} className="h-12" />
               </div>
             </div>
-            <div className="p-3 bg-muted rounded-lg">
+            <div className="p-3 bg-muted rounded-lg h-12">
               <p className="text-sm text-muted-foreground">현재 체중: <span
                 className="font-medium">{param.startWeight}kg</span>
                 {param.targetWeight > 0 && (
@@ -129,7 +144,19 @@ const GoalSetting = ({
                 )}
               </p>
             </div>
-            <Button type="submit" className="w-full" onClick={onClickRecord}>목표 설정하기</Button>
+            <MotionButton type="submit" className="w-full text-[#000080] font-bold" size="xl" onClick={onClickRecord}
+                          disabled={isPending} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              {isPending ? (
+                <>
+                  <LoadingSpinnerForButton />
+                  설정 중
+                </>
+              ) : (
+                '목표 설정하기'
+              )}
+            </MotionButton>
+            <Button type="submit" className="w-full text-[#000080] font-bold" size="xl" onClick={onClickRecord}>목표
+              설정하기</Button>
           </div>
         </CardContent>
       </Card>
@@ -149,7 +176,7 @@ const GoalSetting = ({
                       <CardTitle
                         className={`text-lg ${goal.isExpired ? 'text-muted-foreground' : ''}`}>{goal.title}</CardTitle>
                       <div className="flex items-center gap-2">
-                        {getStatusBadge(goal.isExpired)}
+                        {getStatusBadge(goal.isExpired, goal)}
                         <Button variant="ghost" size="sm" onClick={() => handleDeleteGoalModal(goal.goalsId)}
                                 className="h-8 w-8 p-0 text-muted-foreground hover:text-red-600 hover:bg-red-50"
                                 title="목표 삭제">
