@@ -1,13 +1,16 @@
 import { Modal, ModalContent, ModalHeader, ModalTitle } from '../ui/modal.tsx';
 import type { GetGoalListResponse } from '../../types/Goals.api.type.ts';
 import { Button } from '../ui/button.tsx';
+import { motion } from 'motion/react';
+import LoadingSpinnerForButton from '../LoadingSpinnerForButton.tsx';
 
 interface GoalsDeleteDialogProps {
   deleteGoalId: string;
   onClickCloseDelete: () => void;
   isDeleteModalOpen: boolean;
   goalList: GetGoalListResponse[];
-  handleGoalDelete: (goalsId: string) => void
+  handleGoalDelete: (goalsId: string) => void;
+  isPending: boolean;
 }
 
 /**
@@ -20,7 +23,12 @@ const GoalsDeleteDialog = ({
                              isDeleteModalOpen,
                              goalList,
                              handleGoalDelete,
+                             isPending,
                            }: GoalsDeleteDialogProps) => {
+  /**
+   * UI
+   */
+  const MotionButton = motion(Button);
   return (
     <Modal isOpen={isDeleteModalOpen} onClose={onClickCloseDelete}>
       <ModalHeader>
@@ -39,7 +47,17 @@ const GoalsDeleteDialog = ({
         )}
       </ModalContent>
       <div className="flex justify-end gap-2 m-4">
-        <Button variant="outline" onClick={() => handleGoalDelete(deleteGoalId)} className="text-red-600 border-red-600">삭제</Button>
+        <MotionButton variant="outline" onClick={() => handleGoalDelete(deleteGoalId)}
+                      className="text-white border-red-600 bg-red-600">
+          {isPending ? (
+            <>
+              <LoadingSpinnerForButton />
+              삭제 중..
+            </>
+          ) : (
+            '삭제'
+          )}
+        </MotionButton>
         <Button variant="outline" onClick={onClickCloseDelete}>취소</Button>
       </div>
     </Modal>

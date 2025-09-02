@@ -42,14 +42,14 @@ const GoalsPage = () => {
    * APIs
    */
   /* 체중 목표 설정 api */
-  const { mutate: recordWeightMutation, isPending } = useMutation({
+  const { mutate: recordWeightMutation, isPending: isPendingForRecord } = useMutation({
     mutationFn: (param: RecordGoalsRequest) => api.post('/goals/recordGoals', param),
     onSuccess: () => {
       refetchGoalList();
     },
   });
   /* 목표 삭제 api */
-  const { mutate: deleteGoalMutation } = useMutation({
+  const { mutate: deleteGoalMutation, isPending: isPendingForDelete } = useMutation({
     mutationFn: (deleteGoalId: string) => api.post(`/goals/deleteGoal/${deleteGoalId}`),
     onSuccess: () => {
       console.log('param', deleteGoalId);
@@ -135,6 +135,8 @@ const GoalsPage = () => {
   const handleGoalDelete = (goalId: string) => {
     console.log('handleGoalDelete', goalId);
     deleteGoalMutation(goalId);
+    setIsDeleteModalOpen(false);
+    toast.success('목표가 삭제되었습니다.');
   };
   if (!hasWeightEntry) {
     return <GoalSetupGuide />;
@@ -153,11 +155,11 @@ const GoalsPage = () => {
       <GoalSetting onClickRecord={handleRecordWeight} onChangeParam={handleRecordGoalsParam} param={recordWeightParam}
                    presetDuration={presetDuration} currentWeight={getCurrentWeightInfo.currentWeight}
                    goalList={goalList}
-                   handleGetDaysRemaining={handleGetDaysRemaining} handleDeleteGoalModal={handleDeleteGoalModal} isPending={isPending} />
+                   handleGetDaysRemaining={handleGetDaysRemaining} handleDeleteGoalModal={handleDeleteGoalModal} isPending={isPendingForRecord} />
       {/* 목표 삭제 확인 다이얼로그 */}
       {deleteGoalId && <GoalsDeleteDialog deleteGoalId={deleteGoalId} isDeleteModalOpen={isDeleteModalOpen}
                                           onClickCloseDelete={cancelDeleteGoal} goalList={goalList}
-                                          handleGoalDelete={handleGoalDelete} />}
+                                          handleGoalDelete={handleGoalDelete} isPending={isPendingForDelete} />}
     </div>
   );
 };

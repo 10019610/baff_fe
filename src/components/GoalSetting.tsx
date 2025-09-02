@@ -155,8 +155,6 @@ const GoalSetting = ({
                 '목표 설정하기'
               )}
             </MotionButton>
-            <Button type="submit" className="w-full text-[#000080] font-bold" size="xl" onClick={onClickRecord}>목표
-              설정하기</Button>
           </div>
         </CardContent>
       </Card>
