@@ -24,6 +24,7 @@ export interface GetGoalListResponse {
   startWeight: number;
   targetWeight: number;
   isExpired: boolean;
+  currentWeight: number;
   // status: 'active' | 'completed';
 }
 

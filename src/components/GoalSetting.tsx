@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card.tsx';
-import { AlertCircle, Calendar, CheckCircle, Target, Trash2 } from 'lucide-react';
+import { AlertCircle, Calendar, CheckCircle, Scale, Target, Trash2 } from 'lucide-react';
 import { Label } from './ui/label.tsx';
 import { Input } from './ui/input.tsx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select.tsx';
@@ -75,18 +75,55 @@ const GoalSetting = ({
   };
   /* 진행률 계산 handler */
   const calculateProgress = (goal: Goal) => {
-    console.log('targetWeight', goal.targetWeight, 'startWeight', goal.startWeight, 'currentWeight', currentWeight);
     if (!currentWeight) return 0;
     const totalChange = goal.targetWeight - goal.startWeight;
     const currentChange = currentWeight - goal.startWeight;
 
     if (totalChange === 0) return 100;
 
-    console.log('totalChange', totalChange, 'currentChange', currentChange);
 
     const progress = (currentChange / totalChange) * 100;
-    console.log('progress', progress);
     return Math.min(Math.max(progress, 0), 100);
+  };
+
+  /* 일일 권장 감량량 계산 handler */
+  const calculateDailyWeightLoss = (goal: Goal) => {
+    const daysRemaining = handleGetDaysRemaining(String(new Date()), goal.endDate);
+    if (daysRemaining <= 0 || !goal.currentWeight) return null;
+
+    const weightDifference = goal.currentWeight - goal.targetWeight;
+    const dailyLoss = weightDifference / daysRemaining;
+
+    console.log('daysRemaning', daysRemaining);
+    console.log('weightDifference', weightDifference);
+
+    return {
+      dailyLoss: Math.abs(dailyLoss),
+      isGain: weightDifference < 0,
+      status: Math.abs(dailyLoss) <= 0.3 ? 'healthy' : Math.abs(dailyLoss) <= 0.5 ? 'moderate' : 'aggressive',
+    };
+  };
+  /* 일일 권장 감량량 상태에 따른 색상 및 메시지 handler */
+  const getDailyLossStatus = (status: string, isGain: boolean) => {
+    if (isGain) {
+      switch (status) {
+        case 'healthy':
+          return { color: 'text-green-600', message: '건강한 증량 속도' };
+        case 'moderate':
+          return { color: 'text-yellow-600', message: '적당한 증량 속도' };
+        default:
+          return { color: 'text-red-600', message: '빠른 증량 속도' };
+      }
+    } else {
+      switch (status) {
+        case 'healthy':
+          return { color: 'text-green-600', message: '건강한 감량 속도' };
+        case 'moderate':
+          return { color: 'text-yellow-600', message: '적당한 감량 속도' };
+        default:
+          return { color: 'text-red-600', message: '빠른 감량 속도' };
+      }
+    }
   };
 
   return (
@@ -204,15 +241,46 @@ const GoalSetting = ({
                       </div>
                       <div>
                         <p className="text-muted-foreground">현재 체중</p>
-                        <p className="font-medium">{currentWeight}kg</p>
+                        <p className="font-medium">{goal.currentWeight}kg</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">목표까지</p>
                         <p className="font-medium">
-                          {currentWeight ? `${Math.abs(currentWeight - goal.targetWeight).toFixed(1)}kg` : '-'}
+                          {currentWeight ? `${Math.abs(goal.currentWeight - goal.targetWeight).toFixed(1)}kg` : '-'}
                         </p>
                       </div>
                     </div>
+
+                    {!goal.isExpired && goal.currentWeight && daysRemaining > 0 && (() => {
+                      const dailyLossInfo = calculateDailyWeightLoss(goal);
+                      if (!dailyLossInfo) return null;
+
+                      const statusInfo = getDailyLossStatus(dailyLossInfo.status, dailyLossInfo.isGain);
+                      return (
+                        <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Scale className="h-4 w-4 text-primary" />
+                              <span className="text-sm font-medium">일일 권장 {dailyLossInfo.isGain}</span>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-medium">{dailyLossInfo.dailyLoss.toFixed(2)}kg/일</p>
+                              <p className={`text-xs ${statusInfo.color}`}>{statusInfo.message}</p>
+                            </div>
+                          </div>
+                          <div className="mt-2 text-xs text-muted-foreground">
+                            {dailyLossInfo.isGain ? (
+                              <>목표 달성을 위해 매일 약 {dailyLossInfo.dailyLoss.toFixed(2)}kg씩 체중을 늘려야 합니다.</>
+                            ) : (
+                              <>목표 달성을 위해 매일 약 {dailyLossInfo.dailyLoss.toFixed(2)}kg씩 체중을 줄여야 합니다.</>
+                            )}
+                            {dailyLossInfo.status === 'aggressive' && (
+                              <span className="block mt-1 text-orange-600">⚠️ 너무 빠른 속도입니다. 건강을 위해 목표 기간을 늘리는 것을 고려해보세요.</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
                     {!goal.isExpired && currentWeight && (
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">

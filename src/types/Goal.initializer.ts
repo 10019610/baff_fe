@@ -27,6 +27,7 @@ export const goalsInitializer = {
       startWeight: 0,
       targetWeight: 0,
       isExpired: false,
+      currentWeight: 0,
     },
   ] as GetGoalListResponse[],
 };

@@ -18,4 +18,5 @@ export interface Goal {
   startWeight: number;
   targetWeight: number;
   isExpired: boolean;
+  currentWeight: number;
 }
