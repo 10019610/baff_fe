@@ -69,9 +69,9 @@ const App = () => {
               className: '',
               duration: 4000,
               style: {
-                background: 'hsl(var(--card))',
-                color: 'hsl(var(--card-foreground))',
-                border: '1px solid hsl(var(--border))',
+                background: '#ffffff',
+                color: '#0a0a0a',
+                border: '1px solid rgba(0, 0, 0, 0.1)',
                 borderRadius: 'var(--radius)',
                 fontSize: '14px',
                 fontWeight: '400',
@@ -80,6 +80,9 @@ const App = () => {
                 padding: '12px 16px',
                 boxShadow:
                   '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+                zIndex: 9999,
+                backdropFilter: 'none',
+                opacity: 1,
               },
               // 성공 토스트
               success: {
@@ -88,9 +91,11 @@ const App = () => {
                   secondary: '#ffffff',
                 },
                 style: {
-                  background: 'hsl(var(--card))',
-                  color: 'hsl(var(--card-foreground))',
+                  background: '#ffffff',
+                  color: '#0a0a0a',
                   border: '1px solid #98FB98',
+                  zIndex: 9999,
+                  opacity: 1,
                 },
               },
               // 에러 토스트
@@ -100,9 +105,11 @@ const App = () => {
                   secondary: '#ffffff',
                 },
                 style: {
-                  background: 'hsl(var(--card))',
-                  color: 'hsl(var(--card-foreground))',
+                  background: '#ffffff',
+                  color: '#0a0a0a',
                   border: '1px solid #d4183d',
+                  zIndex: 9999,
+                  opacity: 1,
                 },
               },
               // 로딩 토스트
@@ -112,9 +119,11 @@ const App = () => {
                   secondary: '#ffffff',
                 },
                 style: {
-                  background: 'hsl(var(--card))',
-                  color: 'hsl(var(--card-foreground))',
+                  background: '#ffffff',
+                  color: '#0a0a0a',
                   border: '1px solid #98FB98',
+                  zIndex: 9999,
+                  opacity: 1,
                 },
               },
             }}

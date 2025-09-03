@@ -1,4 +1,5 @@
 import WeightTracker from '../components/weightTracker/WeightTracker';
+import type { WeightTrackerRef } from '../components/weightTracker/WeightTracker';
 
 import type {
   RecordWeightRequest,
@@ -6,7 +7,7 @@ import type {
   WeightResponseDto,
   WeightEntry,
 } from '../types/WeightTracker.api.type';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { weightTrackerInitializer } from '../types/WeightTracker.initializer';
 import { api } from '../services/api/Api';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -18,6 +19,7 @@ import toast from 'react-hot-toast';
  */
 const WeightTrackerPage = () => {
   const { user } = useAuth();
+  const weightTrackerRef = useRef<WeightTrackerRef>(null);
 
   // 체중 기록 저장 state
   const [recordWeightParam, setRecordWeightParam] =
@@ -78,6 +80,11 @@ const WeightTrackerPage = () => {
 
         // 기록 후 목록 새로고침
         refetchEntries();
+
+        // 최근 기록 섹션으로 스크롤
+        setTimeout(() => {
+          weightTrackerRef.current?.scrollToRecentEntries();
+        }, 500); // 데이터 업데이트 후 스크롤
 
         // 체중 입력값 초기화
         setRecordWeightParam((prev) => ({
@@ -214,6 +221,7 @@ const WeightTrackerPage = () => {
   return (
     <div className="tracker-page">
       <WeightTracker
+        ref={weightTrackerRef}
         onClickRecord={handleRecordWeight}
         onChangeParam={handleRecordWeightParam}
         param={recordWeightParam}

@@ -427,7 +427,7 @@ const AnalyticsPage = () => {
           <Target className="h-4 w-4 text-primary" />
           <AlertDescription>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 mr-2">
                 <span>
                   현재 목표:{' '}
                   <strong>{goalList[goalList.length - 1].title}</strong> (목표

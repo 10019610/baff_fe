@@ -189,3 +189,22 @@
 html {
   font-size: var(--font-size);
 }
+
+/* Toast styling overrides for opacity and z-index */
+.react-hot-toast div[role='status'] {
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+  z-index: 9999 !important;
+}
+
+/* Dark mode toast styling */
+.dark .react-hot-toast div[role='status'] {
+  background-color: oklch(0.145 0 0) !important;
+  color: oklch(0.985 0 0) !important;
+  border-color: oklch(0.269 0 0) !important;
+}
+
+/* Toast container styling */
+.react-hot-toast {
+  z-index: 9999 !important;
+}
