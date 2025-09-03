@@ -1,7 +1,9 @@
+import BattleMode from '../components/battle/BattleMode';
+
 const BattlePage = () => {
   return (
-    <div>
-      <h1>Battle Page</h1>
+    <div className="battle-page">
+      <BattleMode />
     </div>
   );
 };

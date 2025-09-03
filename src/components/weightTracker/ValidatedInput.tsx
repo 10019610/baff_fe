@@ -19,6 +19,7 @@ interface ValidatedInputProps {
   showValidIcon?: boolean;
   validateOnBlur?: boolean;
   validateOnChange?: boolean;
+  customValidation?: (value: string | number) => string | null;
 }
 
 export default function ValidatedInput({
@@ -35,15 +36,22 @@ export default function ValidatedInput({
   showValidIcon = true,
   validateOnBlur = true,
   validateOnChange = false,
+  customValidation,
 }: ValidatedInputProps) {
   const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
   const [isValid, setIsValid] = useState(false);
 
   const validate = (val: string | number) => {
-    if (!validationRules) return null;
+    let errorMessage = null;
 
-    const errorMessage = validateField(val, validationRules, label);
+    // 커스텀 유효성 검사가 있으면 우선 실행
+    if (customValidation) {
+      errorMessage = customValidation(val);
+    } else if (validationRules) {
+      errorMessage = validateField(val, validationRules, label);
+    }
+
     setError(errorMessage);
     setIsValid(
       !errorMessage && val !== '' && val !== null && val !== undefined
@@ -56,6 +64,18 @@ export default function ValidatedInput({
       validate(value);
     }
   }, [value, touched, validateOnChange]);
+
+  // value가 초기화될 때 touched와 error 상태도 초기화
+  useEffect(() => {
+    if (
+      (type === 'number' && (value === 0 || value === '')) ||
+      (type !== 'number' && value === '')
+    ) {
+      setTouched(false);
+      setError(null);
+      setIsValid(false);
+    }
+  }, [value, type]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue =
