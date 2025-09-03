@@ -5,7 +5,7 @@ export interface ValidationRule {
   min?: number;
   max?: number;
   pattern?: RegExp;
-  custom?: (value: any) => string | null;
+  custom?: (value: string | number) => string | null;
 }
 
 export interface ValidationError {
@@ -14,12 +14,15 @@ export interface ValidationError {
 }
 
 export const validateField = (
-  value: any,
+  value: string | number | null | undefined,
   rules: ValidationRule,
   fieldName: string
 ): string | null => {
   // Required validation
-  if (rules.required && (!value || (typeof value === 'string' && value.trim() === ''))) {
+  if (
+    rules.required &&
+    (!value || (typeof value === 'string' && value.trim() === ''))
+  ) {
     return `${fieldName}은(는) 필수 입력 항목입니다`;
   }
 
@@ -50,7 +53,11 @@ export const validateField = (
   }
 
   // Pattern validation
-  if (rules.pattern && typeof value === 'string' && !rules.pattern.test(value)) {
+  if (
+    rules.pattern &&
+    typeof value === 'string' &&
+    !rules.pattern.test(value)
+  ) {
     return `${fieldName} 형식이 올바르지 않습니다`;
   }
 
@@ -63,14 +70,18 @@ export const validateField = (
 };
 
 export const validateForm = (
-  data: Record<string, any>,
+  data: Record<string, string | number | null | undefined>,
   rules: Record<string, ValidationRule>,
   fieldNames: Record<string, string>
 ): ValidationError[] => {
   const errors: ValidationError[] = [];
 
-  Object.keys(rules).forEach(field => {
-    const error = validateField(data[field], rules[field], fieldNames[field] || field);
+  Object.keys(rules).forEach((field) => {
+    const error = validateField(
+      data[field],
+      rules[field],
+      fieldNames[field] || field
+    );
     if (error) {
       errors.push({ field, message: error });
     }
@@ -85,7 +96,7 @@ export const validationRules = {
     required: true,
     min: 20,
     max: 300,
-    custom: (value: any) => {
+    custom: (value: string | number) => {
       const num = Number(value);
       if (isNaN(num)) {
         return '올바른 숫자를 입력해주세요';
@@ -94,53 +105,56 @@ export const validationRules = {
         return '소수점 첫째 자리까지만 입력 가능합니다';
       }
       return null;
-    }
+    },
   },
   goal: {
     required: true,
     min: 0.1,
     max: 50,
-    custom: (value: any) => {
+    custom: (value: string | number) => {
       const num = Number(value);
       if (isNaN(num)) {
         return '올바른 숫자를 입력해주세요';
       }
       return null;
-    }
+    },
   },
   roomName: {
     required: true,
     minLength: 2,
     maxLength: 30,
-    custom: (value: string) => {
-      if (value && /^\s/.test(value)) {
+    custom: (value: string | number) => {
+      const stringValue = String(value);
+      if (stringValue && /^\s/.test(stringValue)) {
         return '공백으로 시작할 수 없습니다';
       }
       return null;
-    }
+    },
   },
   password: {
     required: true,
     minLength: 4,
     maxLength: 20,
     pattern: /^[a-zA-Z0-9]+$/,
-    custom: (value: string) => {
-      if (value && !/^[a-zA-Z0-9]+$/.test(value)) {
+    custom: (value: string | number) => {
+      const stringValue = String(value);
+      if (stringValue && !/^[a-zA-Z0-9]+$/.test(stringValue)) {
         return '영문자와 숫자만 사용 가능합니다';
       }
       return null;
-    }
+    },
   },
   roomId: {
     required: true,
     minLength: 6,
     maxLength: 6,
     pattern: /^[A-Z0-9]{6}$/,
-    custom: (value: string) => {
-      if (value && !/^[A-Z0-9]{6}$/.test(value)) {
+    custom: (value: string | number) => {
+      const stringValue = String(value);
+      if (stringValue && !/^[A-Z0-9]{6}$/.test(stringValue)) {
         return '6자리 영문 대문자와 숫자로 구성되어야 합니다';
       }
       return null;
-    }
-  }
+    },
+  },
 };

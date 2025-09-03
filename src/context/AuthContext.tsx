@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from 'react';
 import { api } from '../services/api/Api.ts';
 import type { User } from '../types/User.ts'; // User 타입 임포트
 
@@ -15,7 +21,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // AuthProvider 컴포넌트: 인증 상태를 관리하고 자식 컴포넌트에 제공합니다.
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true); // 초기 로딩 상태는 true
@@ -28,13 +36,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
      * JWT 쿠키를 통해 인증 상태를 확인하고 사용자 정보를 설정합니다.
      */
     const fetchUser = async () => {
-      console.log('fetchUser', isAuthenticated);
       try {
         const response = await api.get<User>(`${baseUrl}/user/me`);
-        console.log('[/user/me] API 실제 응답 데이터:', response.data);
         setUser(response.data);
         setIsAuthenticated(true);
-        console.log('isAuthenticated', isAuthenticated);
       } catch (error) {
         console.log(error);
         // 401 Unauthorized 등의 에러 발생 시 로그인되지 않은 상태로 처리
@@ -54,7 +59,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
    * @param userData 로그인 성공 후 백엔드에서 받은 사용자 정보
    */
   const login = React.useCallback((userData: User) => {
-    console.log('auth Context login', userData);
     setUser(userData);
     setIsAuthenticated(true);
   }, []);
@@ -82,7 +86,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const value = React.useMemo(
     () => ({ user, isAuthenticated, isLoading, login, logout }),
-    [user, isAuthenticated, isLoading, login, logout],
+    [user, isAuthenticated, isLoading, login, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
