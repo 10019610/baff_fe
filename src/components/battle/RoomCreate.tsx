@@ -10,29 +10,26 @@ import { toast } from 'react-hot-toast';
 import AnimatedContainer from '../weightTracker/AnimatedContainer';
 import ValidatedInput from '../weightTracker/ValidatedInput';
 import { validationRules } from '../../utils/validation';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { api } from '../../services/api/Api';
+import type {
+  CreateBattleRoomRequest,
+  BattleRoomListQueryResult,
+  BackendBattleRoomDto,
+} from '../../types/BattleRoom.api.type';
 
 interface Room {
-  id: string;
   name: string;
-  description: string;
   password: string;
-  createdBy: string;
-  createdByName: string;
-  participants: Array<{
-    userId: string;
-    userName: string;
-    joinedAt: string;
-    isReady: boolean;
-  }>;
-  maxParticipants: number;
-  createdAt: string;
-  isActive: boolean;
-  settings: {
-    duration: number; // days
-    goalType: 'weight_loss' | 'weight_gain' | 'maintain';
-    startDate: string;
-    endDate: string;
-  };
+  hostId: string;
+  hostNickName: string;
+  status: 'WAITING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  maxParticipant: number;
+  currentParticipant: number;
+  durationDays: number;
+  startDate: string;
+  endDate: string;
+  entryCode: string;
 }
 
 interface RoomCreationProps {
@@ -48,67 +45,85 @@ const RoomCreate = ({ onRoomCreated, onCancel }: RoomCreationProps) => {
     password: '',
     maxParticipants: 4,
     duration: 30,
-    goalType: 'weight_loss' as const,
   });
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleInputChange = (field: string, value: string) => {
+  // 배틀룸 리스트 조회 (WeightTracker 패턴)
+  const { refetch: refetchBattleRooms } = useQuery({
+    queryKey: ['battleRooms', user?.id],
+    queryFn: async (): Promise<BattleRoomListQueryResult> => {
+      if (!user?.id) return { battleRooms: [] };
+
+      try {
+        const response = await api.get('/battle/getBattleRoomList');
+        return { battleRooms: response.data };
+      } catch (error) {
+        console.error('Failed to fetch battle rooms:', error);
+        return { battleRooms: [] };
+      }
+    },
+    enabled: !!user?.id,
+  });
+
+  const { mutate: createBattleRoomMutation, isPending: isLoading } =
+    useMutation({
+      mutationFn: (param: CreateBattleRoomRequest) =>
+        api.post('/battle/createBattleRoom', param),
+      onSuccess: async () => {
+        toast.success('방이 성공적으로 생성되었습니다!', {
+          icon: '🎯',
+          duration: 3000,
+        });
+
+        const refetchResult = await refetchBattleRooms();
+
+        if (refetchResult.data?.battleRooms) {
+          // 가장 최근에 생성된 방을 찾거나, 내가 생성한 방 중 가장 최신 것을 찾기
+          const newRoom =
+            refetchResult.data.battleRooms.find(
+              (room: BackendBattleRoomDto) =>
+                room.hostId === user!.id && room.name === formData.name
+            ) ||
+            refetchResult.data.battleRooms[
+              refetchResult.data.battleRooms.length - 1
+            ];
+
+          if (newRoom) {
+            // 백엔드 응답을 바로 사용 (변환 불필요)
+            onRoomCreated(newRoom);
+            return;
+          }
+        }
+      },
+      onError: (error) => {
+        console.error('Failed to create battle room:', error);
+        toast.error('방 생성 중 오류가 발생했습니다', {
+          icon: '❌',
+          duration: 4000,
+        });
+      },
+    });
+
+  const handleInputChange = (field: string, value: string | number) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const generateRoomId = () => {
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
-  };
-
   const handleCreateRoom = async () => {
     if (!user) return;
 
-    setIsLoading(true);
+    // API 요청을 위한 데이터 준비
+    const createRequest: CreateBattleRoomRequest = {
+      name: formData.name,
+      description: formData.description,
+      password: formData.password,
+      maxParticipants: formData.maxParticipants,
+      durationDays: formData.duration,
+    };
 
-    try {
-      const startDate = new Date();
-      const endDate = new Date();
-      endDate.setDate(startDate.getDate() + formData.duration);
-
-      const newRoom: Room = {
-        id: generateRoomId(),
-        name: formData.name,
-        description: formData.description,
-        password: formData.password,
-        createdBy: user.id,
-        createdByName: user.nickname,
-        participants: [
-          {
-            userId: user.id,
-            userName: user.nickname,
-            joinedAt: new Date().toISOString(),
-            isReady: false,
-          },
-        ],
-        maxParticipants: formData.maxParticipants,
-        createdAt: new Date().toISOString(),
-        isActive: false,
-        settings: {
-          duration: formData.duration,
-          goalType: formData.goalType,
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
-        },
-      };
-
-      // TODO: API 연동 후 실제 서버에 방 생성 요청하도록 구현
-
-      toast.success('방이 성공적으로 생성되었습니다!');
-      onRoomCreated(newRoom);
-    } catch (error) {
-      console.error('Failed to create room:', error);
-      toast.error('방 생성 중 오류가 발생했습니다');
-    } finally {
-      setIsLoading(false);
-    }
+    // TanStack Query mutation 실행 - onSuccess에서 response 처리
+    createBattleRoomMutation(createRequest);
   };
 
   return (
@@ -178,9 +193,7 @@ const RoomCreate = ({ onRoomCreated, onCancel }: RoomCreationProps) => {
                       formData.maxParticipants === num ? 'default' : 'outline'
                     }
                     size="sm"
-                    onClick={() =>
-                      handleInputChange('maxParticipants', String(num))
-                    }
+                    onClick={() => handleInputChange('maxParticipants', num)}
                     className="flex items-center gap-1"
                   >
                     <Users className="h-4 w-4" />
@@ -198,7 +211,7 @@ const RoomCreate = ({ onRoomCreated, onCancel }: RoomCreationProps) => {
                     key={days}
                     variant={formData.duration === days ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => handleInputChange('duration', String(days))}
+                    onClick={() => handleInputChange('duration', days)}
                     className="flex items-center gap-1"
                   >
                     <Calendar className="h-4 w-4" />
@@ -206,51 +219,6 @@ const RoomCreate = ({ onRoomCreated, onCancel }: RoomCreationProps) => {
                   </Button>
                 ))}
               </div>
-            </div>
-          </div>
-
-          <div>
-            <Label>목표 유형</Label>
-            <div className="flex gap-2 mt-2">
-              <Button
-                variant={
-                  formData.goalType === 'weight_loss' ? 'default' : 'outline'
-                }
-                size="sm"
-                onClick={() =>
-                  handleInputChange('goalType', String('weight_loss'))
-                }
-                className="flex items-center gap-1"
-              >
-                <Target className="h-4 w-4" />
-                체중 감량
-              </Button>
-              <Button
-                variant={
-                  formData.goalType === 'weight_loss' ? 'default' : 'outline'
-                }
-                size="sm"
-                onClick={() =>
-                  handleInputChange('goalType', String('weight_gain'))
-                }
-                className="flex items-center gap-1"
-              >
-                <Target className="h-4 w-4" />
-                체중 증가
-              </Button>
-              <Button
-                variant={
-                  formData.goalType === 'weight_loss' ? 'default' : 'outline'
-                }
-                size="sm"
-                onClick={() =>
-                  handleInputChange('goalType', String('maintain'))
-                }
-                className="flex items-center gap-1"
-              >
-                <Target className="h-4 w-4" />
-                체중 유지
-              </Button>
             </div>
           </div>
 
@@ -272,11 +240,7 @@ const RoomCreate = ({ onRoomCreated, onCancel }: RoomCreationProps) => {
               </div>
               <div className="flex items-center gap-2">
                 <Target className="h-4 w-4 text-muted-foreground" />
-                {formData.goalType === 'weight_loss'
-                  ? '체중 감량'
-                  : formData.goalType === 'weight_gain'
-                    ? '체중 증가'
-                    : '체중 유지'}
+                개인 목표 설정
               </div>
             </div>
           </div>

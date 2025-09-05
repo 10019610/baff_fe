@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
@@ -17,29 +16,23 @@ import { motion } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import AnimatedContainer from '../weightTracker/AnimatedContainer';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '../../services/api/Api';
+import type { BattleRoomListQueryResult } from '../../types/BattleRoom.api.type';
 
 interface Room {
-  id: string;
   name: string;
-  description: string;
   password: string;
-  createdBy: string;
-  createdByName: string;
-  participants: Array<{
-    userId: string;
-    userName: string;
-    joinedAt: string;
-    isReady: boolean;
-  }>;
-  maxParticipants: number;
-  createdAt: string;
-  isActive: boolean;
-  settings: {
-    duration: number;
-    goalType: 'weight_loss' | 'weight_gain' | 'maintain';
-    startDate: string;
-    endDate: string;
-  };
+  description: string;
+  hostId: string;
+  hostNickName: string;
+  status: 'WAITING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  maxParticipant: number;
+  currentParticipant: number;
+  durationDays: number;
+  startDate: string;
+  endDate: string;
+  entryCode: string;
 }
 
 interface RoomListProps {
@@ -54,30 +47,32 @@ const RoomList = ({
   onCreateRoom,
 }: RoomListProps) => {
   const { user } = useAuth();
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    loadRooms();
-  }, [user]);
+  // 배틀룸 리스트 조회 (WeightTracker 패턴)
+  const {
+    data: battleRoomData,
+    isLoading,
+    refetch: refetchBattleRooms,
+  } = useQuery({
+    queryKey: ['battleRooms', user?.id],
+    queryFn: async (): Promise<BattleRoomListQueryResult> => {
+      if (!user?.id) return { battleRooms: [] };
 
-  const loadRooms = async () => {
-    if (!user) return;
+      try {
+        const response = await api.get('/battle/getBattleRoomList');
+        return { battleRooms: response.data };
+      } catch (error) {
+        console.error('Failed to fetch battle rooms:', error);
+        return { battleRooms: [] };
+      }
+    },
+    enabled: !!user?.id,
+  });
 
-    // Simulate loading delay for better UX
-    await new Promise((resolve) => setTimeout(resolve, 300));
+  // 백엔드 응답을 바로 사용 (변환 불필요)
+  const rooms: Room[] = battleRoomData?.battleRooms || [];
 
-    try {
-      // TODO: API 연동 후 실제 서버에서 사용자의 방 목록을 가져오도록 구현
-      setRooms([]); // 임시로 빈 배열 설정
-    } catch (error) {
-      console.error('Failed to load rooms:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleLeaveRoom = async (roomId: string) => {
+  const handleLeaveRoom = async (entryCode: string) => {
     if (!user) return;
 
     const confirmed = confirm('정말 방을 나가시겠습니까?');
@@ -85,9 +80,11 @@ const RoomList = ({
 
     try {
       // TODO: API 연동 후 실제 서버에 방 나가기 요청하도록 구현
-      const userRooms = rooms.filter((room) => room.id !== roomId);
+      // await api.post('/battle/leaveBattleRoom', { entryCode });
+      console.log('Leaving room:', entryCode);
 
-      setRooms(userRooms);
+      // 방 나가기 후 목록 새로고침
+      await refetchBattleRooms();
       toast.success('방에서 나왔습니다');
     } catch (error) {
       console.error('Failed to leave room:', error);
@@ -95,33 +92,7 @@ const RoomList = ({
     }
   };
 
-  const getGoalTypeText = (goalType: string) => {
-    switch (goalType) {
-      case 'weight_loss':
-        return '체중 감량';
-      case 'weight_gain':
-        return '체중 증가';
-      case 'maintain':
-        return '체중 유지';
-      default:
-        return goalType;
-    }
-  };
-
-  const getGoalTypeColor = (goalType: string) => {
-    switch (goalType) {
-      case 'weight_loss':
-        return 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200';
-      case 'weight_gain':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200';
-      case 'maintain':
-        return 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-950 dark:text-gray-200';
-    }
-  };
-
-  const isRoomOwner = (room: Room) => room.createdBy === user?.id;
+  const isRoomOwner = (room: Room) => room.hostId === user?.id;
 
   const getDaysRemaining = (endDate: string) => {
     const end = new Date(endDate);
@@ -192,13 +163,13 @@ const RoomList = ({
   return (
     <div className="space-y-4">
       {rooms.map((room, index) => {
-        const daysRemaining = getDaysRemaining(room.settings.endDate);
+        const daysRemaining = getDaysRemaining(room.endDate);
         const isOwner = isRoomOwner(room);
-        const isStarted = room.isActive;
+        const isStarted = room.status === 'IN_PROGRESS';
 
         return (
           <motion.div
-            key={room.id}
+            key={room.entryCode}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
@@ -219,7 +190,6 @@ const RoomList = ({
                         {isStarted ? '진행 중' : '대기 중'}
                       </Badge>
                     </div>
-
                     {room.description && (
                       <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                         {room.description}
@@ -229,40 +199,32 @@ const RoomList = ({
                     <div className="flex flex-wrap gap-2 mb-4">
                       <Badge variant="outline" className="text-xs">
                         <Users className="h-3 w-3 mr-1" />
-                        {room.participants.length}/{room.maxParticipants}명
+                        {room.currentParticipant}/{room.maxParticipant}명
                       </Badge>
 
-                      <Badge
-                        variant="outline"
-                        className={`text-xs ${getGoalTypeColor(room.settings.goalType)}`}
-                      >
+                      <Badge variant="outline" className="text-xs">
                         <Target className="h-3 w-3 mr-1" />
-                        {getGoalTypeText(room.settings.goalType)}
+                        개인 목표 설정
                       </Badge>
 
                       <Badge variant="outline" className="text-xs">
                         <Clock className="h-3 w-3 mr-1" />
-                        {daysRemaining > 0
-                          ? `${daysRemaining}일 남음`
-                          : '종료됨'}
+                        {room.status === 'WAITING'
+                          ? `${room.durationDays}일간`
+                          : daysRemaining > 0
+                            ? `${daysRemaining}일 남음`
+                            : '종료됨'}
                       </Badge>
                     </div>
 
-                    {/* 참가자 목록 */}
+                    {/* 호스트 정보 */}
                     <div className="flex flex-wrap gap-1 mb-4">
-                      {room.participants.slice(0, 3).map((participant) => (
-                        <Badge
-                          key={participant.userId}
-                          variant="secondary"
-                          className="text-xs"
-                        >
-                          {participant.userName}
-                          {participant.userId === room.createdBy && ' 👑'}
-                        </Badge>
-                      ))}
-                      {room.participants.length > 3 && (
+                      <Badge variant="secondary" className="text-xs">
+                        {room.hostNickName} 👑
+                      </Badge>
+                      {room.currentParticipant > 1 && (
                         <Badge variant="secondary" className="text-xs">
-                          +{room.participants.length - 3}명
+                          +{room.currentParticipant - 1}명
                         </Badge>
                       )}
                     </div>
@@ -302,9 +264,7 @@ const RoomList = ({
                       variant="outline"
                       size="sm"
                       onClick={() => onInviteRoom(room)}
-                      disabled={
-                        room.participants.length >= room.maxParticipants
-                      }
+                      disabled={room.currentParticipant >= room.maxParticipant}
                     >
                       <Share2 className="h-4 w-4" />
                     </Button>
@@ -317,7 +277,7 @@ const RoomList = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleLeaveRoom(room.id)}
+                      onClick={() => handleLeaveRoom(room.entryCode)}
                       className="text-destructive hover:text-destructive"
                     >
                       <Trash2 className="h-4 w-4" />
