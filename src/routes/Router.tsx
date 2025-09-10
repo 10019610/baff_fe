@@ -25,7 +25,7 @@ const Router = () => {
           <Route path="/weightTracker" element={<WeightTrackerPage />} />
           <Route path="/goals" element={<GoalsPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
-          <Route path="/battle" element={<BattlePage />} />
+          <Route path="/battle/*" element={<BattlePage />} />
         </Route>
         <Route path="/admin">
           <Route path="dashboard" element={<AdminPage />} />

@@ -14,15 +14,15 @@ export interface KakaoShareParams {
   objectType: 'feed' | 'list' | 'location' | 'commerce' | 'text';
   content: {
     title: string;
-    imageUrl: string;
+    // imageUrl: string;
     link: {
       mobileWebUrl: string;
       webUrl: string;
     };
   };
   itemContent?: {
-    // profileText: string;
-    // profileImageUrl: string;
+    profileText: string;
+    profileImageUrl: string;
     titleImageUrl: string;
     titleImageText: string;
     titleImageCategory: string;

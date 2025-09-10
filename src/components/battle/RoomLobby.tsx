@@ -296,10 +296,15 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
     startBattleMutation();
   };
 
+  // 초대 링크 생성
+  const inviteUrl =
+    room && roomDetail
+      ? `${window.location.origin}${window.location.pathname}?roomId=${roomDetail.entryCode}&password=${room.password}`
+      : '';
+
   const handleCopyInviteLink = () => {
     if (!room || !roomDetail) return;
 
-    const inviteUrl = `${window.location.origin}${window.location.pathname}?roomId=${roomDetail.entryCode}&password=${room.password}`;
     navigator.clipboard
       .writeText(inviteUrl)
       .then(() => {
@@ -314,13 +319,7 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
   const handleKakaoShare = () => {
     if (!room || !roomDetail) return;
 
-    const inviteUrl = `${window.location.origin}${window.location.pathname}?roomId=${roomDetail.entryCode}&password=${room.password}`;
-
-    const shareData = createRoomInviteShareData(
-      room.name,
-      // roomDetail.entryCode,
-      inviteUrl
-    );
+    const shareData = createRoomInviteShareData(room.name, inviteUrl);
 
     shareToKakao(shareData);
   };
@@ -494,7 +493,7 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
               <Separator className="my-4" />
 
               {/* 초대 링크 섹션 */}
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <h4 className="font-medium">친구 초대</h4>
                 </div>
@@ -502,31 +501,51 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                   링크를 공유하여 친구들을 초대해보세요
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCopyInviteLink}
-                    className="flex-1"
-                  >
-                    <Copy className="h-4 w-4 mr-2" />
-                    초대 링크 복사
-                  </Button>
-                  <button onClick={handleKakaoShare} className="flex-1">
-                    <img
-                      src="/kakaotalk_sharing_btn_small.png"
-                      alt="카카오톡으로 공유하기"
-                      className="w-auto h-auto hover:opacity-90 transition-opacity"
-                      onMouseOver={(e) => {
-                        e.currentTarget.src =
-                          '/kakaotalk_sharing_btn_small_ov.png';
-                      }}
-                      onMouseOut={(e) => {
-                        e.currentTarget.src =
-                          '/kakaotalk_sharing_btn_small.png';
-                      }}
-                    />
-                  </button>
+                {/* 초대 링크 복사 */}
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">
+                    초대 링크
+                  </Label>
+                  <div className="flex gap-2">
+                    <div className="flex-1 p-1.5 bg-muted rounded-lg border text-sm font-mono break-all">
+                      {inviteUrl}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="xl"
+                      onClick={handleCopyInviteLink}
+                      className=""
+                    >
+                      <Copy className="sm:mr-2" />
+                      <span className="hidden sm:inline text-sm">복사</span>
+                    </Button>
+                  </div>
+                </div>
+
+                {/* 카카오톡 공유 */}
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">
+                    카카오톡으로 공유
+                  </Label>
+                  <div className="flex justify-center">
+                    <button
+                      onClick={handleKakaoShare}
+                      className="overflow-hidden rounded-lg transition-all w-full h-full duration-200 hover:scale-105 hover:shadow-lg"
+                    >
+                      <div className="flex items-center justify-center gap-3 bg-yellow-400 hover:bg-yellow-500 px-6 py-3 rounded-lg transition-colors duration-200">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center p-1">
+                          <img
+                            src="/kakaotalk_sharing_btn_medium.png"
+                            alt="카카오톡"
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <span className="text-white font-bold text-sm">
+                          카카오톡으로 초대하기
+                        </span>
+                      </div>
+                    </button>
+                  </div>
                 </div>
               </div>
             </CardContent>

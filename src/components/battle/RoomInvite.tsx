@@ -106,47 +106,66 @@ const RoomInvite = ({ room, onClose }: RoomInviteProps) => {
           {/* 카카오톡 공유 */}
           <div className="space-y-4">
             <div>
-              <Label>카카오톡으로 초대</Label>
-              <div className="mt-2">
-                <button onClick={handleKakaoShare} className="">
-                  <img
-                    src="/kakaotalk_sharing_btn_medium.png"
-                    alt="카카오톡으로 공유하기"
-                    className="w-full h-auto hover:opacity-90 transition-opacity"
-                    onMouseOver={(e) => {
-                      e.currentTarget.src = '/kakaotalk_sharing_btn_small.png';
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.src = '/kakaotalk_sharing_btn_small.png';
-                    }}
-                  />
+              <Label className="text-sm font-medium">카카오톡으로 초대</Label>
+              <div className="mt-3">
+                <button
+                  onClick={handleKakaoShare}
+                  className="w-full group relative overflow-hidden rounded-xl transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                >
+                  <div className="flex items-center justify-center gap-4 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 px-8 py-4 rounded-xl transition-all duration-200">
+                    <div className="w-8 h-8rounded-full flex items-center justify-center p-1">
+                      <img
+                        src="/kakaotalk_sharing_btn_medium.png"
+                        alt="카카오톡"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="text-center">
+                      <div className="text-white font-semibold text-base">
+                        카카오톡으로 초대하기
+                      </div>
+                      <div className="text-yellow-100 text-sm">
+                        친구들과 함께 대결해보세요
+                      </div>
+                    </div>
+                  </div>
                 </button>
               </div>
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-sm text-muted-foreground mt-3 text-center">
                 방 링크와 비밀번호가 포함된 메시지를 전송합니다
               </p>
             </div>
 
             {/* 초대 링크 */}
             <div>
-              <Label>초대 링크</Label>
-              <div className="flex gap-2 mt-2">
-                <Input value={inviteUrl} readOnly className="flex-1" />
-                <Button
-                  variant="outline"
-                  onClick={() => copyToClipboard(inviteUrl, 'link')}
-                  className="px-3"
-                >
-                  {copiedItems.has('link') ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
+              <Label className="text-sm font-medium">초대 링크</Label>
+              <div className="mt-3 space-y-2">
+                <div className="flex gap-2">
+                  <div className="flex-1 p-3 bg-muted rounded-lg border text-sm font-mono break-all">
+                    {inviteUrl}
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => copyToClipboard(inviteUrl, 'link')}
+                    className="shrink-0 px-3 sm:px-4"
+                  >
+                    {copiedItems.has('link') ? (
+                      <>
+                        <Check className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline text-sm">복사됨</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline text-sm">복사</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground text-center">
+                  링크에 비밀번호가 포함되어 있습니다
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                링크에 비밀번호가 포함되어 있습니다
-              </p>
             </div>
 
             {/* 초대 메시지 */}

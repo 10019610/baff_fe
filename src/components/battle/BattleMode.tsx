@@ -11,9 +11,11 @@ import ActiveBattles from './ActiveBattles';
 import BattleHistory from './BattleHistory';
 import { useEffect, useState } from 'react';
 import RoomInvite from './RoomInvite';
+import RoomInviteJoin from './RoomInviteJoin';
 import RoomList from './RoomList';
 import RoomCreate from './RoomCreate';
 import RoomLobby from './RoomLobby';
+import { useAuth } from '../../context/AuthContext';
 
 interface Room {
   name: string;
@@ -31,15 +33,20 @@ interface Room {
 }
 
 const BattleMode = () => {
+  const { isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState('rooms');
   const [roomCount, setRoomCount] = useState(0);
   const [currentView, setCurrentView] = useState<
-    'list' | 'create' | 'join' | 'invite' | 'lobby'
+    'list' | 'create' | 'join' | 'invite' | 'inviteJoin' | 'lobby'
   >('list');
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [selectedBattleEntryCode, setSelectedBattleEntryCode] = useState<
     string | null
   >(null);
+  const [inviteParams, setInviteParams] = useState<{
+    roomId: string;
+    password: string;
+  } | null>(null);
 
   // URL에서 roomId와 password 파라미터 확인 (초대 링크 처리)
   useEffect(() => {
@@ -48,13 +55,24 @@ const BattleMode = () => {
     const password = urlParams.get('password');
 
     if (roomId && password) {
-      setCurrentView('join');
+      setInviteParams({ roomId, password });
+
+      // 로그인 상태 확인
+      if (!isAuthenticated) {
+        // 로그인되지 않았으면 로그인 페이지로 리다이렉트 (URL 파라미터 유지)
+        const currentUrl = window.location.href;
+        window.location.href = `/login?redirect=${encodeURIComponent(currentUrl)}`;
+        return;
+      }
+
+      // 로그인되어 있으면 inviteJoin 뷰로 설정
+      setCurrentView('inviteJoin');
       setActiveTab('rooms');
 
       // URL 파라미터 정리
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   const handleRoomJoined = () => {
     setCurrentView('list');
@@ -75,6 +93,12 @@ const BattleMode = () => {
   const handleInviteRoom = (room: Room) => {
     setSelectedRoom(room);
     setCurrentView('invite');
+  };
+
+  const handleInviteLogin = () => {
+    // 로그인 페이지로 리다이렉트 (현재 URL을 저장)
+    const currentUrl = window.location.href;
+    window.location.href = `/login?redirect=${encodeURIComponent(currentUrl)}`;
   };
 
   const renderRoomsContent = () => {
@@ -103,6 +127,18 @@ const BattleMode = () => {
           />
         ) : (
           <div>방을 선택해주세요.</div>
+        );
+
+      case 'inviteJoin':
+        return inviteParams ? (
+          <RoomInviteJoin
+            roomId={inviteParams.roomId}
+            password={inviteParams.password}
+            onLogin={handleInviteLogin}
+            onCancel={() => setCurrentView('list')}
+          />
+        ) : (
+          <div>잘못된 링크입니다.</div>
         );
 
       case 'lobby':

@@ -18,26 +18,25 @@ export const createRoomInviteShareData = (
   roomName: string,
   inviteUrl: string
 ): KakaoShareParams => {
-  // 카카오톡 공유용 이미지 URL (외부에서 접근 가능한 URL 필요)
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  const logoUrl = `${baseUrl}/ChangeUp_logo.png`;
+  const logoUrl =
+    'https://drive.google.com/uc?export=view&id=1595vLClyySpRXW_uEUjfxk_iUlafkshr';
 
   return {
     objectType: 'feed',
     content: {
-      title: `🏃‍♂️ ${roomName} - 체중감량 대결방에 초대합니다!`,
-      imageUrl: logoUrl,
+      title: `🏃건강한 변화의 시작!`,
+      // imageUrl: logoUrl,
       link: {
         mobileWebUrl: inviteUrl,
         webUrl: inviteUrl,
       },
     },
     itemContent: {
-      // profileText: 'ChangeUp',
-      // profileImageUrl: logoUrl,
+      profileText: 'ChangeUp',
+      profileImageUrl: logoUrl,
       titleImageUrl: logoUrl,
       titleImageText: roomName,
-      titleImageCategory: '체중감량 대결',
+      titleImageCategory: '대결신청!',
     },
     social: {
       likeCount: 0,
@@ -46,7 +45,7 @@ export const createRoomInviteShareData = (
     },
     buttons: [
       {
-        title: '방 참여하기',
+        title: '대결 참가하기',
         link: {
           mobileWebUrl: inviteUrl,
           webUrl: inviteUrl,

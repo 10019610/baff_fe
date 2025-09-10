@@ -34,6 +34,7 @@ const LoginPage = () => {
   /* 로그인 버튼 handler */
   const onSignInHandler = (provider: string) => {
     console.log('로그인 시도:', provider);
+
     if (provider === 'kakao') {
       console.log('카카오 로그인 버튼 클릭');
       window.location.href = `${baseUrl}/oauth2/authorization/${provider}`;
