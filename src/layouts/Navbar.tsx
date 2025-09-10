@@ -36,13 +36,13 @@ const Navbar = () => {
     },
     {
       id: 'goals',
-      label: '목표 설정',
+      label: '목표',
       icon: Target,
       url: '/goals',
     },
     {
       id: 'battle',
-      label: '대결 모드',
+      label: '대결',
       icon: Users,
       url: '/battle',
     },

@@ -23,7 +23,7 @@ interface Room {
   password: string;
   hostId: string;
   hostNickName: string;
-  status: 'WAITING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  status: 'WAITING' | 'IN_PROGRESS' | 'ENDED';
   maxParticipant: number;
   currentParticipant: number;
   durationDays: number;
@@ -33,7 +33,7 @@ interface Room {
 }
 
 interface RoomCreationProps {
-  onRoomCreated: (room: Room) => void;
+  onRoomCreated?: (room: Room) => void;
   onCancel: () => void;
 }
 
@@ -43,7 +43,7 @@ const RoomCreate = ({ onRoomCreated, onCancel }: RoomCreationProps) => {
     name: '',
     description: '',
     password: '',
-    maxParticipants: 4,
+    maxParticipants: 2,
     duration: 30,
   });
 
@@ -74,24 +74,32 @@ const RoomCreate = ({ onRoomCreated, onCancel }: RoomCreationProps) => {
           duration: 3000,
         });
 
-        const refetchResult = await refetchBattleRooms();
+        // 방 목록 새로고침
+        await refetchBattleRooms();
 
-        if (refetchResult.data?.battleRooms) {
-          // 가장 최근에 생성된 방을 찾거나, 내가 생성한 방 중 가장 최신 것을 찾기
-          const newRoom =
-            refetchResult.data.battleRooms.find(
-              (room: BackendBattleRoomDto) =>
-                room.hostId === user!.id && room.name === formData.name
-            ) ||
-            refetchResult.data.battleRooms[
-              refetchResult.data.battleRooms.length - 1
-            ];
+        // onRoomCreated가 있으면 호출, 없으면 취소 버튼 클릭과 동일하게 처리
+        if (onRoomCreated) {
+          const refetchResult = await refetchBattleRooms();
 
-          if (newRoom) {
-            // 백엔드 응답을 바로 사용 (변환 불필요)
-            onRoomCreated(newRoom);
-            return;
+          if (refetchResult.data?.battleRooms) {
+            // 가장 최근에 생성된 방을 찾거나, 내가 생성한 방 중 가장 최신 것을 찾기
+            const newRoom =
+              refetchResult.data.battleRooms.find(
+                (room: BackendBattleRoomDto) =>
+                  room.hostId === user!.id && room.name === formData.name
+              ) ||
+              refetchResult.data.battleRooms[
+                refetchResult.data.battleRooms.length - 1
+              ];
+
+            if (newRoom) {
+              onRoomCreated(newRoom);
+              return;
+            }
           }
+        } else {
+          // onRoomCreated가 없으면 취소 버튼과 동일하게 처리 (방 목록으로 돌아가기)
+          onCancel();
         }
       },
       onError: (error) => {
@@ -186,7 +194,7 @@ const RoomCreate = ({ onRoomCreated, onCancel }: RoomCreationProps) => {
             <div>
               <Label>최대 참가자 수</Label>
               <div className="flex gap-2 mt-2">
-                {[2, 3, 4].map((num) => (
+                {[2].map((num) => (
                   <Button
                     key={num}
                     variant={

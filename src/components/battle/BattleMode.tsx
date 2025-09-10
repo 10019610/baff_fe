@@ -13,13 +13,15 @@ import { useEffect, useState } from 'react';
 import RoomInvite from './RoomInvite';
 import RoomList from './RoomList';
 import RoomCreate from './RoomCreate';
+import RoomLobby from './RoomLobby';
 
 interface Room {
   name: string;
   password: string;
+  description: string;
   hostId: string;
   hostNickName: string;
-  status: 'WAITING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  status: 'WAITING' | 'IN_PROGRESS' | 'ENDED';
   maxParticipant: number;
   currentParticipant: number;
   durationDays: number;
@@ -30,11 +32,14 @@ interface Room {
 
 const BattleMode = () => {
   const [activeTab, setActiveTab] = useState('rooms');
-  // const [activeRooms, setActiveRooms] = useState(0);
+  const [roomCount, setRoomCount] = useState(0);
   const [currentView, setCurrentView] = useState<
-    'list' | 'create' | 'join' | 'invite'
+    'list' | 'create' | 'join' | 'invite' | 'lobby'
   >('list');
-  // const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [selectedBattleEntryCode, setSelectedBattleEntryCode] = useState<
+    string | null
+  >(null);
 
   // URL에서 roomId와 password 파라미터 확인 (초대 링크 처리)
   useEffect(() => {
@@ -51,10 +56,6 @@ const BattleMode = () => {
     }
   }, []);
 
-  const handleRoomCreated = () => {
-    setCurrentView('invite');
-  };
-
   const handleRoomJoined = () => {
     setCurrentView('list');
     // 새로 고침하여 방 목록 업데이트
@@ -62,14 +63,17 @@ const BattleMode = () => {
 
   const handleRoomSelect = (room: Room) => {
     if (room.status === 'IN_PROGRESS') {
+      setSelectedBattleEntryCode(room.entryCode);
       setActiveTab('battles');
     } else {
-      // 방 대기실로 이동 (추후 구현)
-      console.log('방 대기실:', room);
+      // 방 대기실로 이동
+      setSelectedRoom(room);
+      setCurrentView('lobby');
     }
   };
 
-  const handleInviteRoom = () => {
+  const handleInviteRoom = (room: Room) => {
+    setSelectedRoom(room);
     setCurrentView('invite');
   };
 
@@ -80,12 +84,7 @@ const BattleMode = () => {
 
     switch (currentView) {
       case 'create':
-        return (
-          <RoomCreate
-            onRoomCreated={handleRoomCreated}
-            onCancel={() => setCurrentView('list')}
-          />
-        );
+        return <RoomCreate onCancel={() => setCurrentView('list')} />;
 
       case 'join':
         return (
@@ -97,10 +96,21 @@ const BattleMode = () => {
         );
 
       case 'invite':
-        return (
+        return selectedRoom ? (
           <RoomInvite
-          // room={selectedRoom}
-          // onClose={() => setCurrentView('list')}
+            room={selectedRoom}
+            onClose={() => setCurrentView('list')}
+          />
+        ) : (
+          <div>방을 선택해주세요.</div>
+        );
+
+      case 'lobby':
+        return (
+          <RoomLobby
+            room={selectedRoom}
+            onBack={() => setCurrentView('list')}
+            onBattleStarted={() => setActiveTab('battles')}
           />
         );
 
@@ -110,6 +120,7 @@ const BattleMode = () => {
             onRoomSelect={handleRoomSelect}
             onInviteRoom={handleInviteRoom}
             onCreateRoom={() => setCurrentView('create')}
+            onRoomCountChange={setRoomCount}
           />
         );
     }
@@ -132,14 +143,14 @@ const BattleMode = () => {
             <Users className="h-4 w-4" />
             <span className="hidden sm:inline">내 방</span>
             <span className="sm:hidden">방</span>
-            {/* {activeRooms > 0 && ( */}
-            <Badge
-              variant="default"
-              className="ml-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
-            >
-              1{/* {activeRooms} */}
-            </Badge>
-            {/* )} */}
+            {roomCount > 0 && (
+              <Badge
+                variant="default"
+                className="ml-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
+              >
+                {roomCount}
+              </Badge>
+            )}
           </TabsTrigger>
 
           {/* <TabsTrigger value="join" className="flex items-center gap-2 h-10">
@@ -189,7 +200,10 @@ const BattleMode = () => {
         </TabsContent>
 
         <TabsContent value="battles">
-          <ActiveBattles />
+          <ActiveBattles
+            selectedEntryCode={selectedBattleEntryCode}
+            onBattleSelected={() => setSelectedBattleEntryCode(null)}
+          />
         </TabsContent>
 
         <TabsContent value="history">

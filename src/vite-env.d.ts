@@ -24,3 +24,7 @@ declare module '*.svg' {
   const value: string;
   export default value;
 }
+interface Window {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Kakao: any;
+}

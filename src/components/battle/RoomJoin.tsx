@@ -18,6 +18,8 @@ import LoginPage from '../../pages/LoginPage';
 import AnimatedContainer from '../weightTracker/AnimatedContainer';
 import ValidatedInput from '../weightTracker/ValidatedInput';
 import { validationRules } from '../../utils/validation';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { joinBattleRoom } from '../../services/api/battleRoom.api';
 
 interface Room {
   id: string;
@@ -45,22 +47,44 @@ interface Room {
 
 interface RoomJoinProps {
   roomId?: string; // URL에서 가져온 방 ID
-  onRoomJoined: (room: Room) => void;
   onCancel: () => void;
+  onRoomJoined: (room: Room) => void;
 }
 
-const RoomJoin = ({ roomId, onRoomJoined, onCancel }: RoomJoinProps) => {
-  const { user, isAuthenticated } = useAuth();
+const RoomJoin = ({ roomId, onCancel, onRoomJoined }: RoomJoinProps) => {
+  const { isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     roomId: roomId || '',
     password: '',
   });
-  const [room] = useState<Room | null>(null); // TODO: API 연동 후 실제 데이터로 설정
-  const [isLoading, setIsLoading] = useState(false);
-  // const [showLogin, setShowLogin] = useState(false);
+  const [room] = useState<Room | null>(null);
   const [step, setStep] = useState<
     'enter_info' | 'room_found' | 'login_required'
   >('enter_info');
+
+  // 방 참가 mutation
+  console.log('onRoomJoined', onRoomJoined);
+  const joinRoomMutation = useMutation({
+    mutationFn: ({
+      entryCode,
+      password,
+    }: {
+      entryCode: string;
+      password: string;
+    }) => joinBattleRoom(entryCode, password),
+    onSuccess: () => {
+      toast.success('방에 성공적으로 참가했습니다!');
+      // 배틀룸 리스트를 새로고침
+      queryClient.invalidateQueries({ queryKey: ['battleRooms'] });
+      onCancel(); // 방 리스트로 돌아가기
+    },
+    onError: (error: { response?: { data?: { message?: string } } }) => {
+      const errorMessage =
+        error?.response?.data?.message || '방 참가 중 오류가 발생했습니다.';
+      toast.error(errorMessage);
+    },
+  });
 
   // 로그인 상태 변경 시 처리
   useEffect(() => {
@@ -69,94 +93,17 @@ const RoomJoin = ({ roomId, onRoomJoined, onCancel }: RoomJoinProps) => {
     }
   }, [isAuthenticated, step]);
 
-  // 방 정보 조회
-  const searchRoom = async () => {
-    setIsLoading(true);
-
-    try {
-      // TODO: API 연동 후 실제 서버에서 방 정보를 조회하도록 구현
-      // 임시로 방이 존재한다고 가정
-      const foundRoom: Room | null = null;
-
-      if (!foundRoom) {
-        toast.error('API 연동 후 구현 예정입니다');
-        return;
-      }
-
-      // TODO: API 연동 후 아래 로직들을 활성화
-      // 비밀번호 확인
-      // if (foundRoom.password !== formData.password) {
-      //   toast.error('비밀번호가 올바르지 않습니다');
-      //   return;
-      // }
-
-      // 방이 가득 찬 경우
-      // if (foundRoom.participants.length >= foundRoom.maxParticipants) {
-      //   toast.error('방이 가득 찼습니다');
-      //   return;
-      // }
-
-      // setRoom(foundRoom);
-
-      // 로그인되어 있으면 바로 참가, 아니면 로그인 요구
-      if (isAuthenticated) {
-        setStep('room_found');
-      } else {
-        setStep('login_required');
-      }
-    } catch (error) {
-      console.error('Failed to search room:', error);
-      toast.error('방 검색 중 오류가 발생했습니다');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // 방 참가
-  const joinRoom = async () => {
-    if (!user || !room) return;
-
-    // 이미 참가한 사용자인지 확인
-    const isAlreadyMember = room.participants.some(
-      (p: {
-        userId: string;
-        userName: string;
-        joinedAt: string;
-        isReady: boolean;
-      }) => p.userId === user.id
-    );
-    if (isAlreadyMember) {
-      toast.error('이미 참가한 방입니다');
+  // 방 참가 처리
+  const searchRoom = () => {
+    if (!formData.roomId || !formData.password) {
+      toast.error('방 ID와 비밀번호를 모두 입력해주세요.');
       return;
     }
 
-    setIsLoading(true);
-
-    try {
-      // 참가자 추가
-      const updatedRoom = {
-        ...room,
-        participants: [
-          ...room.participants,
-          {
-            userId: user.id,
-            userName: user.nickname,
-            joinedAt: new Date().toISOString(),
-            isReady: false,
-          },
-        ],
-      };
-
-      // TODO: API 연동 후 실제 서버에 방 참가 요청하도록 구현
-
-      toast.success('방에 성공적으로 참가했습니다!');
-      onRoomJoined(updatedRoom);
-    } catch (error) {
-      console.error('Failed to join room:', error);
-      toast.error('방 참가 중 오류가 발생했습니다');
-    } finally {
-      setIsLoading(false);
-    }
+    joinRoomMutation.mutate({
+      entryCode: formData.roomId,
+      password: formData.password,
+    });
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -228,7 +175,7 @@ const RoomJoin = ({ roomId, onRoomJoined, onCancel }: RoomJoinProps) => {
                   validationRules={validationRules.roomId}
                   placeholder="예: ABC123"
                   required={true}
-                  disabled={isLoading}
+                  disabled={joinRoomMutation.isPending}
                   validateOnChange={true}
                 />
 
@@ -243,7 +190,7 @@ const RoomJoin = ({ roomId, onRoomJoined, onCancel }: RoomJoinProps) => {
                   validationRules={validationRules.password}
                   placeholder="방 비밀번호를 입력하세요"
                   required={true}
-                  disabled={isLoading}
+                  disabled={joinRoomMutation.isPending}
                   validateOnChange={true}
                 />
               </div>
@@ -257,11 +204,13 @@ const RoomJoin = ({ roomId, onRoomJoined, onCancel }: RoomJoinProps) => {
                   <Button
                     onClick={searchRoom}
                     disabled={
-                      isLoading || !formData.roomId || !formData.password
+                      joinRoomMutation.isPending ||
+                      !formData.roomId ||
+                      !formData.password
                     }
                     className="w-full"
                   >
-                    {isLoading ? (
+                    {joinRoomMutation.isPending ? (
                       <>
                         <motion.div
                           animate={{ rotate: 360 }}
@@ -286,7 +235,7 @@ const RoomJoin = ({ roomId, onRoomJoined, onCancel }: RoomJoinProps) => {
                 <Button
                   variant="outline"
                   onClick={onCancel}
-                  disabled={isLoading}
+                  disabled={joinRoomMutation.isPending}
                 >
                   취소
                 </Button>
@@ -347,17 +296,17 @@ const RoomJoin = ({ roomId, onRoomJoined, onCancel }: RoomJoinProps) => {
 
               <div className="flex gap-3">
                 <Button
-                  onClick={joinRoom}
-                  disabled={isLoading}
+                  onClick={() => searchRoom()}
+                  disabled={joinRoomMutation.isPending}
                   className="flex-1"
                 >
                   <UserPlus className="h-4 w-4 mr-2" />
-                  {isLoading ? '참가 중...' : '방 참가하기'}
+                  {joinRoomMutation.isPending ? '참가 중...' : '방 참가하기'}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => setStep('enter_info')}
-                  disabled={isLoading}
+                  disabled={joinRoomMutation.isPending}
                 >
                   뒤로
                 </Button>

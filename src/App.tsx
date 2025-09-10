@@ -1,54 +1,17 @@
 // App v2.1.0 - Fixed Layout architecture - Cache bust 20241221
-import { Skeleton } from './components/ui/skeleton';
-import { Scale } from 'lucide-react';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import LoginPage from './pages/LoginPage';
+import { AuthProvider } from './context/AuthContext';
 import { Toaster } from 'react-hot-toast';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import Router from './routes/Router';
 import { HeightModalProvider } from './context/HeightModalContext';
-// 로딩 스켈레톤 컴포넌트
-function LoadingSkeleton() {
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <div className="flex justify-center mb-6">
-            <div className="p-4 bg-primary/10 rounded-full">
-              <Scale className="h-12 w-12 text-primary animate-pulse" />
-            </div>
-          </div>
-          <Skeleton className="h-8 w-48 mx-auto mb-2" />
-          <Skeleton className="h-5 w-32 mx-auto" />
-        </div>
-        <div className="space-y-4">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// 앱 콘텐츠 컴포넌트
-function AppContent() {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <LoadingSkeleton />;
-  }
-
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
-
-  // return <Layout />;
-}
 
 const queryClient = new QueryClient();
 
 const App = () => {
+  const JAVASCRIPT_KET = import.meta.env.VITE_APP_JAVASCRIPT_KEY;
+  window.Kakao.init(JAVASCRIPT_KET);
+  window.Kakao.isInitialized();
   return (
     // Tanstack Query Setting
     <QueryClientProvider client={queryClient}>
@@ -56,7 +19,6 @@ const App = () => {
         <AuthProvider>
           <HeightModalProvider>
             <Router />
-            <AppContent />
           </HeightModalProvider>
           <Toaster
             position="top-center"

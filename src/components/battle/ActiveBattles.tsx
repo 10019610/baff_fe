@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -10,138 +9,67 @@ import { Progress } from '../ui/progress';
 import { Badge } from '../ui/badge';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Separator } from '../ui/separator';
-import { Trophy, Calendar, Target, Zap, TrendingUp } from 'lucide-react';
+import {
+  Trophy,
+  Calendar,
+  Target,
+  Zap,
+  TrendingUp,
+  Loader2,
+} from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { getActiveBattles } from '../../services/api/activeBattle.api';
+import { useEffect, useRef } from 'react';
 
-interface Battle {
-  id: string;
-  opponent: string;
-  opponentId: string;
-  myStartWeight: number;
-  opponentStartWeight: number;
-  targetWeightLoss: number;
-  startDate: string;
-  endDate: string;
-  status: 'active' | 'completed' | 'cancelled';
-  myCurrentWeight?: number;
-  opponentCurrentWeight?: number;
-  requestId?: string;
+interface ActiveBattlesProps {
+  selectedEntryCode?: string | null;
+  onBattleSelected?: () => void;
 }
 
-// 초기 데이터
-const getInitialBattles = (): Battle[] => [
-  {
-    id: 'battle-1',
-    opponent: '김철수',
-    opponentId: '1',
-    myStartWeight: 70.0,
-    opponentStartWeight: 75.5,
-    targetWeightLoss: 3.0,
-    startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split('T')[0],
-    endDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split('T')[0],
-    status: 'active',
-    myCurrentWeight: 68.5,
-    opponentCurrentWeight: 74.2,
-  },
-  {
-    id: 'battle-2',
-    opponent: '강수진',
-    opponentId: '10',
-    myStartWeight: 70.0,
-    opponentStartWeight: 61.8,
-    targetWeightLoss: 2.0,
-    startDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split('T')[0],
-    endDate: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split('T')[0],
-    status: 'active',
-    myCurrentWeight: 69.2,
-    opponentCurrentWeight: 60.9,
-  },
-];
+const ActiveBattles = ({
+  selectedEntryCode,
+  onBattleSelected,
+}: ActiveBattlesProps) => {
+  const battleRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-const ActiveBattles = () => {
-  const [battles, setBattles] = useState<Battle[]>([]);
+  const {
+    data: activeBattlesData,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['activeBattles'],
+    queryFn: getActiveBattles,
+    refetchOnWindowFocus: false,
+  });
 
+  // 선택된 대결로 스크롤하는 효과
   useEffect(() => {
-    // TODO: API 연동 후 실제 배틀 데이터를 가져오도록 구현
-    const initialBattles = getInitialBattles();
-    setBattles(initialBattles);
-  }, []);
+    if (selectedEntryCode && activeBattlesData?.activeBattles) {
+      const targetBattle = activeBattlesData.activeBattles.find(
+        (battle) => battle.entryCode === selectedEntryCode
+      );
 
-  const getCurrentWeight = () => {
-    // TODO: API 연동 후 실제 사용자 몸무게 데이터를 가져오도록 구현
-    return 70.0; // 임시 기본값
-  };
+      if (targetBattle) {
+        const battleElement = battleRefs.current[selectedEntryCode];
+        if (battleElement) {
+          // 약간의 지연을 두고 스크롤 (DOM 렌더링 완료 후)
+          setTimeout(() => {
+            battleElement.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+            });
+            // 스크롤 완료 후 선택 상태 초기화
+            if (onBattleSelected) {
+              setTimeout(() => onBattleSelected(), 1000);
+            }
+          }, 100);
+        }
+      }
+    }
+  }, [selectedEntryCode, activeBattlesData, onBattleSelected]);
 
-  const updateBattleProgress = (battle: Battle) => {
-    const currentWeight = getCurrentWeight();
-
-    const daysElapsed = Math.floor(
-      (Date.now() - new Date(battle.startDate).getTime()) /
-        (1000 * 60 * 60 * 24)
-    );
-    const totalDays = Math.floor(
-      (new Date(battle.endDate).getTime() -
-        new Date(battle.startDate).getTime()) /
-        (1000 * 60 * 60 * 24)
-    );
-    const progressRatio = Math.min(daysElapsed / totalDays, 1);
-
-    const opponentEfficiency = 0.8 + Math.random() * 0.4;
-    const opponentCurrentWeight =
-      battle.opponentStartWeight -
-      battle.targetWeightLoss * progressRatio * opponentEfficiency;
-
-    return {
-      ...battle,
-      myCurrentWeight: currentWeight,
-      opponentCurrentWeight: Math.round(opponentCurrentWeight * 10) / 10,
-    };
-  };
-
-  const calculateMyProgress = (battle: Battle) => {
-    if (!battle.myCurrentWeight) return 0;
-    const weightLoss = battle.myStartWeight - battle.myCurrentWeight;
-    return Math.min((weightLoss / battle.targetWeightLoss) * 100, 100);
-  };
-
-  const calculateOpponentProgress = (battle: Battle) => {
-    if (!battle.opponentCurrentWeight) return 0;
-    const weightLoss =
-      battle.opponentStartWeight - battle.opponentCurrentWeight;
-    return Math.min((weightLoss / battle.targetWeightLoss) * 100, 100);
-  };
-
-  const getDaysRemaining = (endDate: string) => {
-    const today = new Date();
-    const end = new Date(endDate);
-    const diffTime = end.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return Math.max(diffDays, 0);
-  };
-
-  const getDaysElapsed = (startDate: string) => {
-    const today = new Date();
-    const start = new Date(startDate);
-    const diffTime = today.getTime() - start.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    return Math.max(diffDays, 0);
-  };
-
-  const getBattleWinner = (battle: Battle) => {
-    const myProgress = calculateMyProgress(battle);
-    const opponentProgress = calculateOpponentProgress(battle);
-
-    if (myProgress > opponentProgress) return 'me';
-    if (opponentProgress > myProgress) return 'opponent';
-    return 'tie';
-  };
+  // 백엔드에서 모든 계산이 완료되어 오므로 별도 계산 함수 불필요
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -150,9 +78,40 @@ const ActiveBattles = () => {
     });
   };
 
-  const activeBattles = battles
-    .map((battle) => updateBattleProgress(battle))
-    .filter((battle) => battle.status === 'active');
+  // 로딩 상태 처리
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="pt-12 pb-12 text-center">
+          <Loader2 className="h-16 w-16 mx-auto mb-6 text-muted-foreground animate-spin" />
+          <h3 className="text-xl font-medium mb-3">
+            대결 정보를 불러오는 중...
+          </h3>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 에러 상태 처리
+  if (isError) {
+    return (
+      <Card>
+        <CardContent className="pt-12 pb-12 text-center">
+          <Trophy className="h-16 w-16 mx-auto mb-6 text-destructive" />
+          <h3 className="text-xl font-medium mb-3">
+            대결 정보를 불러올 수 없습니다
+          </h3>
+          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+            {error instanceof Error
+              ? error.message
+              : '알 수 없는 오류가 발생했습니다'}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const activeBattles = activeBattlesData?.activeBattles || [];
 
   if (activeBattles.length === 0) {
     return (
@@ -199,9 +158,8 @@ const ActiveBattles = () => {
                 <p className="text-sm text-muted-foreground">승리 중</p>
                 <p className="text-2xl font-bold text-green-600">
                   {
-                    activeBattles.filter(
-                      (battle) => getBattleWinner(battle) === 'me'
-                    ).length
+                    activeBattles.filter((battle) => battle.winner === 'me')
+                      .length
                   }
                 </p>
               </div>
@@ -216,12 +174,14 @@ const ActiveBattles = () => {
               <div>
                 <p className="text-sm text-muted-foreground">평균 진행률</p>
                 <p className="text-2xl font-bold">
-                  {Math.round(
-                    activeBattles.reduce(
-                      (acc, battle) => acc + calculateMyProgress(battle),
-                      0
-                    ) / activeBattles.length
-                  )}
+                  {activeBattles.length > 0
+                    ? Math.round(
+                        activeBattles.reduce(
+                          (acc, battle) => acc + battle.myProgress,
+                          0
+                        ) / activeBattles.length
+                      )
+                    : 0}
                   %
                 </p>
               </div>
@@ -234,39 +194,36 @@ const ActiveBattles = () => {
       {/* Active Battles */}
       <div className="space-y-6">
         {activeBattles.map((battle) => {
-          const myProgress = calculateMyProgress(battle);
-          const opponentProgress = calculateOpponentProgress(battle);
-          const daysRemaining = getDaysRemaining(battle.endDate);
-          const daysElapsed = getDaysElapsed(battle.startDate);
-          const winner = getBattleWinner(battle);
-          const myWeightLoss = battle.myCurrentWeight
-            ? battle.myStartWeight - battle.myCurrentWeight
-            : 0;
-          const opponentWeightLoss = battle.opponentCurrentWeight
-            ? battle.opponentStartWeight - battle.opponentCurrentWeight
-            : 0;
-
+          const isSelected = selectedEntryCode === battle.entryCode;
           return (
-            <Card key={battle.id} className="overflow-hidden">
+            <Card
+              key={battle.entryCode}
+              ref={(el) => {
+                battleRefs.current[battle.entryCode] = el;
+              }}
+              className={`overflow-hidden transition-all duration-300 ${
+                isSelected ? 'ring-2 ring-primary shadow-lg scale-[1.02]' : ''
+              }`}
+            >
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-3">
                     <Trophy className="h-6 w-6 text-primary" />
-                    vs {battle.opponent}
+                    vs {battle.opponentNickname}
                   </CardTitle>
                   <Badge
                     variant={
-                      winner === 'me'
+                      battle.winner === 'me'
                         ? 'default'
-                        : winner === 'opponent'
+                        : battle.winner === 'opponent'
                           ? 'destructive'
                           : 'secondary'
                     }
                     className="px-3 py-1"
                   >
-                    {winner === 'me'
+                    {battle.winner === 'me'
                       ? '🏆 리드 중'
-                      : winner === 'opponent'
+                      : battle.winner === 'opponent'
                         ? '😤 뒤쳐짐'
                         : '🤝 접전'}
                   </Badge>
@@ -279,10 +236,10 @@ const ActiveBattles = () => {
                   </span>
                   <Badge variant="outline" className="gap-1">
                     <Zap className="h-3 w-3" />
-                    {daysRemaining}일 남음
+                    {battle.daysRemaining}일 남음
                   </Badge>
                   <span className="text-xs text-muted-foreground">
-                    시작 후 {daysElapsed}일째
+                    시작 후 {battle.totalDays - battle.daysRemaining}일째
                   </span>
                 </CardDescription>
               </CardHeader>
@@ -307,21 +264,23 @@ const ActiveBattles = () => {
                         </div>
                         <div className="flex justify-between text-sm text-muted-foreground mb-2">
                           <span>진행률</span>
-                          <span>{myProgress.toFixed(0)}%</span>
+                          <span>{battle.myProgress.toFixed(0)}%</span>
                         </div>
-                        <Progress value={myProgress} className="h-3" />
+                        <Progress value={battle.myProgress} className="h-3" />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-center p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
                       <div>
                         <p className="text-lg font-bold text-blue-600">
-                          {myWeightLoss.toFixed(1)}kg
+                          {battle.myWeightLoss.toFixed(1)}kg
                         </p>
                         <p className="text-xs text-muted-foreground">감량</p>
                       </div>
                       <div>
                         <p className="text-lg font-bold text-blue-600">
-                          {(battle.targetWeightLoss - myWeightLoss).toFixed(1)}
+                          {(
+                            battle.myTargetWeightLoss - battle.myWeightLoss
+                          ).toFixed(1)}
                           kg
                         </p>
                         <p className="text-xs text-muted-foreground">
@@ -336,34 +295,40 @@ const ActiveBattles = () => {
                     <div className="flex items-center gap-3">
                       <Avatar className="h-12 w-12">
                         <AvatarFallback className="bg-orange-500 text-white font-medium">
-                          {battle.opponent[0]}
+                          {battle.opponentNickname[0]}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <h4 className="font-medium">{battle.opponent}</h4>
+                          <h4 className="font-medium">
+                            {battle.opponentNickname}
+                          </h4>
                           <span className="text-sm text-muted-foreground">
                             {battle.opponentCurrentWeight}kg
                           </span>
                         </div>
                         <div className="flex justify-between text-sm text-muted-foreground mb-2">
                           <span>진행률</span>
-                          <span>{opponentProgress.toFixed(0)}%</span>
+                          <span>{battle.opponentProgress.toFixed(0)}%</span>
                         </div>
-                        <Progress value={opponentProgress} className="h-3" />
+                        <Progress
+                          value={battle.opponentProgress}
+                          className="h-3"
+                        />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-center p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
                       <div>
                         <p className="text-lg font-bold text-orange-600">
-                          {opponentWeightLoss.toFixed(1)}kg
+                          {battle.opponentWeightLoss.toFixed(1)}kg
                         </p>
                         <p className="text-xs text-muted-foreground">감량</p>
                       </div>
                       <div>
                         <p className="text-lg font-bold text-orange-600">
                           {(
-                            battle.targetWeightLoss - opponentWeightLoss
+                            battle.opponentTargetWeightLoss -
+                            battle.opponentWeightLoss
                           ).toFixed(1)}
                           kg
                         </p>
@@ -380,36 +345,32 @@ const ActiveBattles = () => {
                 {/* Battle Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                   <div>
-                    <p className="text-sm text-muted-foreground">목표 감량</p>
+                    <p className="text-sm text-muted-foreground">나의 목표</p>
                     <p className="text-lg font-medium">
-                      {battle.targetWeightLoss}kg
+                      {battle.myTargetWeightLoss}kg
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">차이</p>
+                    <p className="text-sm text-muted-foreground">진행률 차이</p>
                     <p
-                      className={`text-lg font-medium ${Math.abs(myProgress - opponentProgress) < 5 ? 'text-orange-500' : myProgress > opponentProgress ? 'text-green-500' : 'text-red-500'}`}
+                      className={`text-lg font-medium ${Math.abs(battle.myProgress - battle.opponentProgress) < 5 ? 'text-orange-500' : battle.myProgress > battle.opponentProgress ? 'text-green-500' : 'text-red-500'}`}
                     >
-                      {Math.abs(myProgress - opponentProgress).toFixed(0)}%
+                      {Math.abs(
+                        battle.myProgress - battle.opponentProgress
+                      ).toFixed(0)}
+                      %
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">전체 기간</p>
-                    <p className="text-lg font-medium">
-                      {Math.ceil(
-                        (new Date(battle.endDate).getTime() -
-                          new Date(battle.startDate).getTime()) /
-                          (1000 * 60 * 60 * 24)
-                      )}
-                      일
-                    </p>
+                    <p className="text-lg font-medium">{battle.totalDays}일</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">남은 시간</p>
                     <p
-                      className={`text-lg font-medium ${daysRemaining <= 3 ? 'text-red-500' : daysRemaining <= 7 ? 'text-orange-500' : 'text-green-500'}`}
+                      className={`text-lg font-medium ${battle.daysRemaining <= 3 ? 'text-red-500' : battle.daysRemaining <= 7 ? 'text-orange-500' : 'text-green-500'}`}
                     >
-                      {daysRemaining}일
+                      {battle.daysRemaining}일
                     </p>
                   </div>
                 </div>
@@ -417,25 +378,25 @@ const ActiveBattles = () => {
                 {/* Motivational Message */}
                 <div
                   className={`p-4 rounded-lg text-center ${
-                    winner === 'me'
+                    battle.winner === 'me'
                       ? 'bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800'
-                      : winner === 'opponent'
+                      : battle.winner === 'opponent'
                         ? 'bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800'
                         : 'bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800'
                   }`}
                 >
                   <p
                     className={`text-sm font-medium ${
-                      winner === 'me'
+                      battle.winner === 'me'
                         ? 'text-green-700 dark:text-green-300'
-                        : winner === 'opponent'
+                        : battle.winner === 'opponent'
                           ? 'text-red-700 dark:text-red-300'
                           : 'text-orange-700 dark:text-orange-300'
                     }`}
                   >
-                    {winner === 'me'
+                    {battle.winner === 'me'
                       ? '🎉 훌륭합니다! 계속 이 페이스를 유지하세요!'
-                      : winner === 'opponent'
+                      : battle.winner === 'opponent'
                         ? '💪 분발하세요! 아직 따라잡을 수 있어요!'
                         : '🔥 박빙의 승부! 조금만 더 노력하면 승리할 수 있어요!'}
                   </p>

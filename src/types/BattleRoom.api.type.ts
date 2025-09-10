@@ -67,7 +67,7 @@ export interface BackendBattleRoomDto {
   description: string;
   hostId: string;
   hostNickName: string;
-  status: 'WAITING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'; // BattleStatus enum
+  status: 'WAITING' | 'IN_PROGRESS' | 'ENDED'; // BattleStatus enum
   maxParticipant: number;
   currentParticipant: number;
   durationDays: number;
@@ -83,4 +83,10 @@ export interface GetBattleRoomListResponse {
 // Room List 조회를 위한 쿼리 타입
 export interface BattleRoomListQueryResult {
   battleRooms: BackendBattleRoomDto[];
+}
+
+export interface UpdateUserGoalRequest {
+  goalType: 'WEIGHT_LOSS' | 'WEIGHT_GAIN' | 'MAINTAIN';
+  targetValue: number;
+  startingWeight: number;
 }

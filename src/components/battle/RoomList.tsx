@@ -19,6 +19,7 @@ import AnimatedContainer from '../weightTracker/AnimatedContainer';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../services/api/Api';
 import type { BattleRoomListQueryResult } from '../../types/BattleRoom.api.type';
+import { useEffect } from 'react';
 
 interface Room {
   name: string;
@@ -26,7 +27,7 @@ interface Room {
   description: string;
   hostId: string;
   hostNickName: string;
-  status: 'WAITING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  status: 'WAITING' | 'IN_PROGRESS' | 'ENDED';
   maxParticipant: number;
   currentParticipant: number;
   durationDays: number;
@@ -39,12 +40,14 @@ interface RoomListProps {
   onRoomSelect: (room: Room) => void;
   onInviteRoom: (room: Room) => void;
   onCreateRoom: () => void;
+  onRoomCountChange?: (count: number) => void;
 }
 
 const RoomList = ({
   onRoomSelect,
   onInviteRoom,
   onCreateRoom,
+  onRoomCountChange,
 }: RoomListProps) => {
   const { user } = useAuth();
 
@@ -71,6 +74,13 @@ const RoomList = ({
 
   // 백엔드 응답을 바로 사용 (변환 불필요)
   const rooms: Room[] = battleRoomData?.battleRooms || [];
+
+  // 방 개수를 부모 컴포넌트에 전달
+  useEffect(() => {
+    if (onRoomCountChange) {
+      onRoomCountChange(rooms.length);
+    }
+  }, [rooms.length, onRoomCountChange]);
 
   const handleLeaveRoom = async (entryCode: string) => {
     if (!user) return;
@@ -255,20 +265,25 @@ const RoomList = ({
                       )}
                     </Button>
                   </motion.div>
-
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onInviteRoom(room)}
-                      disabled={room.currentParticipant >= room.maxParticipant}
+                  {!isStarted ? (
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
                     >
-                      <Share2 className="h-4 w-4" />
-                    </Button>
-                  </motion.div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onInviteRoom(room)}
+                        disabled={
+                          room.currentParticipant >= room.maxParticipant
+                        }
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+                    </motion.div>
+                  ) : (
+                    ''
+                  )}
 
                   <motion.div
                     whileHover={{ scale: 1.1 }}
