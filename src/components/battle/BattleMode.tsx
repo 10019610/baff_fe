@@ -59,9 +59,11 @@ const BattleMode = () => {
 
       // 로그인 상태 확인
       if (!isAuthenticated) {
-        // 로그인되지 않았으면 로그인 페이지로 리다이렉트 (URL 파라미터 유지)
+        // 로그인되지 않았으면 현재 URL을 sessionStorage에 저장하고 로그인 페이지로 이동
         const currentUrl = window.location.href;
-        window.location.href = `/login?redirect=${encodeURIComponent(currentUrl)}`;
+        sessionStorage.setItem('pendingInviteUrl', currentUrl);
+
+        window.location.href = `/login`;
         return;
       }
 
@@ -83,6 +85,9 @@ const BattleMode = () => {
     if (room.status === 'IN_PROGRESS') {
       setSelectedBattleEntryCode(room.entryCode);
       setActiveTab('battles');
+    } else if (room.status === 'ENDED') {
+      // 종료된 방의 경우 기록 탭으로 이동
+      setActiveTab('history');
     } else {
       // 방 대기실로 이동
       setSelectedRoom(room);
@@ -93,12 +98,6 @@ const BattleMode = () => {
   const handleInviteRoom = (room: Room) => {
     setSelectedRoom(room);
     setCurrentView('invite');
-  };
-
-  const handleInviteLogin = () => {
-    // 로그인 페이지로 리다이렉트 (현재 URL을 저장)
-    const currentUrl = window.location.href;
-    window.location.href = `/login?redirect=${encodeURIComponent(currentUrl)}`;
   };
 
   const renderRoomsContent = () => {
@@ -134,7 +133,6 @@ const BattleMode = () => {
           <RoomInviteJoin
             roomId={inviteParams.roomId}
             password={inviteParams.password}
-            onLogin={handleInviteLogin}
             onCancel={() => setCurrentView('list')}
           />
         ) : (
@@ -174,7 +172,7 @@ const BattleMode = () => {
 
       {/* Battle Mode Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6 h-12">
+        <TabsList className="grid w-full grid-cols-3 mb-6 h-12 bg-blue-50">
           <TabsTrigger value="rooms" className="flex items-center gap-2 h-10">
             <Users className="h-4 w-4" />
             <span className="hidden sm:inline">내 방</span>
@@ -212,21 +210,101 @@ const BattleMode = () => {
           <div className="space-y-6">
             {/* 상단 액션 버튼들 */}
             {currentView === 'list' && (
-              <div className="flex gap-3 justify-center md:justify-start">
-                <button
-                  onClick={() => setCurrentView('create')}
-                  className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-                >
-                  <Plus className="h-4 w-4" />새 방 만들기
-                </button>
-                <button
-                  onClick={() => setCurrentView('join')}
-                  className="flex items-center gap-2 px-6 py-3 border border-border rounded-lg hover:bg-muted transition-colors"
-                >
-                  <Share2 className="h-4 w-4" />방 참가하기
-                </button>
+              <div className="space-y-4">
+                {/* 모바일: 세련된 카드 스타일 액션 버튼 */}
+                <div className="grid gap-3 md:hidden">
+                  <div
+                    onClick={() => setCurrentView('create')}
+                    className="group relative overflow-hidden bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl p-4 cursor-pointer transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-10 h-10 bg-white/20 rounded-lg backdrop-blur-sm">
+                          <Plus className="h-5 w-5" />
+                        </div>
+                        <div className="text-left">
+                          <h3 className="font-medium">새 방 만들기</h3>
+                          <p className="text-sm text-primary-foreground/80">
+                            친구들과 함께 대결 시작
+                          </p>
+                        </div>
+                      </div>
+                      <div className="opacity-60 group-hover:opacity-100 transition-opacity">
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    {/* 배경 효과 */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/10 translate-x-full group-hover:translate-x-0 transition-transform duration-500"></div>
+                  </div>
+
+                  <div
+                    onClick={() => setCurrentView('join')}
+                    className="group relative overflow-hidden bg-card border border-border rounded-xl p-4 cursor-pointer transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg hover:border-primary/30"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
+                          <Share2 className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="text-left">
+                          <h3 className="font-medium">초대 코드로 참가</h3>
+                          <p className="text-sm text-muted-foreground">
+                            친구의 방에 참여하기
+                          </p>
+                        </div>
+                      </div>
+                      <div className="opacity-60 group-hover:opacity-100 transition-opacity">
+                        <svg
+                          className="w-5 h-5 text-muted-foreground"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    {/* 배경 효과 */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-primary/5 translate-x-full group-hover:translate-x-0 transition-transform duration-500"></div>
+                  </div>
+                </div>
+
+                {/* 데스크톱: 기존 버튼 스타일 유지 */}
+                <div className="hidden md:flex gap-3 justify-start">
+                  <button
+                    onClick={() => setCurrentView('create')}
+                    className="flex items-center cursor-pointer gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors shadow-sm hover:shadow-md"
+                  >
+                    <Plus className="h-4 w-4" />새 대결 시작하기
+                  </button>
+                  <button
+                    onClick={() => setCurrentView('join')}
+                    className="flex items-center cursor-pointer gap-2 px-6 py-3 bg-card border border-border rounded-lg hover:bg-muted hover:border-primary/30 transition-all shadow-sm hover:shadow-md"
+                  >
+                    <Share2 className="h-4 w-4" />
+                    초대 코드로 참가
+                  </button>
+                </div>
               </div>
             )}
+
             {renderRoomsContent()}
           </div>
         </TabsContent>
@@ -243,7 +321,7 @@ const BattleMode = () => {
         </TabsContent>
 
         <TabsContent value="history">
-          <BattleHistory />
+          <BattleHistory selectedRoomEntryCode={selectedRoom?.entryCode} />
         </TabsContent>
       </Tabs>
     </div>

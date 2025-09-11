@@ -10,6 +10,7 @@ import ProfilePage from '../pages/ProfilePage.tsx';
 import AnalyticsPage from '../pages/AnalyticsPage.tsx';
 import DashboardPage from '../pages/DashboardPage.tsx';
 import BattlePage from '../pages/BattlePage.tsx';
+import InvitePage from '../pages/InvitePage.tsx';
 
 const Router = () => {
   return (
@@ -20,11 +21,14 @@ const Router = () => {
           path="/user/oauth-response/:token/:expirationTime"
           element={<OAuthPage />}
         />
+        {/* 초대 링크 전용 페이지 (PrivateRoute 밖) */}
+        <Route path="/invite" element={<InvitePage />} />
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/weightTracker" element={<WeightTrackerPage />} />
           <Route path="/goals" element={<GoalsPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/battle" element={<BattlePage />} />
           <Route path="/battle/*" element={<BattlePage />} />
         </Route>
         <Route path="/admin">

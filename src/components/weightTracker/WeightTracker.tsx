@@ -86,8 +86,32 @@ const WeightTracker = forwardRef<WeightTrackerRef, WeightTrackerProps>(
       existingWeight: number;
     } | null>(null);
 
+    // 페이징 상태
+    const [currentPage, setCurrentPage] = useState(1);
+    const [entriesPerPage] = useState(7);
+
     // 최근 기록 섹션으로 스크롤하기 위한 ref
     const recentEntriesRef = useRef<HTMLDivElement>(null);
+
+    // 페이징된 기록 계산
+    const totalPages = Math.ceil(entries.length / entriesPerPage);
+    const displayedEntries = entries.slice(0, currentPage * entriesPerPage);
+    const hasMoreEntries = currentPage < totalPages;
+
+    // 더 보기 버튼 클릭 핸들러
+    const handleLoadMore = () => {
+      setCurrentPage((prev) => prev + 1);
+      // 새로 로드된 항목으로 스크롤
+      setTimeout(() => {
+        if (recentEntriesRef.current) {
+          recentEntriesRef.current.scrollIntoView({
+            behavior: 'smooth',
+            block: 'end',
+          });
+        }
+      }, 100);
+    };
+
     // Update param.recordDate when date changes
     useEffect(() => {
       if (!param.recordDate) {
@@ -366,6 +390,7 @@ const WeightTracker = forwardRef<WeightTrackerRef, WeightTrackerProps>(
                         ? `이 날짜에 이미 ${existingEntry.weight}kg 기록이 있습니다`
                         : null;
                     }}
+                    className="h-12"
                   />
 
                   <ValidatedInput
@@ -380,6 +405,7 @@ const WeightTracker = forwardRef<WeightTrackerRef, WeightTrackerProps>(
                     placeholder="예: 65.5"
                     disabled={isSubmitting}
                     validateOnChange={false}
+                    className="h-12"
                   />
                 </div>
 
@@ -554,7 +580,7 @@ const WeightTracker = forwardRef<WeightTrackerRef, WeightTrackerProps>(
 
         {/* Recent Entries */}
         <AnimatePresence>
-          {entries.length > 0 && (
+          {displayedEntries.length > 0 && (
             <AnimatedContainer delay={0.3} direction="up">
               <Card className="overflow-hidden" ref={recentEntriesRef}>
                 <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 py-4">
@@ -570,9 +596,8 @@ const WeightTracker = forwardRef<WeightTrackerRef, WeightTrackerProps>(
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="space-y-3">
-                    {[...entries]
+                    {[...displayedEntries]
                       .sort((a, b) => b.date.localeCompare(a.date))
-                      .slice(0, 7)
                       .map((entry, index) => (
                         <motion.div
                           key={entry.id}
@@ -640,12 +665,42 @@ const WeightTracker = forwardRef<WeightTrackerRef, WeightTrackerProps>(
                       ))}
                   </div>
 
-                  {/* 더 많은 기록이 있는 경우 안내 */}
-                  {entries.length > 7 && (
+                  {/* 더 보기 버튼 */}
+                  {hasMoreEntries && (
+                    <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Button
+                          onClick={handleLoadMore}
+                          variant="outline"
+                          className="w-full h-12 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 border-indigo-200 dark:border-indigo-800 hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/30 dark:hover:to-purple-900/30 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-200"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1">
+                              <Plus className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                              <span className="font-medium text-indigo-700 dark:text-indigo-300">
+                                더 보기
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1 ml-2 pl-2 border-l border-indigo-300 dark:border-indigo-700">
+                              <span className="text-sm text-indigo-600 dark:text-indigo-400">
+                                {entries.length - displayedEntries.length}개
+                              </span>
+                              <TrendingDown className="h-3 w-3 text-indigo-500 dark:text-indigo-400" />
+                            </div>
+                          </div>
+                        </Button>
+                      </motion.div>
+                    </div>
+                  )}
+
+                  {/* 모든 기록을 표시한 경우 안내 */}
+                  {!hasMoreEntries && entries.length > 7 && (
                     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                       <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-                        총 {entries.length}개의 기록 중 최근 7개를 표시하고
-                        있습니다
+                        총 {entries.length}개의 모든 기록을 표시하고 있습니다
                       </p>
                     </div>
                   )}

@@ -297,10 +297,7 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
   };
 
   // 초대 링크 생성
-  const inviteUrl =
-    room && roomDetail
-      ? `${window.location.origin}${window.location.pathname}?roomId=${roomDetail.entryCode}&password=${room.password}`
-      : '';
+  const inviteUrl = `${import.meta.env.VITE_APP_DOMAIN}/invite?roomId=${room.entryCode}&password=${room.password}`;
 
   const handleCopyInviteLink = () => {
     if (!room || !roomDetail) return;

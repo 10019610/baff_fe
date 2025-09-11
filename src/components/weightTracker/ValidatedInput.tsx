@@ -106,7 +106,7 @@ export default function ValidatedInput({
   };
 
   return (
-    <div className={`space-y-2 ${className}`}>
+    <div className="space-y-2">
       <Label htmlFor={id} className="flex items-center gap-1">
         {label}
         {required && <span className="text-destructive">*</span>}
@@ -132,7 +132,7 @@ export default function ValidatedInput({
               : isValid && showValidIcon
                 ? 'border-green-500 focus:ring-green-500'
                 : ''
-          }`}
+          } ${className}`}
         />
 
         {/* Validation Icon */}

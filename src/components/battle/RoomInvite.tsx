@@ -33,7 +33,7 @@ const RoomInvite = ({ room, onClose }: RoomInviteProps) => {
   const [copiedItems, setCopiedItems] = useState<Set<string>>(new Set());
 
   // 초대 URL 생성 (실제 도메인으로 변경 필요)
-  const inviteUrl = `${import.meta.env.VITE_APP_DOMAIN}/battle/join?roomId=${room.entryCode}&password=${room.password}`;
+  const inviteUrl = `${import.meta.env.VITE_APP_DOMAIN}/invite?roomId=${room.entryCode}&password=${room.password}`;
 
   // 초대 메시지 생성
   const inviteMessage = `🏃‍♂️ 체중감량 대결방에 초대합니다!

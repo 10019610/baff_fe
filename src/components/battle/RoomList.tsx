@@ -90,7 +90,7 @@ const RoomList = ({
 
     try {
       // TODO: API 연동 후 실제 서버에 방 나가기 요청하도록 구현
-      // await api.post('/battle/leaveBattleRoom', { entryCode });
+      await api.post(`/battle/${entryCode}/deleteRoom`);
       console.log('Leaving room:', entryCode);
 
       // 방 나가기 후 목록 새로고침
@@ -176,6 +176,7 @@ const RoomList = ({
         const daysRemaining = getDaysRemaining(room.endDate);
         const isOwner = isRoomOwner(room);
         const isStarted = room.status === 'IN_PROGRESS';
+        const isEnded = room.status === 'ENDED';
 
         return (
           <motion.div
@@ -194,10 +195,16 @@ const RoomList = ({
                         <Crown className="h-4 w-4 text-yellow-500 flex-shrink-0" />
                       )}
                       <Badge
-                        variant={isStarted ? 'default' : 'secondary'}
+                        variant={
+                          isEnded
+                            ? 'destructive'
+                            : isStarted
+                              ? 'default'
+                              : 'secondary'
+                        }
                         className="flex-shrink-0"
                       >
-                        {isStarted ? '진행 중' : '대기 중'}
+                        {isEnded ? '종료됨' : isStarted ? '진행 중' : '대기 중'}
                       </Badge>
                     </div>
                     {room.description && (
@@ -219,11 +226,13 @@ const RoomList = ({
 
                       <Badge variant="outline" className="text-xs">
                         <Clock className="h-3 w-3 mr-1" />
-                        {room.status === 'WAITING'
-                          ? `${room.durationDays}일간`
-                          : daysRemaining > 0
-                            ? `${daysRemaining}일 남음`
-                            : '종료됨'}
+                        {isEnded
+                          ? '종료됨'
+                          : room.status === 'WAITING'
+                            ? `${room.durationDays}일간`
+                            : daysRemaining > 0
+                              ? `${daysRemaining}일 남음`
+                              : '종료됨'}
                       </Badge>
                     </div>
 
@@ -250,10 +259,15 @@ const RoomList = ({
                   >
                     <Button
                       onClick={() => onRoomSelect(room)}
-                      size="sm"
-                      className="w-full"
+                      size="lg"
+                      className="w-full cursor-pointer"
                     >
-                      {isStarted ? (
+                      {isEnded ? (
+                        <>
+                          <Play className="h-4 w-4 mr-2" />
+                          결과 보기
+                        </>
+                      ) : isStarted ? (
                         <>
                           <Play className="h-4 w-4 mr-2" />
                           대결 보기
@@ -265,39 +279,42 @@ const RoomList = ({
                       )}
                     </Button>
                   </motion.div>
-                  {!isStarted ? (
+                  {isOwner && !isStarted && !isEnded ? (
                     <motion.div
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
                       <Button
                         variant="outline"
-                        size="sm"
+                        size="lg"
                         onClick={() => onInviteRoom(room)}
                         disabled={
                           room.currentParticipant >= room.maxParticipant
                         }
+                        className="cursor-pointer"
                       >
-                        <Share2 className="h-4 w-4" />
+                        <Share2 className="h-5 w-5" />
                       </Button>
                     </motion.div>
                   ) : (
                     ''
                   )}
 
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleLeaveRoom(room.entryCode)}
-                      className="text-destructive hover:text-destructive"
+                  {isOwner && (
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
                     >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </motion.div>
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={() => handleLeaveRoom(room.entryCode)}
+                        className="text-destructive hover:text-destructive cursor-pointer"
+                      >
+                        <Trash2 className="h-8 w-8" />
+                      </Button>
+                    </motion.div>
+                  )}
                 </div>
               </CardContent>
             </Card>

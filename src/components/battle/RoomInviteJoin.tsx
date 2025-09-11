@@ -13,14 +13,12 @@ import { joinBattleRoom } from '../../services/api/battleRoom.api';
 interface RoomInviteJoinProps {
   roomId: string;
   password: string;
-  onLogin: () => void;
   onCancel: () => void;
 }
 
 const RoomInviteJoin = ({
   roomId,
   password,
-  onLogin,
   onCancel,
 }: RoomInviteJoinProps) => {
   const { user, isAuthenticated } = useAuth();
@@ -58,7 +56,15 @@ const RoomInviteJoin = ({
 
   const handleJoinRoom = async () => {
     if (!isAuthenticated) {
-      onLogin();
+      // 현재 URL을 sessionStorage에 저장하고 로그인 페이지로 이동
+      const currentUrl = window.location.href;
+      console.log('RoomInviteJoin: 초대 URL 저장:', currentUrl);
+      sessionStorage.setItem('pendingInviteUrl', currentUrl);
+      console.log(
+        'RoomInviteJoin: sessionStorage 확인:',
+        sessionStorage.getItem('pendingInviteUrl')
+      );
+      window.location.href = `/login`;
       return;
     }
 

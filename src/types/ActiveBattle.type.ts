@@ -25,3 +25,7 @@ export interface BattleSummaryData {
 export interface ActiveBattleData {
   activeBattles: BattleSummaryData[];
 }
+
+export interface EndedBattleData {
+  activeBattles: BattleSummaryData[];
+}

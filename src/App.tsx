@@ -10,8 +10,15 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const JAVASCRIPT_KET = import.meta.env.VITE_APP_JAVASCRIPT_KEY;
-  window.Kakao.init(JAVASCRIPT_KET);
-  window.Kakao.isInitialized();
+
+  // 카카오 SDK가 이미 초기화되지 않았을 때만 초기화
+  if (
+    typeof window !== 'undefined' &&
+    window.Kakao &&
+    !window.Kakao.isInitialized()
+  ) {
+    window.Kakao.init(JAVASCRIPT_KET);
+  }
   return (
     // Tanstack Query Setting
     <QueryClientProvider client={queryClient}>
