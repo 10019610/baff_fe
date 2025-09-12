@@ -9,7 +9,9 @@ export const initKakao = () => {
   ) {
     // 환경변수에서 카카오 앱 키를 가져오거나 하드코딩
     const appKey = import.meta.env.VITE_KAKAO_APP_KEY || 'YOUR_KAKAO_APP_KEY';
-    window.Kakao.init(appKey);
+    console.log('app key', appKey);
+
+    // window.Kakao.init(appKey);
   }
 };
 
@@ -59,6 +61,7 @@ export const createRoomInviteShareData = (
 export const shareToKakao = (shareData: KakaoShareParams) => {
   if (typeof window !== 'undefined' && window.Kakao) {
     try {
+      console.log('createRoomInviteShareData', createRoomInviteShareData);
       window.Kakao.Share.sendDefault(shareData);
     } catch (error) {
       console.error('카카오 공유 실패:', error);

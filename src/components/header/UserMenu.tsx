@@ -71,7 +71,7 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
         api.post('/user/logout')
           .then((res) => {
             console.log(res);
-            window.location.href = 'https://onlymefe.vercel.app/';
+            window.location.href = 'https://baff-fe.vercel.app/';
             navigate('/');
           });
       }
