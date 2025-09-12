@@ -9,7 +9,7 @@ import { HeightModalProvider } from './context/HeightModalContext';
 const queryClient = new QueryClient();
 
 const App = () => {
-  const JAVASCRIPT_KET = import.meta.env.VITE_KAKAO_APP_KEY;
+  const JAVASCRIPT_KET = import.meta.env.VITE_APP_JAVASCRIPT_KEY;
   console.log('JAVASCRIPT_KET', JAVASCRIPT_KET);
 
   // 카카오 SDK가 이미 초기화되지 않았을 때만 초기화
