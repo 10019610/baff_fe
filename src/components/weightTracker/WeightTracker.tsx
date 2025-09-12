@@ -93,9 +93,17 @@ const WeightTracker = forwardRef<WeightTrackerRef, WeightTrackerProps>(
     // 최근 기록 섹션으로 스크롤하기 위한 ref
     const recentEntriesRef = useRef<HTMLDivElement>(null);
 
-    // 페이징된 기록 계산
-    const totalPages = Math.ceil(entries.length / entriesPerPage);
-    const displayedEntries = entries.slice(0, currentPage * entriesPerPage);
+    // 최신순으로 정렬된 기록
+    const sortedEntries = [...entries].sort((a, b) =>
+      b.date.localeCompare(a.date)
+    );
+
+    // 페이징된 기록 계산 (정렬된 배열 기준)
+    const totalPages = Math.ceil(sortedEntries.length / entriesPerPage);
+    const displayedEntries = sortedEntries.slice(
+      0,
+      currentPage * entriesPerPage
+    );
     const hasMoreEntries = currentPage < totalPages;
 
     // 더 보기 버튼 클릭 핸들러
@@ -596,73 +604,71 @@ const WeightTracker = forwardRef<WeightTrackerRef, WeightTrackerProps>(
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="space-y-3">
-                    {[...displayedEntries]
-                      .sort((a, b) => b.date.localeCompare(a.date))
-                      .map((entry, index) => (
-                        <motion.div
-                          key={entry.id}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          whileHover={{ scale: 1.01, x: 4 }}
-                          className="p-4 border-2 border-transparent rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 hover:border-indigo-200 dark:hover:border-indigo-700 hover:shadow-md transition-all duration-200"
-                        >
-                          {/* 모바일과 데스크톱 모두 가로 레이아웃 유지, 간격만 조정 */}
-                          <div className="flex items-center justify-between gap-3">
-                            {/* 왼쪽: 날짜와 체중 정보 */}
-                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                              <div className="flex flex-col items-center justify-center w-12 h-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm border flex-shrink-0">
-                                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                                  {new Date(entry.date).getDate()}
-                                </span>
-                                <span className="text-xs text-gray-400 dark:text-gray-500">
-                                  {new Date(entry.date).toLocaleDateString(
-                                    'ko-KR',
-                                    { month: 'short' }
-                                  )}
-                                </span>
-                              </div>
-                              <div className="flex flex-col min-w-0">
-                                <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                                  {entry.weight}kg
-                                </span>
-                                {/* 모바일에서는 간단한 날짜 표시 */}
-                                <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">
-                                  {new Date(entry.date).toLocaleDateString(
-                                    'ko-KR',
-                                    {
-                                      weekday: 'short',
-                                      month: 'short',
-                                      day: 'numeric',
-                                    }
-                                  )}
-                                </span>
-                                {/* 모바일용 더 짧은 날짜 */}
-                                <span className="text-sm text-gray-500 dark:text-gray-400 sm:hidden">
-                                  {new Date(entry.date).toLocaleDateString(
-                                    'ko-KR',
-                                    {
-                                      month: 'short',
-                                      day: 'numeric',
-                                    }
-                                  )}
-                                </span>
-                              </div>
+                    {displayedEntries.map((entry, index) => (
+                      <motion.div
+                        key={entry.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        whileHover={{ scale: 1.01, x: 4 }}
+                        className="p-4 border-2 border-transparent rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 hover:border-indigo-200 dark:hover:border-indigo-700 hover:shadow-md transition-all duration-200"
+                      >
+                        {/* 모바일과 데스크톱 모두 가로 레이아웃 유지, 간격만 조정 */}
+                        <div className="flex items-center justify-between gap-3">
+                          {/* 왼쪽: 날짜와 체중 정보 */}
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className="flex flex-col items-center justify-center w-12 h-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm border flex-shrink-0">
+                              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                {new Date(entry.date).getDate()}
+                              </span>
+                              <span className="text-xs text-gray-400 dark:text-gray-500">
+                                {new Date(entry.date).toLocaleDateString(
+                                  'ko-KR',
+                                  { month: 'short' }
+                                )}
+                              </span>
                             </div>
-
-                            {/* 오른쪽: 배지들 */}
-                            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
-                              {entry.change !== undefined &&
-                                getChangeBadge(entry.change)}
-                              {index === 0 && (
-                                <div className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-xs font-medium rounded-full border border-yellow-200 dark:border-yellow-700">
-                                  최신
-                                </div>
-                              )}
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                                {entry.weight}kg
+                              </span>
+                              {/* 모바일에서는 간단한 날짜 표시 */}
+                              <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">
+                                {new Date(entry.date).toLocaleDateString(
+                                  'ko-KR',
+                                  {
+                                    weekday: 'short',
+                                    month: 'short',
+                                    day: 'numeric',
+                                  }
+                                )}
+                              </span>
+                              {/* 모바일용 더 짧은 날짜 */}
+                              <span className="text-sm text-gray-500 dark:text-gray-400 sm:hidden">
+                                {new Date(entry.date).toLocaleDateString(
+                                  'ko-KR',
+                                  {
+                                    month: 'short',
+                                    day: 'numeric',
+                                  }
+                                )}
+                              </span>
                             </div>
                           </div>
-                        </motion.div>
-                      ))}
+
+                          {/* 오른쪽: 배지들 */}
+                          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
+                            {entry.change !== undefined &&
+                              getChangeBadge(entry.change)}
+                            {index === 0 && (
+                              <div className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-xs font-medium rounded-full border border-yellow-200 dark:border-yellow-700">
+                                최신
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
                   </div>
 
                   {/* 더 보기 버튼 */}
@@ -686,7 +692,8 @@ const WeightTracker = forwardRef<WeightTrackerRef, WeightTrackerProps>(
                             </div>
                             <div className="flex items-center gap-1 ml-2 pl-2 border-l border-indigo-300 dark:border-indigo-700">
                               <span className="text-sm text-indigo-600 dark:text-indigo-400">
-                                {entries.length - displayedEntries.length}개
+                                {sortedEntries.length - displayedEntries.length}
+                                개
                               </span>
                               <TrendingDown className="h-3 w-3 text-indigo-500 dark:text-indigo-400" />
                             </div>
@@ -697,10 +704,11 @@ const WeightTracker = forwardRef<WeightTrackerRef, WeightTrackerProps>(
                   )}
 
                   {/* 모든 기록을 표시한 경우 안내 */}
-                  {!hasMoreEntries && entries.length > 7 && (
+                  {!hasMoreEntries && sortedEntries.length > 7 && (
                     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                       <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-                        총 {entries.length}개의 모든 기록을 표시하고 있습니다
+                        총 {sortedEntries.length}개의 모든 기록을 표시하고
+                        있습니다
                       </p>
                     </div>
                   )}

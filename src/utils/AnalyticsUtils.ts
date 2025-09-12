@@ -129,12 +129,55 @@ export const generatePredictionData = (
   return predictions;
 };
 
-export const generateBattleStats = (): BattleStats[] => {
+export const generateBattleStats = (
+  activeBattles: { status: string }[] = [],
+  endedBattles: { winner: string }[] = []
+): BattleStats[] => {
+  // 진행중인 배틀 수
+  const inProgressCount = activeBattles.filter(
+    (battle) => battle.status === 'IN_PROGRESS'
+  ).length;
+
+  // 종료된 배틀에서 승리/패배 계산
+  const wonBattles = endedBattles.filter(
+    (battle) => battle.winner === 'me'
+  ).length;
+
+  const lostBattles = endedBattles.filter(
+    (battle) => battle.winner === 'opponent'
+  ).length;
+
   return [
-    { name: '승리', value: 8, color: '#98FB98' },
-    { name: '패배', value: 3, color: '#ff6b6b' },
-    { name: '진행중', value: 2, color: '#4ecdc4' },
+    { name: '승리', value: wonBattles, color: '#98FB98' },
+    { name: '패배', value: lostBattles, color: '#ff6b6b' },
+    { name: '진행중', value: inProgressCount, color: '#4ecdc4' },
   ];
+};
+
+// 최고 연승 계산 함수
+export const calculateMaxStreak = (
+  endedBattles: { winner: string; endDate: string }[] = []
+): number => {
+  if (endedBattles.length === 0) return 0;
+
+  // 종료일 기준으로 정렬 (오래된 것부터)
+  const sortedBattles = [...endedBattles].sort(
+    (a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime()
+  );
+
+  let maxStreak = 0;
+  let currentStreak = 0;
+
+  for (const battle of sortedBattles) {
+    if (battle.winner === 'me') {
+      currentStreak++;
+      maxStreak = Math.max(maxStreak, currentStreak);
+    } else {
+      currentStreak = 0; // 패배하면 연승 초기화
+    }
+  }
+
+  return maxStreak;
 };
 
 export const generateMonthlyProgress = (): MonthlyProgress[] => {
@@ -225,7 +268,6 @@ export const calculateStreak = (weightData: WeightDataPoint[]): number => {
     if (recordDate.getTime() === expectedDate.getTime()) {
       streak++;
     } else {
-      console.log('❌ Streak broken at day', i);
       break;
     }
   }

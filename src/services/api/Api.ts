@@ -3,10 +3,10 @@ import axios, { type AxiosInstance } from 'axios';
 export const BASE_URL = import.meta.env.VITE_APP_API_URL;
 
 // 환경 정보 로깅 (개발 환경에서만)
-if (import.meta.env.VITE_APP_DEBUG === 'true') {
-  console.log('🌍 Environment:', import.meta.env.VITE_APP_ENV);
-  console.log('🔗 API URL:', BASE_URL);
-}
+// if (import.meta.env.VITE_APP_DEBUG === 'true') {
+//   console.log('🌍 Environment:', import.meta.env.VITE_APP_ENV);
+//   console.log('🔗 API URL:', BASE_URL);
+// }
 
 axios.defaults.withCredentials = false;
 axios.defaults.headers.common['Content-Type'] = 'application/json';

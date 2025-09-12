@@ -51,7 +51,7 @@ const RoomList = ({
 }: RoomListProps) => {
   const { user } = useAuth();
 
-  // 배틀룸 리스트 조회 (WeightTracker 패턴)
+  // 배틀룸 리스트 조회
   const {
     data: battleRoomData,
     isLoading,
@@ -89,7 +89,6 @@ const RoomList = ({
     if (!confirmed) return;
 
     try {
-      // TODO: API 연동 후 실제 서버에 방 나가기 요청하도록 구현
       await api.post(`/battle/${entryCode}/deleteRoom`);
       console.log('Leaving room:', entryCode);
 

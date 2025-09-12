@@ -20,7 +20,7 @@ import type {
   WeightEntry,
 } from '../types/WeightTracker.api.type';
 import AnalyticsHeader from '../components/analytics/AnalyticsHeader';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Button } from '../components/ui/button';
 import { Alert } from '../components/ui/alert';
 import { AlertDescription } from '../components/ui/alert';
@@ -45,20 +45,27 @@ import AnalyticsOverviewTab from '../components/analytics/AnalyticsOverviewTab';
 import AnalyticsMetrics from '../components/analytics/AnalyticsMetrics';
 import {
   calculateBMI,
+  calculateMaxStreak,
   calculateStreak,
   calculateVolatility,
   convertWeightEntries,
+  generateBattleStats,
   generateWeightDistribution,
   getBMICategory,
 } from '../utils/AnalyticsUtils';
 import AnalyticsWeightTab from '../components/analytics/AnalyticsWeightTab';
+import AnalyticsBattleTab from '../components/analytics/AnalyticsBattleTab';
+import {
+  getActiveBattles,
+  getEndedBattles,
+} from '../services/api/activeBattle.api';
 
 const AnalyticsPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
   // state
-  const [timeRange, setTimeRange] = useState('30d');
+  // const [timeRange, setTimeRange] = useState('30d');
 
   // 네비게이션 핸들러
   const handleNavigate = (menuId: string) => {
@@ -144,6 +151,51 @@ const AnalyticsPage = () => {
     },
     enabled: !!user?.id,
   });
+
+  // 진행중인 배틀 조회 api
+  const { data: activeBattlesData, isLoading: isActiveBattlesLoading } =
+    useQuery({
+      queryKey: ['activeBattles', user?.id],
+      queryFn: getActiveBattles,
+      enabled: !!user?.id,
+    });
+
+  // 종료된 배틀 조회 api
+  const { data: endedBattlesData, isLoading: isEndedBattlesLoading } = useQuery(
+    {
+      queryKey: ['endedBattles', user?.id],
+      queryFn: getEndedBattles,
+      enabled: !!user?.id,
+    }
+  );
+
+  const battleStats = useMemo(
+    () =>
+      generateBattleStats(
+        activeBattlesData?.activeBattles || [],
+        endedBattlesData?.activeBattles || []
+      ),
+    [activeBattlesData, endedBattlesData]
+  );
+
+  const totalBattles = useMemo(() => {
+    const activeCount = activeBattlesData?.activeBattles?.length || 0;
+    const endedCount = endedBattlesData?.activeBattles?.length || 0;
+    return activeCount + endedCount;
+  }, [activeBattlesData, endedBattlesData]);
+  const winRate = useMemo(() => {
+    const wonBattles =
+      battleStats.find((stat) => stat.name === '승리')?.value || 0;
+    const totalEndedBattles =
+      wonBattles +
+      (battleStats.find((stat) => stat.name === '패배')?.value || 0);
+    return totalEndedBattles > 0 ? (wonBattles / totalEndedBattles) * 100 : 0;
+  }, [battleStats]);
+
+  const maxStreak = useMemo(
+    () => calculateMaxStreak(endedBattlesData?.activeBattles || []),
+    [endedBattlesData]
+  );
   /* 현재 체중기록 확인 api */
 
   const { data: getCurrentWeightInfo } = useQuery<GetCurrentWeightInfoResponse>(
@@ -152,7 +204,6 @@ const AnalyticsPage = () => {
       initialData: { currentWeight: 0 },
       queryFn: () => {
         return api.get('/weight/getCurrentWeight').then((res) => {
-          console.log(res);
           // setRecordWeightParam((prevState) => ({
           //   ...prevState,
           //   startWeight: getCurrentWeightInfo.currentWeight,
@@ -206,13 +257,6 @@ const AnalyticsPage = () => {
 
   const yesterdayChange = calculateYesterdayChange();
 
-  // 디버깅을 위한 콘솔 로그 추가
-  console.log('🔍 Debug Info:');
-  console.log('getCurrentWeightInfo:', getCurrentWeightInfo);
-  console.log('weightData:', weightData);
-  console.log('goalList:', goalList);
-  console.log('yesterdayChange:', yesterdayChange);
-
   const goalProgress = calculateProgress(goalList[goalList.length - 1]);
   const currentBMI = calculateBMI(
     weightData?.currentWeight || getCurrentWeightInfo?.currentWeight || 0,
@@ -221,7 +265,12 @@ const AnalyticsPage = () => {
   const bmiCategory = getBMICategory(currentBMI);
 
   // 로딩 상태
-  if (isGoalListLoading || isWeightDataLoading) {
+  if (
+    isGoalListLoading ||
+    isWeightDataLoading ||
+    isActiveBattlesLoading ||
+    isEndedBattlesLoading
+  ) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -239,7 +288,6 @@ const AnalyticsPage = () => {
 
   // 첫 번째 단계: 체중 기록이 없는 경우
   if (!weightData?.entries || weightData.entries.length === 0) {
-    console.log('🚫 AnalyticsPage - Showing no-weight guide');
     return (
       <WeightSetupGuide
         onNavigate={handleNavigate}
@@ -260,8 +308,8 @@ const AnalyticsPage = () => {
     return (
       <div className="space-y-6">
         <AnalyticsHeader
-          timeRange={timeRange}
-          onTimeRangeChange={setTimeRange}
+        // timeRange={timeRange}
+        // onTimeRangeChange={setTimeRange}
         />
 
         {/* 목표 설정 필요 알림 */}
@@ -421,7 +469,8 @@ const AnalyticsPage = () => {
   // 세 번째 단계: 완전한 분석 페이지
   return (
     <div className="space-y-6">
-      <AnalyticsHeader timeRange={timeRange} onTimeRangeChange={setTimeRange} />
+      <AnalyticsHeader />
+      {/* timeRange={timeRange} onTimeRangeChange={setTimeRange} 헤더에 기간을 넣을 경우 추가 */}
       {goalList.length > 0 && (
         <Alert className="border-primary/20 bg-primary/5">
           <Target className="h-4 w-4 text-primary" />
@@ -456,14 +505,13 @@ const AnalyticsPage = () => {
           convertWeightEntries(weightData.entries, user?.height)
         )}
       />
-
       {/* 차트 섹션  */}
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3 bg-blue-50">
           <TabsTrigger value="overview">종합</TabsTrigger>
           <TabsTrigger value="weight">체중 분석</TabsTrigger>
           <TabsTrigger value="battles">대결 성과</TabsTrigger>
-          <TabsTrigger value="health">건강 지표</TabsTrigger>
+          {/* <TabsTrigger value="health">건강 지표</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="overview">
@@ -473,7 +521,7 @@ const AnalyticsPage = () => {
             goalProgress={Number(
               calculateProgress(goalList[goalList.length - 1]).toFixed(0)
             )}
-            winRate={78}
+            winRate={winRate}
             currentStreak={calculateStreak(
               convertWeightEntries(weightData.entries, user?.height)
             )}
@@ -493,16 +541,19 @@ const AnalyticsPage = () => {
         </TabsContent>
 
         <TabsContent value="battles">
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">배틀 탭 구현 예정</p>
-          </div>
+          <AnalyticsBattleTab
+            battleStats={battleStats}
+            winRate={winRate}
+            totalBattles={totalBattles}
+            maxStreak={maxStreak}
+          />
         </TabsContent>
 
-        <TabsContent value="health">
+        {/* <TabsContent value="health">
           <div className="text-center py-8">
             <p className="text-muted-foreground">건강 지표 탭 구현 예정</p>
           </div>
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
     </div>
   );

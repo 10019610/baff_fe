@@ -32,7 +32,7 @@ interface Battle {
   status: 'active' | 'completed' | 'cancelled';
   myCurrentWeight?: number;
   opponentCurrentWeight?: number;
-  result?: 'won' | 'lost' | 'draw';
+  result?: 'me' | 'opponent' | 'tie';
   myFinalWeight?: number;
   opponentFinalWeight?: number;
 }
@@ -52,10 +52,10 @@ const convertToBattle = (battle: BattleSummaryData): Battle => ({
   opponentCurrentWeight: battle.opponentCurrentWeight,
   result:
     battle.winner === 'me'
-      ? ('won' as const)
+      ? ('me' as const)
       : battle.winner === 'opponent'
-        ? ('lost' as const)
-        : ('draw' as const),
+        ? ('opponent' as const)
+        : ('tie' as const),
   myFinalWeight: battle.myCurrentWeight,
   opponentFinalWeight: battle.opponentCurrentWeight,
 });
@@ -76,7 +76,7 @@ const getMockCompletedBattles = (): Battle[] => [
       .toISOString()
       .split('T')[0],
     status: 'completed',
-    result: 'won',
+    result: 'me',
     myFinalWeight: 69.2,
     opponentFinalWeight: 56.8,
   },
@@ -94,7 +94,7 @@ const getMockCompletedBattles = (): Battle[] => [
       .toISOString()
       .split('T')[0],
     status: 'completed',
-    result: 'lost',
+    result: 'opponent',
     myFinalWeight: 67.8,
     opponentFinalWeight: 79.2,
   },
@@ -112,7 +112,7 @@ const getMockCompletedBattles = (): Battle[] => [
       .toISOString()
       .split('T')[0],
     status: 'completed',
-    result: 'draw',
+    result: 'tie',
     myFinalWeight: 69.6,
     opponentFinalWeight: 61.8,
   },
@@ -189,23 +189,23 @@ export default function BattleHistory({
     return { myProgress, opponentProgress, myWeightLoss, opponentWeightLoss };
   };
 
-  const getResultBadge = (result?: 'won' | 'lost' | 'draw') => {
+  const getResultBadge = (result?: 'me' | 'opponent' | 'tie') => {
     switch (result) {
-      case 'won':
+      case 'me':
         return (
           <Badge className="bg-green-500 text-white gap-1">
             <Trophy className="h-3 w-3" />
             승리
           </Badge>
         );
-      case 'lost':
+      case 'opponent':
         return (
           <Badge variant="destructive" className="gap-1">
             <TrendingDown className="h-3 w-3" />
             패배
           </Badge>
         );
-      case 'draw':
+      case 'tie':
         return (
           <Badge variant="secondary" className="gap-1">
             <Target className="h-3 w-3" />
@@ -219,9 +219,9 @@ export default function BattleHistory({
 
   const getStats = () => {
     const total = completedBattles.length;
-    const won = completedBattles.filter((b) => b.result === 'won').length;
-    const lost = completedBattles.filter((b) => b.result === 'lost').length;
-    const draw = completedBattles.filter((b) => b.result === 'draw').length;
+    const won = completedBattles.filter((b) => b.result === 'me').length;
+    const lost = completedBattles.filter((b) => b.result === 'opponent').length;
+    const draw = completedBattles.filter((b) => b.result === 'tie').length;
     const winRate = total > 0 ? Math.round((won / total) * 100) : 0;
 
     const totalWeightLost = completedBattles.reduce((sum, battle) => {
@@ -380,11 +380,11 @@ export default function BattleHistory({
                   <p className="text-2xl font-bold text-orange-600">
                     {stats.totalWeightLost.toFixed(1)}kg
                   </p>
-                  <p className="text-sm text-muted-foreground">총 감량</p>
+                  <p className="text-sm text-muted-foreground">총 변화량</p>
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                대결을 통해 달성한 체중 감량 성과입니다
+                대결을 통해 달성한 체중 관리 성과입니다
               </p>
             </div>
           </CardContent>
@@ -560,7 +560,7 @@ export default function BattleHistory({
                           <span>목표: {battle.targetWeightLoss}kg 감량</span>
                           <span>기간: {duration}일</span>
                         </div>
-                        {battle.result === 'won' && (
+                        {battle.result === 'me' && (
                           <div className="flex items-center gap-1 text-sm text-green-600">
                             <Award className="h-4 w-4" />
                             승리 보너스
@@ -680,10 +680,10 @@ export default function BattleHistory({
                               </p>
                             </div>
                           </div>
-                          {battle.result === 'won' && (
+                          {battle.result === 'me' && (
                             <div className="flex items-center gap-1 text-sm text-green-600 pt-1">
                               <Award className="h-4 w-4" />
-                              승리 보너스 획득
+                              승리 보너스 획득(*구현예정)
                             </div>
                           )}
                         </div>

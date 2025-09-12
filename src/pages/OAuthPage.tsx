@@ -15,16 +15,13 @@ const OAuthPage = () => {
       if (isAuthenticated) {
         // sessionStorage에서 초대 URL 확인
         const pendingInviteUrl = sessionStorage.getItem('pendingInviteUrl');
-        console.log('OAuthPage: sessionStorage 확인:', pendingInviteUrl);
 
         if (pendingInviteUrl) {
           // 초대 URL이 있으면 해당 페이지로 이동
-          console.log('OAuthPage: 초대 URL로 리다이렉트:', pendingInviteUrl);
           sessionStorage.removeItem('pendingInviteUrl'); // 사용 후 삭제
           window.location.href = pendingInviteUrl;
         } else {
           // 초대 URL이 없으면 메인 페이지로 이동
-          console.log('OAuthPage: 초대 URL이 없어서 메인 페이지로 이동');
           navigate('/');
         }
       } else {

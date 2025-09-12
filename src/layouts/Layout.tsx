@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import Header from '../components/header/Header';
 import Navbar from './Navbar.tsx';
 import Footer from '../components/footer/Footer.tsx';
@@ -41,18 +41,18 @@ const Layout = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="max-w-6xl mx-auto">
             {/* Page Content with Animation */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={location.pathname}
-                initial="initial"
-                animate="in"
-                exit="out"
-                variants={pageVariants}
-                transition={pageTransition}
-              >
-                <Outlet />
-              </motion.div>
-            </AnimatePresence>
+            {/* <AnimatePresence mode="sync"> */}
+            <motion.div
+              key={location.pathname}
+              initial="initial"
+              animate="in"
+              exit="out"
+              variants={pageVariants}
+              transition={pageTransition}
+            >
+              <Outlet />
+            </motion.div>
+            {/* </AnimatePresence> */}
           </div>
         </div>
       </div>
