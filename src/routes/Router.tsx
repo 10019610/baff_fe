@@ -11,11 +11,13 @@ import AnalyticsPage from '../pages/AnalyticsPage.tsx';
 import DashboardPage from '../pages/DashboardPage.tsx';
 import BattlePage from '../pages/BattlePage.tsx';
 import InvitePage from '../pages/InvitePage.tsx';
+import LoginErrorPage from '../pages/LoginErrorPage.tsx';
 
 const Router = () => {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/login/error" element={<LoginErrorPage />} />
       <Route element={<Layout />}>
         <Route
           path="/user/oauth-response/:token/:expirationTime"
