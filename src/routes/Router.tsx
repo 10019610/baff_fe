@@ -17,7 +17,7 @@ const Router = () => {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/login/error" element={<LoginErrorPage />} />
+      <Route path="/login/error=auth_failed" element={<LoginErrorPage />} />
       <Route element={<Layout />}>
         <Route
           path="/user/oauth-response/:token/:expirationTime"
