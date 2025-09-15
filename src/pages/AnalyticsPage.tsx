@@ -72,6 +72,9 @@ const AnalyticsPage = () => {
     if (menuId === 'tracker') {
       navigate('/weightTracker');
     }
+    if (menuId === 'goals') {
+      navigate('/goals');
+    }
   };
 
   // 설정된 목표 리스트 조회 api
@@ -184,18 +187,49 @@ const AnalyticsPage = () => {
     return activeCount + endedCount;
   }, [activeBattlesData, endedBattlesData]);
   const winRate = useMemo(() => {
-    const wonBattles =
-      battleStats.find((stat) => stat.name === '승리')?.value || 0;
-    const totalEndedBattles =
-      wonBattles +
-      (battleStats.find((stat) => stat.name === '패배')?.value || 0);
-    return totalEndedBattles > 0 ? (wonBattles / totalEndedBattles) * 100 : 0;
-  }, [battleStats]);
+    if (
+      !endedBattlesData?.activeBattles ||
+      endedBattlesData.activeBattles.length === 0
+    ) {
+      return 0;
+    }
+
+    const wonBattles = endedBattlesData.activeBattles.filter(
+      (battle) => battle.winner === 'me'
+    ).length;
+
+    const lostBattles = endedBattlesData.activeBattles.filter(
+      (battle) => battle.winner === 'opponent'
+    ).length;
+
+    const totalEndedBattles = wonBattles + lostBattles;
+
+    return totalEndedBattles > 0
+      ? Math.round((wonBattles / totalEndedBattles) * 100)
+      : 0;
+  }, [endedBattlesData]);
 
   const maxStreak = useMemo(
     () => calculateMaxStreak(endedBattlesData?.activeBattles || []),
     [endedBattlesData]
   );
+
+  // 주간 일관성 계산 (최근 7일간 기록한 일수 / 7일)
+  const weeklyConsistency = useMemo(() => {
+    if (!weightData?.entries || weightData.entries.length === 0) return 0;
+
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    // 최근 7일간 기록된 일수 계산
+    const recentEntries = weightData.entries.filter((entry) => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= sevenDaysAgo && entryDate <= now;
+    });
+
+    const uniqueDays = new Set(recentEntries.map((entry) => entry.date)).size;
+    return Math.round((uniqueDays / 7) * 100);
+  }, [weightData]);
   /* 현재 체중기록 확인 api */
 
   const { data: getCurrentWeightInfo } = useQuery<GetCurrentWeightInfoResponse>(
@@ -317,15 +351,18 @@ const AnalyticsPage = () => {
           <Target className="h-4 w-4 text-primary" />
           <AlertDescription className="text-primary-foreground">
             <div className="flex items-center justify-between">
-              <span>
+              <span className="text-xs">
                 체중 기록 <strong>{weightData.entries.length}개</strong>가
-                완료되었습니다! 이제 <strong>목표를 설정</strong>하여 더 정확한
-                분석을 받아보세요.
+                완료되었습니다!
+                <div className="mt-1">
+                  이제 <strong>목표를 설정</strong>하여 더 정확한 분석을
+                  받아보세요.
+                </div>
               </span>
               <Button
                 size="sm"
                 onClick={() => handleNavigate('goals')}
-                className="ml-4"
+                className="ml-4 h-10"
               >
                 <Plus className="h-4 w-4 mr-1" />
                 목표 설정하기
@@ -525,7 +562,7 @@ const AnalyticsPage = () => {
             currentStreak={calculateStreak(
               convertWeightEntries(weightData.entries, user?.height)
             )}
-            weeklyConsistency={78}
+            weeklyConsistency={weeklyConsistency}
           />
         </TabsContent>
 
