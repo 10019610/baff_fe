@@ -365,8 +365,8 @@ const WeightTracker = forwardRef<WeightTrackerRef, WeightTrackerProps>(
         {/* Weight Input Form */}
         <AnimatedContainer>
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 py-4">
+              <CardTitle className="flex items-center gap-2 text-indigo-900 dark:text-indigo-100">
                 <Calendar className="h-5 w-5" />
                 체중 기록하기
               </CardTitle>

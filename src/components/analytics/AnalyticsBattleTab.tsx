@@ -29,7 +29,7 @@ const AnalyticsBattleTab = ({
         <Card>
           <CardHeader>
             <CardTitle>대결 성과</CardTitle>
-            <CardContent>전체 대결 결과 분포</CardContent>
+            <CardDescription>전체 대결 결과</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-64">

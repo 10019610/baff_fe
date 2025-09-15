@@ -224,11 +224,16 @@ const Dashboard = ({
               variant="outline"
               size="sm"
               onClick={() => navigate('/weightTracker')}
+              className="cursor-pointer"
             >
               <Plus className="h-4 w-4 mr-1" />
               체중 기록
             </Button>
-            <Button size="sm" onClick={() => navigate('/analytics')}>
+            <Button
+              size="sm"
+              onClick={() => navigate('/analytics')}
+              className="cursor-pointer"
+            >
               <BarChart3 className="h-4 w-4 mr-1" />
               분석 보기
             </Button>
@@ -338,6 +343,7 @@ const Dashboard = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/goals')}
+                className="cursor-pointer"
               >
                 자세히 보기
                 <ArrowRight className="h-4 w-4 ml-1" />
@@ -489,6 +495,7 @@ const Dashboard = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('goals')}
+                className="cursor-pointer"
               >
                 전체 보기
                 <ArrowRight className="h-4 w-4 ml-1" />

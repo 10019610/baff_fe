@@ -63,7 +63,7 @@ export default function AnalyticsOverviewTab({
           <CardDescription>목표 달성을 위한 핵심 지표들</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="text-center">
               <div className="relative mx-auto w-20 h-20 mb-3">
                 <svg
@@ -124,8 +124,8 @@ export default function AnalyticsOverviewTab({
                   </span>
                 </div>
               </div>
-              <h3 className="font-medium">기록 일관성</h3>
-              <p className="text-sm text-muted-foreground">주간 평균</p>
+              <h3 className="font-medium">체중 기록률</h3>
+              <p className="text-sm text-muted-foreground">최근 7일간</p>
             </div>
 
             <div className="text-center">
