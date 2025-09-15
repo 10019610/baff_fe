@@ -27,7 +27,6 @@ export default function Header({ activeMenuItem }: HeaderProps) {
    */
   /* 페이지 이동 handler */
   const navigateTo = (to: string) => {
-    console.log(to);
     navigate(to);
   };
   const onProfileClick = (userId: string) => {

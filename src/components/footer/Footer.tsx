@@ -1,11 +1,8 @@
-import { Heart, Mail, Github } from 'lucide-react';
+import { Mail, Github } from 'lucide-react';
 import { Separator } from '../ui/separator';
 import LumpenLogo from '../ui/LumpenLogo';
 
 export default function Footer() {
-  const currentYear = 2025;
-  const appVersion = '1.0.0';
-
   return (
     <footer className="bg-card border-t border-border mt-auto">
       {/* Main Footer Content - Hidden on mobile when bottom nav is present */}
@@ -20,9 +17,7 @@ export default function Footer() {
                   <LumpenLogo size="lg" showText={true} />
                   <div>
                     {/* <h3 className="font-medium">ChangeUp</h3> */}
-                    <p className="text-sm text-muted-foreground">
-                      v{appVersion}
-                    </p>
+                    <p className="text-sm text-muted-foreground">v1.0.1</p>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -34,23 +29,23 @@ export default function Footer() {
 
               {/* Contact & Info */}
               <div className="space-y-4">
-                <h4 className="font-medium">정보</h4>
-                <div className="space-y-3 text-sm">
+                <h4 className="font-medium mt-10">정보</h4>
+                <div className="space-y-4 text-sm">
                   <div className="flex items-center gap-3 text-muted-foreground">
                     <Mail className="h-4 w-4" />
                     <span>문의: a10019610@gmail.com</span>
                   </div>
                   <div className="flex items-center gap-3 text-muted-foreground">
                     <Github className="h-4 w-4" />
-                    <span>GitHub: https://github.com/20220330jin/baff_be</span>
+                    <span>https://github.com/20220330jin/baff_be</span>
                   </div>
                 </div>
-                <div className="pt-2">
+                {/* <div className="pt-2">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full text-xs text-primary">
                     <Heart className="h-3 w-3" />
                     <span>소셜 로그인 지원</span>
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
@@ -63,7 +58,7 @@ export default function Footer() {
           <div className="max-w-6xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-4">
-                <p>© {currentYear} Lumpen. All rights reserved.</p>
+                <p>© 2025 Lumpen. All rights reserved.</p>
               </div>
               <div className="flex items-center gap-4">
                 <Separator orientation="vertical" className="h-4" />
@@ -83,12 +78,12 @@ export default function Footer() {
         <div className="container mx-auto px-4 py-4">
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-2 text-sm">
-              <LumpenLogo size="sm" showText={false} />
-              <span className="font-medium">Lumpen</span>
-              <span className="text-muted-foreground">v{appVersion}</span>
+              <LumpenLogo size="lg" showText={false} />
+              {/* <span className="font-medium">Lumpen</span> */}
+              <span className="text-muted-foreground">v1.0.1</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              변화의 시작, 건강한 체중 관리 • © {currentYear} Lumpen
+              변화의 시작, 건강한 체중 관리 • © 2025 Lumpen
             </p>
             <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
               <span>•</span>
