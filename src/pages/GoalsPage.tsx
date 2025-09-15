@@ -1,6 +1,10 @@
 import GoalSetting from '../components/GoalSetting.tsx';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import type { GetCurrentWeightInfoResponse, GetGoalListResponse, RecordGoalsRequest } from '../types/Goals.api.type.ts';
+import type {
+  GetCurrentWeightInfoResponse,
+  GetGoalListResponse,
+  RecordGoalsRequest,
+} from '../types/Goals.api.type.ts';
 import { useEffect, useState } from 'react';
 import { goalsInitializer } from '../types/Goal.initializer.ts';
 import type { PresetDurationType } from '../types/Goals.type.ts';
@@ -29,7 +33,8 @@ const GoalsPage = () => {
    * States
    */
   /* 목표 설정 저장 파라미터 state */
-  const [recordWeightParam, setRecordWeightParam] = useState<RecordGoalsRequest>(goalsInitializer.INITIAL_RECORD_WEIGHT_PARAM);
+  const [recordWeightParam, setRecordWeightParam] =
+    useState<RecordGoalsRequest>(goalsInitializer.INITIAL_RECORD_WEIGHT_PARAM);
   /* 체중 기록여부 state */
   const [hasWeightEntry] = useState<boolean>(true);
   /* 페이지 로딩 제어 state */
@@ -42,41 +47,46 @@ const GoalsPage = () => {
    * APIs
    */
   /* 체중 목표 설정 api */
-  const { mutate: recordWeightMutation, isPending: isPendingForRecord } = useMutation({
-    mutationFn: (param: RecordGoalsRequest) => api.post('/goals/recordGoals', param),
-    onSuccess: () => {
-      refetchGoalList();
-    },
-  });
+  const { mutate: recordWeightMutation, isPending: isPendingForRecord } =
+    useMutation({
+      mutationFn: (param: RecordGoalsRequest) =>
+        api.post('/goals/recordGoals', param),
+      onSuccess: () => {
+        refetchGoalList();
+      },
+    });
   /* 목표 삭제 api */
-  const { mutate: deleteGoalMutation, isPending: isPendingForDelete } = useMutation({
-    mutationFn: (deleteGoalId: string) => api.post(`/goals/deleteGoal/${deleteGoalId}`),
-    onSuccess: () => {
-      console.log('param', deleteGoalId);
-      refetchGoalList();
-    },
-  });
+  const { mutate: deleteGoalMutation, isPending: isPendingForDelete } =
+    useMutation({
+      mutationFn: (deleteGoalId: string) =>
+        api.post(`/goals/deleteGoal/${deleteGoalId}`),
+      onSuccess: () => {
+        refetchGoalList();
+      },
+    });
   /* 현재 체중기록 확인 api */
   // 임시
   // const currentWeight = 60;
 
-  const { data: getCurrentWeightInfo, isSuccess } = useQuery<GetCurrentWeightInfoResponse>({
-    queryKey: ['currentWeight'],
-    initialData: { currentWeight: 0 },
-    queryFn: () => {
-      return api.get('/weight/getCurrentWeight').then((res) => {
-        console.log(res);
-        // setRecordWeightParam((prevState) => ({
-        //   ...prevState,
-        //   startWeight: getCurrentWeightInfo.currentWeight,
-        // }));
-        return res.data;
-      });
-    },
-  });
+  const { data: getCurrentWeightInfo, isSuccess } =
+    useQuery<GetCurrentWeightInfoResponse>({
+      queryKey: ['currentWeight'],
+      initialData: { currentWeight: 0 },
+      queryFn: () => {
+        return api.get('/weight/getCurrentWeight').then((res) => {
+          // setRecordWeightParam((prevState) => ({
+          //   ...prevState,
+          //   startWeight: getCurrentWeightInfo.currentWeight,
+          // }));
+          return res.data;
+        });
+      },
+    });
 
   /* 설정된 목표 리스트 조회 api */
-  const { data: goalList, refetch: refetchGoalList } = useQuery<GetGoalListResponse[]>({
+  const { data: goalList, refetch: refetchGoalList } = useQuery<
+    GetGoalListResponse[]
+  >({
     queryKey: ['goal'],
     initialData: goalsInitializer.INITIAL_GET_GOAL_LIST,
     queryFn: () => {
@@ -91,7 +101,6 @@ const GoalsPage = () => {
   /* 목표 설정 handler */
   const handleRecordWeight = () => {
     // Validation: 제목, 목표기간, 현재 및 목표 체중(모두 필수값)
-    console.log(recordWeightParam);
     // 제목
     if (recordWeightParam.title.trim() === '') {
       toast.error('모든 값을 입력해주세요.');
@@ -107,7 +116,10 @@ const GoalsPage = () => {
     // tes(recordWeightParam);
   };
   /* 목표 설정 파라미터 변경 handler */
-  const handleRecordGoalsParam = (key: keyof RecordGoalsRequest, value: string | number) => {
+  const handleRecordGoalsParam = (
+    key: keyof RecordGoalsRequest,
+    value: string | number
+  ) => {
     setRecordWeightParam((prevState) => ({
       ...prevState,
       [key]: value,
@@ -123,7 +135,6 @@ const GoalsPage = () => {
   };
   /**/
   const handleDeleteGoalModal = (goalsId: string) => {
-    console.log('handleDeleteGoal', goalsId);
     setIsDeleteModalOpen(true);
     setDeleteGoalId(goalsId);
   };
@@ -133,7 +144,6 @@ const GoalsPage = () => {
   };
   /* 목표 삭제 handler */
   const handleGoalDelete = (goalId: string) => {
-    console.log('handleGoalDelete', goalId);
     deleteGoalMutation(goalId);
     setIsDeleteModalOpen(false);
     toast.success('목표가 삭제되었습니다.');
@@ -152,14 +162,28 @@ const GoalsPage = () => {
   }, [getCurrentWeightInfo, isSuccess]);
   return (
     <div className="goals-page">
-      <GoalSetting onClickRecord={handleRecordWeight} onChangeParam={handleRecordGoalsParam} param={recordWeightParam}
-                   presetDuration={presetDuration} currentWeight={getCurrentWeightInfo.currentWeight}
-                   goalList={goalList}
-                   handleGetDaysRemaining={handleGetDaysRemaining} handleDeleteGoalModal={handleDeleteGoalModal} isPending={isPendingForRecord} />
+      <GoalSetting
+        onClickRecord={handleRecordWeight}
+        onChangeParam={handleRecordGoalsParam}
+        param={recordWeightParam}
+        presetDuration={presetDuration}
+        currentWeight={getCurrentWeightInfo.currentWeight}
+        goalList={goalList}
+        handleGetDaysRemaining={handleGetDaysRemaining}
+        handleDeleteGoalModal={handleDeleteGoalModal}
+        isPending={isPendingForRecord}
+      />
       {/* 목표 삭제 확인 다이얼로그 */}
-      {deleteGoalId && <GoalsDeleteDialog deleteGoalId={deleteGoalId} isDeleteModalOpen={isDeleteModalOpen}
-                                          onClickCloseDelete={cancelDeleteGoal} goalList={goalList}
-                                          handleGoalDelete={handleGoalDelete} isPending={isPendingForDelete} />}
+      {deleteGoalId && (
+        <GoalsDeleteDialog
+          deleteGoalId={deleteGoalId}
+          isDeleteModalOpen={isDeleteModalOpen}
+          onClickCloseDelete={cancelDeleteGoal}
+          goalList={goalList}
+          handleGoalDelete={handleGoalDelete}
+          isPending={isPendingForDelete}
+        />
+      )}
     </div>
   );
 };
