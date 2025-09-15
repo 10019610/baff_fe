@@ -7,8 +7,12 @@ import { motion } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import AnimatedContainer from '../weightTracker/AnimatedContainer';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { joinBattleRoom } from '../../services/api/battleRoom.api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  getBattleRoomDetails,
+  joinBattleRoom,
+} from '../../services/api/battleRoom.api';
+import { useNavigate } from 'react-router-dom';
 
 interface RoomInviteJoinProps {
   roomId: string;
@@ -27,6 +31,8 @@ const RoomInviteJoin = ({
     'ready'
   );
   const [isJoining, setIsJoining] = useState(false);
+
+  const navigate = useNavigate();
 
   // 방 참가 mutation
   const joinRoomMutation = useMutation({
@@ -58,14 +64,49 @@ const RoomInviteJoin = ({
     if (!isAuthenticated) {
       // 현재 URL을 sessionStorage에 저장하고 로그인 페이지로 이동
       const currentUrl = window.location.href;
-      console.log('RoomInviteJoin: 초대 URL 저장:', currentUrl);
       sessionStorage.setItem('pendingInviteUrl', currentUrl);
-      console.log(
-        'RoomInviteJoin: sessionStorage 확인:',
-        sessionStorage.getItem('pendingInviteUrl')
-      );
       window.location.href = `/login`;
       return;
+    }
+
+    // 방 상세 정보가 로드되지 않았거나 에러가 있는 경우
+    if (isRoomDetailLoading) {
+      toast.error('방 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+
+    if (roomDetailError) {
+      setStep('error');
+      toast.error('방 정보를 불러올 수 없습니다.');
+      return;
+    }
+
+    if (!roomDetail) {
+      setStep('error');
+      toast.error('방 정보가 없습니다.');
+      return;
+    }
+
+    // 방 상태 유효성 검사
+    if (roomDetail.status === 'IN_PROGRESS' || roomDetail.status === 'ENDED') {
+      setStep('error');
+      toast.error('이미 시작되었거나 종료된 방입니다.');
+      navigate('/battle');
+      return;
+    }
+
+    // 이미 참가한 방인지 확인
+    if (roomDetail.status === 'WAITING') {
+      const isAlreadyParticipant = roomDetail.participants.some(
+        (participant) => Number(participant.userId) === Number(user?.id)
+      );
+
+      if (isAlreadyParticipant) {
+        setStep('error');
+        toast.error('이미 참가한 방입니다.');
+        navigate('/battle');
+        return;
+      }
     }
 
     setIsJoining(true);
@@ -75,6 +116,25 @@ const RoomInviteJoin = ({
       password: password,
     });
   };
+
+  // 방 상세 정보 조회
+  const {
+    data: roomDetail,
+    isLoading: isRoomDetailLoading,
+    error: roomDetailError,
+  } = useQuery({
+    queryKey: ['battleRoomDetail', roomId],
+    queryFn: () => {
+      if (!roomId) {
+        throw new Error('방 코드가 없습니다');
+      }
+      return getBattleRoomDetails(roomId);
+    },
+    enabled: !!roomId,
+    retry: 1,
+    staleTime: 1000 * 60 * 5, // 5분간 캐시 유지
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
+  });
 
   // 에러 상태
   if (step === 'error') {

@@ -125,7 +125,7 @@ const ActiveBattles = ({
             새로운 상대를 찾아 대결을 시작하거나, 받은 대결 신청을 확인해보세요!
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Target className="h-4 w-4" />
               상대 찾기에서 새로운 도전자를 만나보세요
             </div>
@@ -172,7 +172,7 @@ const ActiveBattles = ({
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">평균 진행률</p>
+                <p className="text-sm text-muted-foreground">평균 달성률</p>
                 <p className="text-2xl font-bold">
                   {activeBattles.length > 0
                     ? Math.round(
@@ -264,7 +264,12 @@ const ActiveBattles = ({
                         </div>
                         <div className="flex justify-between text-sm text-muted-foreground mb-2">
                           <span>진행률</span>
-                          <span>{battle.myProgress.toFixed(0)}%</span>
+                          <span>
+                            {Number(battle.myProgress.toFixed(0)) < 0
+                              ? 0
+                              : Number(battle.myProgress.toFixed(0))}
+                            %
+                          </span>
                         </div>
                         <Progress value={battle.myProgress} className="h-3" />
                       </div>
@@ -272,9 +277,10 @@ const ActiveBattles = ({
                     <div className="grid grid-cols-2 gap-4 text-center p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
                       <div>
                         <p className="text-lg font-bold text-blue-600">
-                          {battle.myWeightLoss.toFixed(1)}kg
+                          {battle.myWeightLoss > 0 ? '-' : '+'}
+                          {Math.abs(battle.myWeightLoss).toFixed(1)}kg
                         </p>
-                        <p className="text-xs text-muted-foreground">감량</p>
+                        <p className="text-xs text-muted-foreground">변화량</p>
                       </div>
                       <div>
                         <p className="text-lg font-bold text-blue-600">
@@ -309,7 +315,12 @@ const ActiveBattles = ({
                         </div>
                         <div className="flex justify-between text-sm text-muted-foreground mb-2">
                           <span>진행률</span>
-                          <span>{battle.opponentProgress.toFixed(0)}%</span>
+                          <span>
+                            {Number(battle.opponentProgress.toFixed(0)) < 0
+                              ? 0
+                              : Number(battle.opponentProgress.toFixed(0))}
+                            %
+                          </span>
                         </div>
                         <Progress
                           value={battle.opponentProgress}
@@ -320,9 +331,10 @@ const ActiveBattles = ({
                     <div className="grid grid-cols-2 gap-4 text-center p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
                       <div>
                         <p className="text-lg font-bold text-orange-600">
-                          {battle.opponentWeightLoss.toFixed(1)}kg
+                          {battle.opponentWeightLoss > 0 ? '-' : '+'}
+                          {Math.abs(battle.opponentWeightLoss).toFixed(1)}kg
                         </p>
-                        <p className="text-xs text-muted-foreground">감량</p>
+                        <p className="text-xs text-muted-foreground">변화량</p>
                       </div>
                       <div>
                         <p className="text-lg font-bold text-orange-600">
@@ -355,9 +367,11 @@ const ActiveBattles = ({
                     <p
                       className={`text-lg font-medium ${Math.abs(battle.myProgress - battle.opponentProgress) < 5 ? 'text-orange-500' : battle.myProgress > battle.opponentProgress ? 'text-green-500' : 'text-red-500'}`}
                     >
-                      {Math.abs(
-                        battle.myProgress - battle.opponentProgress
-                      ).toFixed(0)}
+                      {Number(battle.opponentProgress.toFixed(0)) < 0
+                        ? Math.abs(battle.myProgress - 0).toFixed(0)
+                        : Number(battle.myProgress.toFixed(0)) < 0
+                          ? Math.abs(battle.opponentProgress - 0).toFixed(0)
+                          : ''}
                       %
                     </p>
                   </div>

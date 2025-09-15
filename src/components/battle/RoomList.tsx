@@ -3,14 +3,25 @@ import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Skeleton } from '../../components/ui/skeleton';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../../components/ui/alert-dialog';
+import {
   Users,
-  Target,
+  // Target,
   Settings,
   Share2,
   Play,
   Crown,
   Clock,
   Trash2,
+  AlertTriangle,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
@@ -19,7 +30,7 @@ import AnimatedContainer from '../weightTracker/AnimatedContainer';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../services/api/Api';
 import type { BattleRoomListQueryResult } from '../../types/BattleRoom.api.type';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface Room {
   name: string;
@@ -50,6 +61,8 @@ const RoomList = ({
   onRoomCountChange,
 }: RoomListProps) => {
   const { user } = useAuth();
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
+  const [roomToLeave, setRoomToLeave] = useState<string | null>(null);
 
   // 배틀룸 리스트 조회
   const {
@@ -82,15 +95,17 @@ const RoomList = ({
     }
   }, [rooms.length, onRoomCountChange]);
 
-  const handleLeaveRoom = async (entryCode: string) => {
-    if (!user) return;
+  const handleLeaveRoomClick = (entryCode: string) => {
+    setRoomToLeave(entryCode);
+    setIsLeaveDialogOpen(true);
+  };
 
-    const confirmed = confirm('정말 방을 나가시겠습니까?');
-    if (!confirmed) return;
+  const handleLeaveRoomConfirm = async () => {
+    if (!user || !roomToLeave) return;
 
     try {
-      await api.post(`/battle/${entryCode}/deleteRoom`);
-      console.log('Leaving room:', entryCode);
+      await api.post(`/battle/${roomToLeave}/deleteRoom`);
+      console.log('Leaving room:', roomToLeave);
 
       // 방 나가기 후 목록 새로고침
       await refetchBattleRooms();
@@ -98,7 +113,15 @@ const RoomList = ({
     } catch (error) {
       console.error('Failed to leave room:', error);
       toast.error('방 나가기 중 오류가 발생했습니다');
+    } finally {
+      setIsLeaveDialogOpen(false);
+      setRoomToLeave(null);
     }
+  };
+
+  const handleLeaveRoomCancel = () => {
+    setIsLeaveDialogOpen(false);
+    setRoomToLeave(null);
   };
 
   const isRoomOwner = (room: Room) => room.hostId === user?.id;
@@ -218,10 +241,10 @@ const RoomList = ({
                         {room.currentParticipant}/{room.maxParticipant}명
                       </Badge>
 
-                      <Badge variant="outline" className="text-xs">
+                      {/* <Badge variant="outline" className="text-xs">
                         <Target className="h-3 w-3 mr-1" />
                         개인 목표 설정
-                      </Badge>
+                      </Badge> */}
 
                       <Badge variant="outline" className="text-xs">
                         <Clock className="h-3 w-3 mr-1" />
@@ -278,7 +301,10 @@ const RoomList = ({
                       )}
                     </Button>
                   </motion.div>
-                  {isOwner && !isStarted && !isEnded ? (
+                  {isOwner &&
+                  !isStarted &&
+                  !isEnded &&
+                  room.currentParticipant < room.maxParticipant ? (
                     <motion.div
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
@@ -287,9 +313,6 @@ const RoomList = ({
                         variant="outline"
                         size="lg"
                         onClick={() => onInviteRoom(room)}
-                        disabled={
-                          room.currentParticipant >= room.maxParticipant
-                        }
                         className="cursor-pointer"
                       >
                         <Share2 className="h-5 w-5" />
@@ -307,7 +330,7 @@ const RoomList = ({
                       <Button
                         variant="outline"
                         size="lg"
-                        onClick={() => handleLeaveRoom(room.entryCode)}
+                        onClick={() => handleLeaveRoomClick(room.entryCode)}
                         className="text-destructive hover:text-destructive cursor-pointer"
                       >
                         <Trash2 className="h-8 w-8" />
@@ -320,6 +343,43 @@ const RoomList = ({
           </motion.div>
         );
       })}
+
+      {/* 방 나가기 확인 다이얼로그 */}
+      <AlertDialog open={isLeaveDialogOpen} onOpenChange={setIsLeaveDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+              </div>
+              <div>
+                <AlertDialogTitle className="">
+                  방에서 나가시겠습니까?
+                </AlertDialogTitle>
+                <AlertDialogDescription className="mt-1">
+                  방을 나가면 다시 참가할 수 없습니다.
+                  <br />
+                  정말로 나가시겠습니까?
+                </AlertDialogDescription>
+              </div>
+            </div>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="cursor-pointer"
+              onClick={handleLeaveRoomCancel}
+            >
+              취소
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLeaveRoomConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
+            >
+              나가기
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

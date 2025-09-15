@@ -233,7 +233,7 @@ const RoomCreate = ({ onRoomCreated, onCancel }: RoomCreationProps) => {
           {/* 방 정보 요약 */}
           <div className="p-4 bg-muted rounded-lg">
             <h4 className="font-medium mb-3">방 정보 요약</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 최대 {formData.maxParticipants}명
@@ -246,9 +246,14 @@ const RoomCreate = ({ onRoomCreated, onCancel }: RoomCreationProps) => {
                 <Lock className="h-4 w-4 text-muted-foreground" />
                 비밀번호 보호
               </div>
-              <div className="flex items-center gap-2">
-                <Target className="h-4 w-4 text-muted-foreground" />
-                개인 목표 설정
+              <div className="flex items-start gap-2 sm:col-span-1">
+                <Target className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-sm">개인 목표 설정</div>
+                  <div className="text-xs text-muted-foreground mt-0.5 leading-tight">
+                    각자 체중 감량/유지/증량 목표 설정
+                  </div>
+                </div>
               </div>
             </div>
           </div>

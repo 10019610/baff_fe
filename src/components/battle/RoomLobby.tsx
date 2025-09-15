@@ -78,7 +78,6 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
   const [personalGoal, setPersonalGoal] = useState({
     type: 'WEIGHT_LOSS' as GoalType,
     targetValue: 0,
-    currentWeight: 0,
   });
 
   // 카카오 SDK 초기화
@@ -153,8 +152,8 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
     },
     enabled: !!room?.entryCode,
     retry: 1,
-    staleTime: 1000 * 60 * 5, // 5분간 캐시 유지
-    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
+    staleTime: 0, // 즉시 stale 상태로 만들어 항상 최신 데이터 요청
+    refetchOnWindowFocus: true, // 윈도우 포커스 시 재요청
   });
 
   if (!room) {
@@ -264,9 +263,11 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
   const handleSavePersonalGoal = async () => {
     if (!user || !roomDetail) return;
 
-    // 현재 체중이 체중 기록에서 자동으로 가져와진 경우가 아니라면 체중 기록 유도
-    if (!getCurrentWeightInfo && !personalGoal.currentWeight) {
-      toast.error('체중을 입력해주세요.');
+    // 체중 기록이 없으면 에러
+    if (!getCurrentWeightInfo) {
+      toast.error(
+        '체중 기록이 필요합니다. 체중 추적 페이지에서 먼저 체중을 기록해주세요.'
+      );
       return;
     }
 
@@ -281,8 +282,7 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
     const goalData: UpdateUserGoalRequest = {
       goalType: personalGoal.type,
       targetValue: personalGoal.targetValue,
-      startingWeight:
-        personalGoal.currentWeight || getCurrentWeightInfo?.currentWeight || 0,
+      startingWeight: getCurrentWeightInfo.currentWeight,
     };
 
     updateUserGoalMutation.mutate(goalData);
@@ -382,7 +382,7 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={onBack}
-          className="p-2 hover:bg-muted rounded-full transition-colors"
+          className="p-2 hover:bg-muted rounded-full transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-5 w-5" />
         </motion.button>
@@ -476,7 +476,7 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full"
+                  className="w-full cursor-pointer"
                   onClick={() => {
                     const text = `방 코드: ${room.entryCode}\n비밀번호: ${room.password}`;
                     navigator.clipboard.writeText(text);
@@ -487,64 +487,65 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                 </Button>
               </div>
 
-              <Separator className="my-4" />
-
-              {/* 초대 링크 섹션 */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-medium">친구 초대</h4>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  링크를 공유하여 친구들을 초대해보세요
-                </p>
-
-                {/* 초대 링크 복사 */}
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">
-                    초대 링크
-                  </Label>
-                  <div className="flex gap-2">
-                    <div className="flex-1 p-1.5 bg-muted rounded-lg border text-sm font-mono break-all">
-                      {inviteUrl}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="xl"
-                      onClick={handleCopyInviteLink}
-                      className=""
-                    >
-                      <Copy className="sm:mr-2" />
-                      <span className="hidden sm:inline text-sm">복사</span>
-                    </Button>
+              {/* 초대 링크 섹션 - 방장만 표시 */}
+              {isCurrentUserHost && (
+                <div className="space-y-4">
+                  <Separator className="my-4" />
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium">친구 초대</h4>
                   </div>
-                </div>
+                  <p className="text-sm text-muted-foreground">
+                    링크를 공유하여 친구들을 초대해보세요
+                  </p>
 
-                {/* 카카오톡 공유 */}
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">
-                    카카오톡으로 공유
-                  </Label>
-                  <div className="flex justify-center">
-                    <button
-                      onClick={handleKakaoShare}
-                      className="overflow-hidden rounded-lg transition-all w-full h-full duration-200 hover:scale-105 hover:shadow-lg"
-                    >
-                      <div className="flex items-center justify-center gap-3 bg-yellow-400 hover:bg-yellow-500 px-6 py-3 rounded-lg transition-colors duration-200">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center p-1">
-                          <img
-                            src="/kakaotalk_sharing_btn_medium.png"
-                            alt="카카오톡"
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                        <span className="text-white font-bold text-sm">
-                          카카오톡으로 초대하기
-                        </span>
+                  {/* 초대 링크 복사 */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">
+                      초대 링크
+                    </Label>
+                    <div className="flex gap-2">
+                      <div className="flex-1 p-1.5 bg-muted rounded-lg border text-sm font-mono break-all">
+                        {inviteUrl}
                       </div>
-                    </button>
+                      <Button
+                        variant="outline"
+                        size="xl"
+                        onClick={handleCopyInviteLink}
+                        className="cursor-pointer"
+                      >
+                        <Copy className="sm:mr-2" />
+                        <span className="hidden sm:inline text-sm">복사</span>
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* 카카오톡 공유 */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">
+                      카카오톡으로 공유
+                    </Label>
+                    <div className="flex justify-center">
+                      <button
+                        onClick={handleKakaoShare}
+                        className="cursor-pointer overflow-hidden rounded-lg transition-all w-full h-full duration-200 hover:scale-105 hover:shadow-lg"
+                      >
+                        <div className="flex items-center justify-center gap-3 bg-[#FEE500] hover:bg-yellow-500 px-6 py-3 rounded-lg transition-colors duration-200">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center p-1">
+                            <img
+                              src="/kakaotalk_sharing_btn_medium.png"
+                              alt="카카오톡"
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <span className="text-[#191919] font-bold text-sm">
+                            카카오톡으로 초대하기
+                          </span>
+                        </div>
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
@@ -625,7 +626,8 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Target className="h-5 w-5" />내 목표
+                  <Target className="h-5 w-5" />
+                  대결 목표 설정
                 </div>
                 {userHasGoal && (
                   <Button
@@ -675,12 +677,15 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                     </p>
 
                     <Button
-                      onClick={() => setShowGoalSetting(true)}
+                      onClick={() => {
+                        // 체중 추적 페이지로 이동
+                        window.location.href = '/weight-tracker';
+                      }}
                       className="w-full"
                       size="sm"
-                      variant="ghost"
                     >
-                      그래도 목표 설정하기
+                      <Scale className="h-4 w-4 mr-2" />
+                      체중 기록하러 가기
                     </Button>
                   </div>
                 </div>
@@ -769,7 +774,7 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                         <Button
                           onClick={handleSavePersonalGoal}
                           disabled={isActionLoading}
-                          className="flex-1"
+                          className="flex-1 cursor-pointer"
                         >
                           {isActionLoading ? '저장 중...' : '목표 저장'}
                         </Button>
@@ -783,103 +788,7 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                         )}
                       </div>
                     </>
-                  ) : (
-                    // 체중 기록이 없는 경우 - 수동 입력 허용
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="goalType">목표 유형</Label>
-                        <Select
-                          value={personalGoal.type}
-                          onValueChange={(value: GoalType) =>
-                            setPersonalGoal({
-                              ...personalGoal,
-                              type: value,
-                              targetValue:
-                                value === 'MAINTAIN'
-                                  ? 0
-                                  : personalGoal.targetValue,
-                            })
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="WEIGHT_LOSS">
-                              체중 감량
-                            </SelectItem>
-                            <SelectItem value="WEIGHT_GAIN">
-                              체중 증가
-                            </SelectItem>
-                            <SelectItem value="MAINTAIN">체중 유지</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="currentWeight">현재 체중 (kg)</Label>
-                        <Input
-                          id="currentWeight"
-                          type="number"
-                          step="0.1"
-                          placeholder="현재 체중을 입력하세요"
-                          value={personalGoal.currentWeight || ''}
-                          onChange={(e) =>
-                            setPersonalGoal({
-                              ...personalGoal,
-                              currentWeight: parseFloat(e.target.value) || 0,
-                            })
-                          }
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          체중 기록이 없어 수동으로 입력해주세요
-                        </p>
-                      </div>
-
-                      {personalGoal.type !== 'MAINTAIN' && (
-                        <div className="space-y-2">
-                          <Label htmlFor="targetAmount">
-                            목표{' '}
-                            {personalGoal.type === 'WEIGHT_LOSS'
-                              ? '감량'
-                              : '증량'}{' '}
-                            (kg)
-                          </Label>
-                          <Input
-                            id="targetAmount"
-                            type="number"
-                            step="0.1"
-                            placeholder="5.0"
-                            value={personalGoal.targetValue || ''}
-                            onChange={(e) =>
-                              setPersonalGoal({
-                                ...personalGoal,
-                                targetValue: parseFloat(e.target.value) || 0,
-                              })
-                            }
-                          />
-                        </div>
-                      )}
-
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={handleSavePersonalGoal}
-                          disabled={isActionLoading}
-                          className="flex-1"
-                        >
-                          {isActionLoading ? '저장 중...' : '목표 저장'}
-                        </Button>
-                        {userHasGoal && (
-                          <Button
-                            variant="outline"
-                            onClick={() => setShowGoalSetting(false)}
-                          >
-                            취소
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  ) : null}
                 </div>
               )}
             </CardContent>
@@ -947,8 +856,12 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                 >
                   <Button
                     onClick={handleStartBattle}
-                    disabled={!canStart || isActionLoading}
-                    className="w-full"
+                    disabled={
+                      !canStart ||
+                      isActionLoading ||
+                      roomDetail.status === 'IN_PROGRESS'
+                    }
+                    className="w-full cursor-pointer"
                     size="lg"
                   >
                     <Play className="h-4 w-4 mr-2" />
@@ -962,7 +875,7 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">
                     <Crown className="h-4 w-4 inline mr-1" />
-                    방장({hostNickname})이 대결을 시작합니다
+                    방장({hostNickname})님이 대결을 시작합니다
                   </p>
                 </div>
               )}

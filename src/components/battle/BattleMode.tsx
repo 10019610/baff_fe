@@ -48,6 +48,19 @@ const BattleMode = () => {
     password: string;
   } | null>(null);
 
+  // 탭 변경 시 상태 초기화
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+
+    // 내 방 탭으로 돌아올 때만 상태 초기화
+    if (newTab === 'rooms') {
+      setCurrentView('list');
+      setSelectedRoom(null);
+      setSelectedBattleEntryCode(null);
+      setInviteParams(null);
+    }
+  };
+
   // URL에서 roomId와 password 파라미터 확인 (초대 링크 처리)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -171,12 +184,16 @@ const BattleMode = () => {
       </div>
 
       {/* Battle Mode Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={handleTabChange}
+        className="w-full"
+      >
         <TabsList className="grid w-full grid-cols-3 mb-6 h-12 bg-blue-50">
           <TabsTrigger value="rooms" className="flex items-center gap-2 h-10">
             <Users className="h-4 w-4" />
-            <span className="hidden sm:inline">내 방</span>
-            <span className="sm:hidden">방</span>
+            <span className="hidden sm:inline">대기방</span>
+            <span className="sm:hidden">대기방</span>
             {roomCount > 0 && (
               <Badge
                 variant="default"
@@ -196,13 +213,13 @@ const BattleMode = () => {
           <TabsTrigger value="battles" className="flex items-center gap-2 h-10">
             <Trophy className="h-4 w-4" />
             <span className="hidden sm:inline">진행 중</span>
-            <span className="sm:hidden">대결</span>
+            <span className="sm:hidden">진행 중</span>
           </TabsTrigger>
 
           <TabsTrigger value="history" className="flex items-center gap-2 h-10">
             <Calendar className="h-4 w-4" />
-            <span className="hidden sm:inline">기록</span>
-            <span className="sm:hidden">기록</span>
+            <span className="hidden sm:inline">결과</span>
+            <span className="sm:hidden">결과</span>
           </TabsTrigger>
         </TabsList>
 

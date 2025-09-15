@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Check, Copy, Share2, Users, Lock } from 'lucide-react';
+import { Check, Copy, Share2, Users, Lock, ArrowLeft } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { toast } from 'react-hot-toast';
+import { motion } from 'framer-motion';
 import {
   initKakao,
   createRoomInviteShareData,
@@ -80,6 +81,27 @@ const RoomInvite = ({ room, onClose }: RoomInviteProps) => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+      {/* 뒤로가기 버튼과 헤더 */}
+      <div className="flex items-center gap-4 mb-6">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onClose}
+          className="p-2 hover:bg-muted rounded-full transition-colors cursor-pointer"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </motion.button>
+        <div>
+          <h1 className="flex items-center gap-2 text-xl font-semibold">
+            <Share2 className="h-6 w-6" />
+            친구 초대하기
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {room.name} 방에 친구들을 초대해보세요
+          </p>
+        </div>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -112,7 +134,7 @@ const RoomInvite = ({ room, onClose }: RoomInviteProps) => {
                   onClick={handleKakaoShare}
                   className="w-full group relative overflow-hidden rounded-xl transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
                 >
-                  <div className="flex items-center justify-center gap-4 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 px-8 py-4 rounded-xl transition-all duration-200">
+                  <div className="flex items-center justify-center gap-4 bg-[#FEE500] hover:from-yellow-500 hover:to-yellow-600 px-8 py-4 rounded-xl transition-all duration-200">
                     <div className="w-8 h-8rounded-full flex items-center justify-center p-1">
                       <img
                         src="/kakaotalk_sharing_btn_medium.png"
@@ -121,10 +143,10 @@ const RoomInvite = ({ room, onClose }: RoomInviteProps) => {
                       />
                     </div>
                     <div className="text-center">
-                      <div className="text-white font-semibold text-base">
+                      <div className="text-[#191919] font-semibold text-base">
                         카카오톡으로 초대하기
                       </div>
-                      <div className="text-yellow-100 text-sm">
+                      <div className="text-white text-sm">
                         친구들과 함께 대결해보세요
                       </div>
                     </div>
