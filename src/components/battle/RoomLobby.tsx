@@ -90,6 +90,7 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
   const [showGoalSetting, setShowGoalSetting] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [personalGoal, setPersonalGoal] = useState({
     type: 'WEIGHT_LOSS' as GoalType,
     targetValue: 0,
@@ -415,6 +416,7 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
     setIsDeleteDialogOpen(false);
   };
 
+  // 방장 - 방 삭제 컨펌 핸들러러
   const handleDeleteRoomConfirm = async () => {
     if (!user || !room.entryCode) return;
 
@@ -430,6 +432,29 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
       setIsActionLoading(false);
       setIsDeleteDialogOpen(false);
     }
+  };
+
+  const handleLeaveRoomConfirm = async () => {
+    if (!user || !room.entryCode) return;
+    try {
+      await api.post(`/battle/${room.entryCode}/leaveRoomByParticipant`);
+      toast.success('방에서 나왔습니다.');
+      onBack();
+    } catch (error) {
+      console.error('Failed to leave room:', error);
+      toast.error('방 나가기 중 오류가 발생했습니다.');
+    } finally {
+      setIsActionLoading(false);
+      setIsLeaveDialogOpen(false);
+    }
+  };
+
+  const handleLeaveRoomCancel = () => {
+    setIsLeaveDialogOpen(false);
+  };
+
+  const handleLeaveRoomClick = () => {
+    setIsLeaveDialogOpen(true);
   };
 
   return (
@@ -580,7 +605,7 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                       초대 링크
                     </Label>
                     <div className="flex gap-2">
-                      <div className="flex-1 p-1.5 bg-muted rounded-lg border text-sm font-mono break-all">
+                      <div className="flex-1 p-1.5 bg-muted truncate rounded-lg border text-sm font-mono break-all">
                         {inviteUrl}
                       </div>
                       <Button
@@ -613,7 +638,7 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                               className="w-full h-full object-contain"
                             />
                           </div>
-                          <span className="text-[#191919] font-bold text-sm">
+                          <span className="text-[#191919] font-bold text-sm mr-8">
                             카카오톡으로 초대하기
                           </span>
                         </div>
@@ -979,7 +1004,7 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                   whileTap={{ scale: 0.98 }}
                 >
                   <Button
-                    onClick={() => {}}
+                    onClick={handleLeaveRoomClick}
                     disabled={isLoading}
                     variant="destructive"
                     className="w-full"
@@ -1066,6 +1091,45 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
               disabled={isActionLoading}
             >
               {isActionLoading ? '삭제 중...' : '삭제하기'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 방 나가기 확인 다이얼로그 */}
+      <AlertDialog open={isLeaveDialogOpen} onOpenChange={setIsLeaveDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+              </div>
+              <div className="text-left">
+                <AlertDialogTitle className="text-left">
+                  방을 나가시겠습니까?
+                </AlertDialogTitle>
+                <AlertDialogDescription className="mt-1 text-left">
+                  방을 나가면 다시 입장하려면 초대 링크나 입장 코드가
+                  필요합니다.
+                  <br />
+                  정말로 나가시겠습니까?
+                </AlertDialogDescription>
+              </div>
+            </div>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="cursor-pointer"
+              onClick={handleLeaveRoomCancel}
+            >
+              취소
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLeaveRoomConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
+              disabled={isActionLoading}
+            >
+              {isActionLoading ? '나가기 중...' : '나가기'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

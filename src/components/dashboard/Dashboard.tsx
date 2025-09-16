@@ -373,7 +373,7 @@ const Dashboard = ({
                 return (
                   <div
                     key={goal.goalsId}
-                    className="flex-shrink-0 w-80 p-4 bg-white dark:bg-gray-800 rounded-lg border"
+                    className="flex-shrink-0 w-73 p-4 bg-white dark:bg-gray-800 rounded-lg border"
                   >
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-medium text-sm truncate pr-2">

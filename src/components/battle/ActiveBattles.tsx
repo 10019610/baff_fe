@@ -205,7 +205,7 @@ const ActiveBattles = ({
                 isSelected ? 'ring-2 ring-primary shadow-lg scale-[1.02]' : ''
               }`}
             >
-              <CardHeader className="pb-4">
+              <CardHeader className="">
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-3">
                     <Trophy className="h-6 w-6 text-primary" />
@@ -235,7 +235,7 @@ const ActiveBattles = ({
                         : '🤝 접전'}
                   </Badge>
                 </div>
-                <CardDescription className="flex items-center gap-4 flex-wrap">
+                <CardDescription className="flex items-center justify-between gap-4 flex-wrap">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     {formatDate(battle.startDate)} ~{' '}

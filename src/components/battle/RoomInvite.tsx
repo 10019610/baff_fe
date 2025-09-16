@@ -134,7 +134,7 @@ const RoomInvite = ({ room, onClose }: RoomInviteProps) => {
                   onClick={handleKakaoShare}
                   className="w-full group relative overflow-hidden rounded-xl transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
                 >
-                  <div className="flex items-center justify-center gap-4 bg-[#FEE500] hover:from-yellow-500 hover:to-yellow-600 px-8 py-4 rounded-xl transition-all duration-200">
+                  <div className="flex items-center justify-center gap-2 bg-[#FEE500] hover:from-yellow-500 hover:to-yellow-600 px-8 py-4 rounded-xl transition-all duration-200">
                     <div className="w-8 h-8rounded-full flex items-center justify-center p-1">
                       <img
                         src="/kakaotalk_sharing_btn_medium.png"
@@ -143,10 +143,10 @@ const RoomInvite = ({ room, onClose }: RoomInviteProps) => {
                       />
                     </div>
                     <div className="text-center">
-                      <div className="text-[#191919] font-semibold text-base">
+                      <div className="text-[#191919] font-semibold text-base mr-8">
                         카카오톡으로 초대하기
                       </div>
-                      <div className="text-white text-sm">
+                      <div className="text-white text-sm mr-8">
                         친구들과 함께 대결해보세요
                       </div>
                     </div>
@@ -163,22 +163,22 @@ const RoomInvite = ({ room, onClose }: RoomInviteProps) => {
               <Label className="text-sm font-medium">초대 링크</Label>
               <div className="mt-3 space-y-2">
                 <div className="flex gap-2">
-                  <div className="flex-1 p-3 bg-muted rounded-lg border text-sm font-mono break-all">
+                  <div className="flex-1 p-2 bg-muted truncate rounded-lg border text-sm font-mono break-all">
                     {inviteUrl}
                   </div>
                   <Button
                     variant="outline"
                     onClick={() => copyToClipboard(inviteUrl, 'link')}
-                    className="shrink-0 px-3 sm:px-4"
+                    className=""
                   >
                     {copiedItems.has('link') ? (
                       <>
-                        <Check className="h-4 w-4 sm:mr-2" />
+                        <Check className="h-4 w-4 sm:mr-5" />
                         <span className="hidden sm:inline text-sm">복사됨</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="h-4 w-4 sm:mr-2" />
+                        <Copy className="" />
                         <span className="hidden sm:inline text-sm">복사</span>
                       </>
                     )}
