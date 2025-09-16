@@ -352,11 +352,11 @@ const RoomList = ({
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
                 <AlertTriangle className="h-5 w-5 text-destructive" />
               </div>
-              <div>
-                <AlertDialogTitle className="">
+              <div className="text-left">
+                <AlertDialogTitle className="text-left">
                   방에서 나가시겠습니까?
                 </AlertDialogTitle>
-                <AlertDialogDescription className="mt-1">
+                <AlertDialogDescription className="mt-1 text-left">
                   방을 나가면 다시 참가할 수 없습니다.
                   <br />
                   정말로 나가시겠습니까?

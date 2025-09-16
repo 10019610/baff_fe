@@ -7,6 +7,16 @@ import { Alert, AlertDescription } from '../ui/alert';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../ui/alert-dialog';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -31,6 +41,9 @@ import {
   Scale,
   Loader2,
   Copy,
+  Trash2,
+  LogOut,
+  AlertTriangle,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
@@ -75,6 +88,8 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
   const queryClient = useQueryClient();
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [showGoalSetting, setShowGoalSetting] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [personalGoal, setPersonalGoal] = useState({
     type: 'WEIGHT_LOSS' as GoalType,
     targetValue: 0,
@@ -84,6 +99,24 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
   useEffect(() => {
     initKakao();
   }, []);
+
+  // 툴팁 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (showTooltip && !target.closest('.tooltip-container')) {
+        setShowTooltip(false);
+      }
+    };
+
+    if (showTooltip) {
+      document.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showTooltip]);
   // 현재 체중 조회
 
   const { data: getCurrentWeightInfo } = useQuery<GetCurrentWeightInfoResponse>(
@@ -374,6 +407,31 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
     }
   };
 
+  const handleDeleteRoomClick = () => {
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteRoomCancel = () => {
+    setIsDeleteDialogOpen(false);
+  };
+
+  const handleDeleteRoomConfirm = async () => {
+    if (!user || !room.entryCode) return;
+
+    setIsActionLoading(true);
+    try {
+      await api.post(`/battle/${room.entryCode}/deleteRoom`);
+      toast.success('방이 삭제되었습니다.');
+      onBack();
+    } catch (error) {
+      console.error('Failed to delete room:', error);
+      toast.error('방 삭제에 실패했습니다.');
+    } finally {
+      setIsActionLoading(false);
+      setIsDeleteDialogOpen(false);
+    }
+  };
+
   return (
     <AnimatedContainer direction="fade" className="space-y-6">
       {/* 헤더 */}
@@ -386,7 +444,7 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
         >
           <ArrowLeft className="h-5 w-5" />
         </motion.button>
-        <div>
+        <div className="flex-1">
           <h1 className="flex items-center gap-2">{roomDetail.name}</h1>
           <p className="text-muted-foreground">방 대기실</p>
         </div>
@@ -401,6 +459,19 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                 <div className="flex items-center gap-2">
                   <Settings className="h-5 w-5" />방 정보
                 </div>
+                <Badge
+                  variant={
+                    roomDetail.status === 'WAITING' ? 'outline' : 'default'
+                  }
+                >
+                  {roomDetail.status === 'WAITING'
+                    ? '대기 중'
+                    : roomDetail.status === 'IN_PROGRESS'
+                      ? '진행 중'
+                      : roomDetail.status === 'ENDED'
+                        ? '완료'
+                        : '취소'}
+                </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -417,10 +488,29 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                   명
                 </Badge>
 
-                <Badge variant="outline">
-                  <Target className="h-3 w-3 mr-1" />
-                  개인별 목표 설정
-                </Badge>
+                <div className="relative group tooltip-container">
+                  <Badge
+                    variant="outline"
+                    className="cursor-help select-none"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowTooltip(!showTooltip);
+                    }}
+                  >
+                    <Target className="h-3 w-3 mr-1" />
+                    개인별 목표 설정
+                  </Badge>
+                  <div
+                    className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 ${
+                      showTooltip
+                        ? 'opacity-100'
+                        : 'opacity-0 group-hover:opacity-100'
+                    }`}
+                  >
+                    각 참가자가 개별적으로 체중 감량/증량/유지 목표를 설정합니다
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                  </div>
+                </div>
 
                 {roomDetail.endDate && (
                   <Badge variant="outline">
@@ -432,20 +522,6 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                 <Badge variant="outline">
                   <Calendar className="h-3 w-3 mr-1" />
                   {roomDetail.durationDays}일간
-                </Badge>
-
-                <Badge
-                  variant={
-                    roomDetail.status === 'WAITING' ? 'outline' : 'default'
-                  }
-                >
-                  {roomDetail.status === 'WAITING'
-                    ? '대기 중'
-                    : roomDetail.status === 'IN_PROGRESS'
-                      ? '진행 중'
-                      : roomDetail.status === 'ENDED'
-                        ? '완료'
-                        : '취소'}
                 </Badge>
               </div>
               {/* 방 입장 정보 */}
@@ -562,55 +638,59 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                 {roomDetail.participants.map((participant, index) => (
                   <div
                     key={participant.userNickname}
-                    className="flex items-start justify-between p-3 rounded-lg border"
+                    className="flex flex-col sm:flex-row sm:items-start gap-3 p-3 rounded-lg border"
                   >
                     <div className="flex items-start gap-3 flex-1 min-w-0">
                       <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
                         {participant.userNickname.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium">
-                            {participant.userNickname}
-                          </span>
-                          {index === 0 && (
-                            <Crown className="h-4 w-4 text-yellow-500" />
-                          )}
-                          {participant.userNickname === user?.nickname && (
-                            <Badge variant="secondary" className="text-xs">
-                              나
-                            </Badge>
-                          )}
-                          {/* {participant.rank && (
-                            <Badge variant="outline" className="text-xs">
-                              {participant.rank}순위
-                            </Badge>
-                          )} */}
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="font-medium truncate max-w-[120px] sm:max-w-none">
+                              {participant.userNickname}
+                            </span>
+                            {index === 0 && (
+                              <Crown className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+                            )}
+                            {participant.userNickname === user?.nickname && (
+                              <Badge
+                                variant="secondary"
+                                className="text-xs flex-shrink-0"
+                              >
+                                나
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex-shrink-0">
+                            {participant.goalType ? (
+                              <Badge
+                                variant="default"
+                                className="bg-green-600 text-xs"
+                              >
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                목표설정
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="text-xs">
+                                <Clock className="h-3 w-3 mr-1" />
+                                목표미설정
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-muted-foreground mb-2">
                           <span>현재: {participant.currentWeight}kg</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          {getPersonalGoalIcon(participant.goalType)}
-                          <p className="text-xs text-muted-foreground">
+                        <div className="flex items-start gap-1">
+                          <div className="flex-shrink-0 mt-0.5">
+                            {getPersonalGoalIcon(participant.goalType)}
+                          </div>
+                          <p className="text-xs text-muted-foreground break-words">
                             {getPersonalGoalText(participant)}
                           </p>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                      {participant.goalType ? (
-                        <Badge variant="default" className="bg-green-600">
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          목표설정
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary">
-                          <Clock className="h-3 w-3 mr-1" />
-                          목표미설정
-                        </Badge>
-                      )}
                     </div>
                   </div>
                 ))}
@@ -881,8 +961,115 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
               )}
             </CardContent>
           </Card>
+          {/* 방 나가기 */}
+          {!isCurrentUserHost && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <LogOut className="h-5 w-5" />방 나가기
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  방에서 나가면 다시 입장하려면 초대 링크나 입장 코드가
+                  필요합니다.
+                </p>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button
+                    onClick={() => {}}
+                    disabled={isLoading}
+                    variant="destructive"
+                    className="w-full"
+                    size="lg"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    방에서 나가기
+                  </Button>
+                </motion.div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* 방 삭제 (방장 전용) */}
+          {isCurrentUserHost && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trash2 className="h-5 w-5" />방 삭제
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    방을 삭제하면 모든 참가자가 방에서 나가게 되며, 복구할 수
+                    없습니다.
+                  </AlertDescription>
+                </Alert>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button
+                    onClick={handleDeleteRoomClick}
+                    disabled={isActionLoading}
+                    variant="destructive"
+                    className="w-full"
+                    size="lg"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />방 삭제하기
+                  </Button>
+                </motion.div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
+
+      {/* 방 삭제 확인 다이얼로그 */}
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+              </div>
+              <div className="text-left">
+                <AlertDialogTitle className="text-left">
+                  방을 삭제하시겠습니까?
+                </AlertDialogTitle>
+                <AlertDialogDescription className="mt-1 text-left">
+                  방을 삭제하면 모든 참가자가 방에서 나가게 되며, 복구할 수
+                  없습니다.
+                  <br />
+                  정말로 삭제하시겠습니까?
+                </AlertDialogDescription>
+              </div>
+            </div>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="cursor-pointer"
+              onClick={handleDeleteRoomCancel}
+            >
+              취소
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteRoomConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
+              disabled={isActionLoading}
+            >
+              {isActionLoading ? '삭제 중...' : '삭제하기'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AnimatedContainer>
   );
 };

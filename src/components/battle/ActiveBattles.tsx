@@ -209,7 +209,14 @@ const ActiveBattles = ({
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-3">
                     <Trophy className="h-6 w-6 text-primary" />
-                    vs {battle.opponentNickname}
+                    <div className="flex flex-col">
+                      <span className="text-lg font-semibold">
+                        {battle.roomName}
+                      </span>
+                      <span className="text-sm text-muted-foreground font-normal">
+                        vs {battle.opponentNickname}
+                      </span>
+                    </div>
                   </CardTitle>
                   <Badge
                     variant={
@@ -248,7 +255,13 @@ const ActiveBattles = ({
                 {/* Battle Progress */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {/* My Progress */}
-                  <div className="space-y-4">
+                  <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <h3 className="font-semibold text-blue-700 dark:text-blue-300">
+                        나의 진행상황
+                      </h3>
+                    </div>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-12 w-12">
                         <AvatarFallback className="bg-blue-500 text-white font-medium">
@@ -258,9 +271,27 @@ const ActiveBattles = ({
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
                           <h4 className="font-medium">나</h4>
-                          <span className="text-sm text-muted-foreground">
-                            {battle.myCurrentWeight}kg
-                          </span>
+                          <div className="text-right">
+                            <div className="flex items-center gap-1 mb-1">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              <span className="text-xs text-muted-foreground">
+                                현재
+                              </span>
+                              <span className="text-sm font-semibold text-blue-600">
+                                {battle.myCurrentWeight}kg
+                              </span>
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              시작: {battle.myStartWeight}kg
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              목표:{' '}
+                              {(
+                                battle.myStartWeight - battle.myTargetWeightLoss
+                              ).toFixed(1)}
+                              kg
+                            </div>
+                          </div>
                         </div>
                         <div className="flex justify-between text-sm text-muted-foreground mb-2">
                           <span>진행률</span>
@@ -297,7 +328,13 @@ const ActiveBattles = ({
                   </div>
 
                   {/* Opponent Progress */}
-                  <div className="space-y-4">
+                  <div className="space-y-4 p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                      <h3 className="font-semibold text-orange-700 dark:text-orange-300">
+                        상대방 진행상황
+                      </h3>
+                    </div>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-12 w-12">
                         <AvatarFallback className="bg-orange-500 text-white font-medium">
@@ -306,12 +343,31 @@ const ActiveBattles = ({
                       </Avatar>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <h4 className="font-medium">
+                          <h4 className="font-medium truncate max-w-[120px] sm:max-w-none">
                             {battle.opponentNickname}
                           </h4>
-                          <span className="text-sm text-muted-foreground">
-                            {battle.opponentCurrentWeight}kg
-                          </span>
+                          <div className="text-right">
+                            <div className="flex items-center gap-1 mb-1">
+                              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                              <span className="text-xs text-muted-foreground">
+                                현재
+                              </span>
+                              <span className="text-sm font-semibold text-orange-600">
+                                {battle.opponentCurrentWeight}kg
+                              </span>
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              시작: {battle.opponentStartWeight}kg
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              목표:{' '}
+                              {(
+                                battle.opponentStartWeight -
+                                battle.opponentTargetWeightLoss
+                              ).toFixed(1)}
+                              kg
+                            </div>
+                          </div>
                         </div>
                         <div className="flex justify-between text-sm text-muted-foreground mb-2">
                           <span>진행률</span>
@@ -367,11 +423,10 @@ const ActiveBattles = ({
                     <p
                       className={`text-lg font-medium ${Math.abs(battle.myProgress - battle.opponentProgress) < 5 ? 'text-orange-500' : battle.myProgress > battle.opponentProgress ? 'text-green-500' : 'text-red-500'}`}
                     >
-                      {Number(battle.opponentProgress.toFixed(0)) < 0
-                        ? Math.abs(battle.myProgress - 0).toFixed(0)
-                        : Number(battle.myProgress.toFixed(0)) < 0
-                          ? Math.abs(battle.opponentProgress - 0).toFixed(0)
-                          : ''}
+                      {Math.abs(
+                        Math.max(0, battle.myProgress) -
+                          Math.max(0, battle.opponentProgress)
+                      ).toFixed(0)}
                       %
                     </p>
                   </div>

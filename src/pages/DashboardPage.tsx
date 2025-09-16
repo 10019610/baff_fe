@@ -13,19 +13,18 @@ import { useAuth } from '../context/AuthContext';
 const DashboardPage = () => {
   const { user } = useAuth();
 
-  /* 설정된 목표 리스트 조회 api */
+  /* 진행중인인 목표 리스트 조회 api */
   const { data: goalList, refetch: refetchGoalList } = useQuery<
     GetGoalListResponse[]
   >({
     queryKey: ['goal'],
     initialData: goalsInitializer.INITIAL_GET_GOAL_LIST,
     queryFn: () => {
-      return api.get('/goals/getGoalsList').then((res) => {
+      return api.get('/goals/getActiveGoalsList').then((res) => {
         return res.data;
       });
     },
   });
-
   /* 체중 기록 목록 조회 api */
   const { data: weightData } = useQuery({
     queryKey: ['weightEntries', user?.id],
@@ -96,8 +95,7 @@ const DashboardPage = () => {
   return (
     <Dashboard
       entries={weightData?.entries || []}
-      goals={goalList} // TODO: 목표 API 연동 후 실제 데이터로 교체
-      goalList={goalList}
+      goals={goalList}
       refetchGoalList={refetchGoalList}
       weightStats={{
         currentWeight: weightData?.currentWeight || 0,

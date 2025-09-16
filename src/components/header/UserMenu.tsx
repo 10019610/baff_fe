@@ -21,7 +21,7 @@ import {
 } from '../ui/dropdown-menu.tsx';
 import { Button } from '../ui/button.tsx';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar.tsx';
-import { Crown, LogOut, Settings, User } from 'lucide-react';
+import { Crown, LogOut, Settings, ShieldUser, User } from 'lucide-react';
 import { Badge } from '../ui/badge.tsx';
 import { api } from '../../services/api/Api.ts';
 import { useNavigate } from 'react-router-dom';
@@ -37,9 +37,9 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
    */
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-//
+  //
   if (!user) return null;
-//
+  //
   const getProviderBadge = () => {
     return <Badge>Google</Badge>;
     // if (user.provider === 'google') {
@@ -68,12 +68,11 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
       if (import.meta.env.VITE_APP_ENV === 'development') {
         logout();
       } else {
-        api.post('/user/logout')
-          .then((res) => {
-            console.log(res);
-            window.location.href = 'https://baff-fe.vercel.app/';
-            navigate('/');
-          });
+        api.post('/user/logout').then((res) => {
+          console.log(res);
+          window.location.href = 'https://baff-fe.vercel.app/';
+          navigate('/');
+        });
       }
     }
   };
@@ -82,7 +81,7 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-10 w-10">
+          <Avatar className="h-10 w-10 cursor-pointer">
             <AvatarImage src={user.profileImage} alt={user.nickname} />
             <AvatarFallback className="bg-primary text-primary-foreground">
               {user.nickname}
@@ -94,7 +93,9 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium leading-none">{user.nickname}</p>
+              <p className="text-sm font-medium leading-none">
+                {user.nickname}
+              </p>
               {getProviderBadge()}
             </div>
             <p className="text-xs leading-none text-muted-foreground">
@@ -103,14 +104,16 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
             <div className="flex items-center gap-2 pt-1">
               <Crown className="h-3 w-3 text-yellow-500" />
               <span className="text-xs text-muted-foreground">
-                회원 가입일:{' '}
-                {new Date().toLocaleDateString('ko-KR')}
+                회원 가입일: {new Date().toLocaleDateString('ko-KR')}
               </span>
             </div>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer" onClick={() => onProfileClick(user?.id)}>
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onClick={() => onProfileClick(user?.id)}
+        >
           <User className="mr-2 h-4 w-4" />
           <span>프로필</span>
         </DropdownMenuItem>
@@ -118,6 +121,15 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
           <Settings className="mr-2 h-4 w-4" />
           <span>설정</span>
         </DropdownMenuItem>
+        {user.role === 'ADMIN' && (
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => navigate('/admin/dashboard')}
+          >
+            <ShieldUser className="mr-2 h-4 w-4" />
+            관리자
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20"

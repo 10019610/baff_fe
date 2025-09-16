@@ -20,6 +20,7 @@ export interface BattleSummaryData {
   totalDays: number;
   daysRemaining: number;
   winner: string; // 'me' | 'opponent' | 'tie'
+  roomName: string;
 }
 
 export interface ActiveBattleData {

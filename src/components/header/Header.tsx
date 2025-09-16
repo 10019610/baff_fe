@@ -1,7 +1,6 @@
 import { Badge } from '../ui/badge';
 import UserMenu from './UserMenu.tsx';
 import ChangeUpLogo from '../ui/ChangeUpLogo.tsx';
-import { Button } from '../ui/button.tsx';
 import { useNavigate } from 'react-router-dom';
 
 // import UserMenu from './UserMenu';
@@ -54,18 +53,13 @@ export default function Header({ activeMenuItem }: HeaderProps) {
 
           {/* User Menu (Always visible) */}
           <div className="flex items-center gap-3">
-            <div>
-              <Button onClick={() => navigateTo('admin/dashboard')}>
-                관리자
-              </Button>
-            </div>
             <UserMenu onProfileClick={onProfileClick} />
           </div>
 
           <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-2 sm:hidden">
             {activeMenuItem && (
               <>
-                <activeMenuItem.icon className="h-5 w-5 text-primary" />
+                <activeMenuItem.icon className="h-5 w-5 text-primary  cursor-pointer" />
                 <span className="font-medium">{activeMenuItem.label}</span>
                 {activeMenuItem.badge && activeMenuItem.badge > 0 && (
                   <Badge

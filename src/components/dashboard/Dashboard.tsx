@@ -34,7 +34,6 @@ interface DashboardProps {
   onNavigate?: (menuId: string) => void;
   entries: WeightEntry[];
   goals: GetGoalListResponse[];
-  goalList: GetGoalListResponse[];
   refetchGoalList: () => void;
   weightStats: WeightStats;
 }
@@ -42,7 +41,6 @@ interface DashboardProps {
 const Dashboard = ({
   entries,
   goals,
-  goalList: _goalList, // eslint-disable-line @typescript-eslint/no-unused-vars
   refetchGoalList: _refetchGoalList, // eslint-disable-line @typescript-eslint/no-unused-vars
   weightStats,
 }: DashboardProps) => {
@@ -70,16 +68,32 @@ const Dashboard = ({
     };
   };
 
-  const getActiveGoal = () => {
-    const today = new Date().toISOString().split('T')[0];
-    return (
-      goals.find((goal) => today <= goal.endDate && goal.isExpired === false) ||
-      null
+  const calculateGoalProgress = (
+    goal: GetGoalListResponse,
+    currentWeight: number
+  ) => {
+    const today = new Date();
+    const daysRemaining = Math.ceil(
+      (new Date(goal.endDate).getTime() - today.getTime()) /
+        (1000 * 60 * 60 * 24)
     );
+    const isExpired = daysRemaining <= 0;
+
+    const totalChange = goal.targetWeight - goal.startWeight;
+    const currentChange = currentWeight - goal.startWeight;
+    const progress =
+      totalChange === 0
+        ? 100
+        : Math.min(Math.max((currentChange / totalChange) * 100, 0), 100);
+
+    return {
+      daysRemaining,
+      isExpired,
+      progress,
+    };
   };
 
   const stats = getCurrentStats();
-  const activeGoal = getActiveGoal();
   const hasData = stats !== null;
   const hasGoals = goals.length > 0;
 
@@ -330,14 +344,14 @@ const Dashboard = ({
         </Card>
       </div>
 
-      {/* Active Goal or Goal Suggestion */}
-      {activeGoal ? (
+      {/* Goals List */}
+      {goals.length > 0 ? (
         <Card className="border-primary/20 bg-primary/5">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Target className="h-5 w-5 text-primary" />
-                <CardTitle>진행 중인 목표</CardTitle>
+                <CardTitle>진행중인 목표 ({goals.length}개)</CardTitle>
               </div>
               <Button
                 variant="ghost"
@@ -351,54 +365,55 @@ const Dashboard = ({
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-medium">{activeGoal.title}</h3>
-                <Badge variant="secondary">
-                  {Math.ceil(
-                    (new Date(activeGoal.endDate).getTime() -
-                      new Date().getTime()) /
-                      (1000 * 60 * 60 * 24)
-                  )}
-                  일 남음
-                </Badge>
-              </div>
+            <div className="flex gap-4 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              {goals.map((goal) => {
+                const { daysRemaining, isExpired, progress } =
+                  calculateGoalProgress(goal, stats?.currentWeight || 0);
 
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>진행률</span>
-                  <span>
-                    {activeGoal.startWeight}kg → {activeGoal.targetWeight}kg
-                  </span>
-                </div>
+                return (
+                  <div
+                    key={goal.goalsId}
+                    className="flex-shrink-0 w-80 p-4 bg-white dark:bg-gray-800 rounded-lg border"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-medium text-sm truncate pr-2">
+                        {goal.title}
+                      </h3>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Badge
+                          variant={isExpired ? 'destructive' : 'secondary'}
+                          className="text-xs"
+                        >
+                          {isExpired ? '종료' : `${daysRemaining}일`}
+                        </Badge>
+                        {progress >= 100 && !isExpired && (
+                          <Badge className="bg-green-500 text-white text-xs">
+                            완료
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
 
-                {(() => {
-                  const totalChange =
-                    activeGoal.targetWeight - activeGoal.startWeight;
-                  const currentChange =
-                    stats.currentWeight - activeGoal.startWeight;
-                  const progress =
-                    totalChange === 0
-                      ? 100
-                      : Math.min(
-                          Math.max((currentChange / totalChange) * 100, 0),
-                          100
-                        );
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>진행률</span>
+                        <span>
+                          {goal.startWeight}kg → {goal.targetWeight}kg
+                        </span>
+                      </div>
 
-                  return (
-                    <>
                       <Progress value={progress} className="h-2" />
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {progress.toFixed(0)}% 달성 (목표까지{' '}
                         {Math.abs(
-                          stats.currentWeight - activeGoal.targetWeight
+                          stats.currentWeight - goal.targetWeight
                         ).toFixed(1)}
                         kg)
                       </p>
-                    </>
-                  );
-                })()}
-              </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
