@@ -53,6 +53,9 @@ const GoalsPage = () => {
         api.post('/goals/recordGoals', param),
       onSuccess: () => {
         refetchGoalList();
+        // 폼 초기화
+        setRecordWeightParam(goalsInitializer.INITIAL_RECORD_WEIGHT_PARAM);
+        toast.success('목표가 성공적으로 설정되었습니다!');
       },
     });
   /* 목표 삭제 api */
