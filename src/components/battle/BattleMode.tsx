@@ -89,10 +89,10 @@ const BattleMode = () => {
     }
   }, [isAuthenticated]);
 
-  const handleRoomJoined = () => {
-    setCurrentView('list');
-    // 새로 고침하여 방 목록 업데이트
-  };
+  // const handleRoomJoined = () => {
+  //   setCurrentView('list');
+  //   // 새로 고침하여 방 목록 업데이트
+  // };
 
   const handleRoomSelect = (room: Room) => {
     if (room.status === 'IN_PROGRESS') {
@@ -126,7 +126,7 @@ const BattleMode = () => {
         return (
           <RoomJoin
             roomId={roomId || undefined}
-            onRoomJoined={handleRoomJoined}
+            // onRoomJoined={handleRoomJoined}
             onCancel={() => setCurrentView('list')}
           />
         );
