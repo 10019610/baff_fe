@@ -39,7 +39,7 @@ interface GoalSettingProps {
   presetDuration: PresetDurationType[];
   onChangeParam: (
     key: keyof RecordGoalsRequest,
-    value: string | number
+    value: string | number,
   ) => void;
   param: RecordGoalsRequest;
   currentWeight: number;
@@ -58,16 +58,16 @@ interface GoalSettingProps {
  * @constructor
  */
 const GoalSetting = ({
-  onClickRecord,
-  presetDuration,
-  onChangeParam,
-  param,
-  currentWeight,
-  goalList,
-  handleGetDaysRemaining,
-  handleDeleteGoalModal,
-  isPending,
-}: GoalSettingProps) => {
+                       onClickRecord,
+                       presetDuration,
+                       onChangeParam,
+                       param,
+                       currentWeight,
+                       goalList,
+                       handleGetDaysRemaining,
+                       handleDeleteGoalModal,
+                       isPending,
+                     }: GoalSettingProps) => {
   /**
    * Variables
    */
@@ -123,7 +123,7 @@ const GoalSetting = ({
   const calculateDailyWeightLoss = (goal: Goal) => {
     const daysRemaining = handleGetDaysRemaining(
       String(new Date()),
-      goal.endDate
+      goal.endDate,
     );
     if (daysRemaining <= 0 || !goal.currentWeight) return null;
 
@@ -284,7 +284,7 @@ const GoalSetting = ({
             const today = new Date();
             const daysRemaining = handleGetDaysRemaining(
               String(today),
-              goal.endDate
+              goal.endDate,
             );
             return (
               <Card
@@ -317,7 +317,9 @@ const GoalSetting = ({
                   </div>
                   <CardDescription className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
+                    <span className="text-xs">
                     {formatDate(goal.startDate)} ~ {formatDate(goal.endDate)}
+                    </span>
                     {!goal.isExpired ? (
                       <span className="ml-2 text-primary font-medium">
                         ({daysRemaining}일 남음)
@@ -362,7 +364,7 @@ const GoalSetting = ({
 
                       const statusInfo = getDailyLossStatus(
                         dailyLossInfo.status,
-                        dailyLossInfo.isGain
+                        dailyLossInfo.isGain,
                       );
                       return (
                         <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
@@ -397,7 +399,7 @@ const GoalSetting = ({
                               </>
                             )}
                             {dailyLossInfo.status === 'aggressive' && (
-                              <span className="block mt-1 text-orange-600">
+                              <span className="block mt-1 text-orange-600 text-xs">
                                 ⚠️ 너무 빠른 속도입니다. 건강을 위해 목표 기간을
                                 늘리는 것을 고려해보세요.
                               </span>
@@ -432,14 +434,14 @@ const GoalSetting = ({
                   )}
                   {progress === 100 && goal.isExpired && (
                     <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200">
-                      <p className="text-sm text-green-800">
+                      <p className="text-xs text-green-800">
                         🎉 축하합니다! 목표를 성공적으로 달성했습니다.
                       </p>
                     </div>
                   )}
                   {progress < 100 && goal.isExpired && (
                     <div className="p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200">
-                      <p className="text-sm text-red-800">
+                      <p className="text-xs text-red-800">
                         💪 목표 달성에 실패했지만, 새로운 목표로 다시
                         도전해보세요!
                       </p>

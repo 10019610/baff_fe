@@ -326,10 +326,6 @@ const BattleMode = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="join">
-          <RoomJoin onRoomJoined={handleRoomJoined} onCancel={() => {}} />
-        </TabsContent>
-
         <TabsContent value="battles">
           <ActiveBattles
             selectedEntryCode={selectedBattleEntryCode}
