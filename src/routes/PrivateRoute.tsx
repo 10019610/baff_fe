@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import HeightInputModal from '../components/modals/HeightInputModal';
 import { useState, useEffect } from 'react';
 import { useHeightModal } from '../context/HeightModalContext';
+import PageLoader from '../components/ui/page-loader';
 
 const PrivateRoute = () => {
   const { isAuthenticated, isLoading, user, login } = useAuth();
@@ -24,7 +25,7 @@ const PrivateRoute = () => {
   if (isLoading) {
     // 로딩이 끝날 때까지 아무것도 하지 않고 기다리거나, 로딩 스피너를 보여줍니다.
     // 이 '기다림'이 API 요청이 완료될 시간을 벌어주어 경쟁 상태를 해결합니다.
-    return <div>Loading...</div>;
+    return <PageLoader message="로딩 중..." />;
   }
 
   // 2. 로딩이 끝난 후, 확정된 isAuthenticated 값으로 판단합니다.

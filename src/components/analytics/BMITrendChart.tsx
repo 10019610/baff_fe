@@ -217,7 +217,7 @@ const BMITrendChart: React.FC<BMITrendChartProps> = ({ data }) => {
       <Line ref={chartRef} data={chartData} options={options} />
 
       {/* BMI 범위 가이드 */}
-      <div className="absolute top-4 right-4 bg-background/80 backdrop-blur-sm border rounded-lg p-3 text-xs">
+      <div className="absolute -top-20 right-0 bg-background/80 backdrop-blur-sm border rounded-lg p-3 text-xs">
         <div className="font-medium mb-2 text-foreground">BMI 범위</div>
         <div className="space-y-1">
           <div className="flex items-center gap-2">

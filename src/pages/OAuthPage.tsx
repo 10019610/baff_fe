@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.tsx';
+import PageLoader from '../components/ui/page-loader';
 
 const OAuthPage = () => {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ const OAuthPage = () => {
     }
   }, [isLoading, isAuthenticated, navigate]);
 
-  return <div>로그인 처리 중...</div>;
+  return <PageLoader message="로그인 처리 중..." />;
 };
 
 export default OAuthPage;
