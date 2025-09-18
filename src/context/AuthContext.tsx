@@ -7,6 +7,8 @@ import React, {
 } from 'react';
 import { api } from '../services/api/Api.ts';
 import type { User } from '../types/User.ts'; // User 타입 임포트
+import { useReactNativeWebViewMessage } from '../hooks/useReactNativeWebViewMessage'; // Import the custom hook
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 // 인증 컨텍스트의 상태를 정의합니다.
 interface AuthContextType {
@@ -28,6 +30,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true); // 초기 로딩 상태는 true
   const baseUrl = import.meta.env.VITE_APP_API_URL;
+  const navigate = useNavigate(); // Get navigate function
+
+  // Call the custom hook to listen for messages from React Native WebView
+  useReactNativeWebViewMessage({ login: React.useCallback((userData: User) => {
+    setUser(userData);
+    setIsAuthenticated(true);
+  }, []), logout: React.useCallback(() => {
+    setUser(null);
+    setIsAuthenticated(false);
+    // window.location.href = '/'; // This will be handled by the hook's navigate
+  }, []), navigate });
 
   // 컴포넌트 마운트 시 사용자 인증 상태를 확인합니다.
   useEffect(() => {

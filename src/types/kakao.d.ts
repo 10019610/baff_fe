@@ -7,6 +7,9 @@ declare global {
         sendDefault: (params: KakaoShareParams) => void;
       };
     };
+    ReactNativeWebView?: {
+      postMessage: (message: string) => void;
+    };
   }
 }
 
