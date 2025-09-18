@@ -34,8 +34,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true); // 초기 로딩 상태는 true
 
-  const baseUrl = import.meta.env.VITE_APP_API_URL;
-
   const getToken = React.useCallback((): string | null => {
     // 쿠키에서 토큰 읽기
     const token = document.cookie
@@ -72,19 +70,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
      */
     const fetchUser = async () => {
       try {
-        // 🔥 수정: 토큰 확인 후 사용자 정보 가져오기
+        //  수정: 토큰 확인 후 사용자 정보 가져오기
         const token = getToken();
         if (!token) {
           console.log('AuthProvider: 토큰이 없음');
           setUser(null);
           setIsAuthenticated(false);
           setIsLoading(false);
-          // return;
+          return; // return으로 수정
         }
 
         console.log('AuthProvider: 토큰으로 사용자 정보 조회 중...');
-        console.log('BE URL', baseUrl);
-        const response = await api.get<User>(`${baseUrl}/user/me`);
+        const response = await api.get<User>('/user/me'); // 올바른 상대 경로로 수정
         console.log('AuthProvider: 사용자 정보 조회 성공', response.data);
         setUser(response.data);
         setIsAuthenticated(true);
@@ -100,7 +97,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     };
 
     fetchUser();
-  }, [baseUrl]); // 컴포넌트 마운트 시 한 번만 실행
+  }, []); // getToken을 의존성 배열에서 제거 (useCallback으로 메모이제이션됨)
 
   useEffect(() => {
     const handleWebViewMessage = (event: MessageEvent) => {
