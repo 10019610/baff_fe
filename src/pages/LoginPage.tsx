@@ -11,6 +11,7 @@ import {
 } from '../components/ui/card.tsx';
 import { Button } from '../components/ui/button.tsx';
 import { Separator } from '../components/ui/separator.tsx';
+import { useEffect } from 'react';
 
 /**
  * 로그인 페이지
@@ -20,13 +21,22 @@ import { Separator } from '../components/ui/separator.tsx';
  * @constructor
  */
 const LoginPage = () => {
+  useEffect(() => {
+    const handleWebViewMessage = (event: CustomEvent) => {
+      console.log(event);
+    };
+
+    window.addEventListener('test', handleWebViewMessage as EventListener);
+  }, []);
+
+
   /**
    * Variables
    */
   /* 기본 API 주소(소셜) */
   const baseUrl = import.meta.env.VITE_GOOGLE_URL;
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, loginForGoogleApp } = useAuth();
 
   /**
    * Handlers
@@ -35,13 +45,21 @@ const LoginPage = () => {
   const onSignInHandler = (provider: string) => {
     console.log('로그인 시도:', provider);
 
-    if (provider === 'kakao') {
-      console.log('카카오 로그인 버튼 클릭');
-      window.location.href = `${baseUrl}/oauth2/authorization/${provider}`;
-    } else if (provider === 'google') {
-      console.log('구글 로그인 버튼 클릭');
-      window.location.href = `${baseUrl}/oauth2/authorization/google`;
+    if (window.ReactNativeWebView) {
+      console.log('웹뷰 로그인');
+      loginForGoogleApp();
+      console.log("앱로그인 완료");
+      // navigate('/');
+    } else {
+      if (provider === 'kakao') {
+        console.log('카카오 로그인 버튼 클릭');
+        window.location.href = `${baseUrl}/oauth2/authorization/${provider}`;
+      } else if (provider === 'google') {
+        console.log('구글 로그인 버튼 클릭');
+        window.location.href = `${baseUrl}/oauth2/authorization/google`;
+      }
     }
+
   };
 
   const handleTempLogin = () => {
@@ -62,7 +80,8 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">
+    <div
+      className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
         <div className="text-center">
