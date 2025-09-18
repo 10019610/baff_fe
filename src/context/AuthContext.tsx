@@ -83,6 +83,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         }
 
         console.log('AuthProvider: 토큰으로 사용자 정보 조회 중...');
+        console.log('BE URL', baseUrl);
         const response = await api.get<User>(`${baseUrl}/user/me`);
         console.log('AuthProvider: 사용자 정보 조회 성공', response.data);
         setUser(response.data);
@@ -103,7 +104,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     const handleWebViewMessage = (event: MessageEvent) => {
-      console.log(event);
       if (event.data && event.data.type === 'GOOGLE_LOGIN_SUCCESS') {
         console.log('GOOGLE_LOGIN_SUCCESS');
         // 🔥 토큰 저장 (가장 중요!)
