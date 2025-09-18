@@ -8,7 +8,6 @@ import React, {
 import { api } from '../services/api/Api.ts';
 import type { User } from '../types/User.ts'; // User 타입 임포트
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
 // import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 // 인증 컨텍스트의 상태를 정의합니다.
