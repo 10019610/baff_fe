@@ -37,6 +37,10 @@ const LoginPage = () => {
   const baseUrl = import.meta.env.VITE_GOOGLE_URL;
   const navigate = useNavigate();
   const { login, loginForGoogleApp } = useAuth();
+  const isInsideReactNative = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('isReactNativeApp') === 'true';
+  };
 
   /**
    * Handlers
@@ -44,19 +48,21 @@ const LoginPage = () => {
   /* 로그인 버튼 handler */
   const onSignInHandler = (provider: string) => {
     console.log('로그인 시도:', provider);
-
-    if (window.ReactNativeWebView) {
-      console.log('웹뷰 로그인');
-      loginForGoogleApp();
-      console.log("앱로그인 완료");
-      // navigate('/');
-    } else {
-      if (provider === 'kakao') {
-        console.log('카카오 로그인 버튼 클릭');
-        window.location.href = `${baseUrl}/oauth2/authorization/${provider}`;
-      } else if (provider === 'google') {
-        console.log('구글 로그인 버튼 클릭');
-        window.location.href = `${baseUrl}/oauth2/authorization/google`;
+    console.log('vercel', isInsideReactNative())
+    if (isInsideReactNative()) {
+      if (window.ReactNativeWebView) {
+        console.log('웹뷰 로그인');
+        loginForGoogleApp();
+        console.log('앱로그인 완료');
+        // navigate('/');
+      } else {
+        if (provider === 'kakao') {
+          console.log('카카오 로그인 버튼 클릭');
+          window.location.href = `${baseUrl}/oauth2/authorization/${provider}`;
+        } else if (provider === 'google') {
+          console.log('구글 로그인 버튼 클릭');
+          window.location.href = `${baseUrl}/oauth2/authorization/google`;
+        }
       }
     }
 
