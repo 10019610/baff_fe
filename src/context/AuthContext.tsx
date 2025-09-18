@@ -79,7 +79,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           setUser(null);
           setIsAuthenticated(false);
           setIsLoading(false);
-          return;
+          // return;
         }
 
         console.log('AuthProvider: 토큰으로 사용자 정보 조회 중...');
