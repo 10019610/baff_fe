@@ -39,7 +39,7 @@ interface GoalSettingProps {
   presetDuration: PresetDurationType[];
   onChangeParam: (
     key: keyof RecordGoalsRequest,
-    value: string | number,
+    value: string | number
   ) => void;
   param: RecordGoalsRequest;
   currentWeight: number;
@@ -58,16 +58,16 @@ interface GoalSettingProps {
  * @constructor
  */
 const GoalSetting = ({
-                       onClickRecord,
-                       presetDuration,
-                       onChangeParam,
-                       param,
-                       currentWeight,
-                       goalList,
-                       handleGetDaysRemaining,
-                       handleDeleteGoalModal,
-                       isPending,
-                     }: GoalSettingProps) => {
+  onClickRecord,
+  presetDuration,
+  onChangeParam,
+  param,
+  currentWeight,
+  goalList,
+  handleGetDaysRemaining,
+  handleDeleteGoalModal,
+  isPending,
+}: GoalSettingProps) => {
   /**
    * Variables
    */
@@ -81,9 +81,15 @@ const GoalSetting = ({
    */
   const MotionButton = motion(Button);
 
+  /* 폼 유효성 검사 */
+  const isFormValid = () => {
+    return param.title.trim() !== '' && param.targetWeight > 0;
+  };
+
   /**
    * Handlers
    */
+
   /* 설정목표 카드 만료여부 배지 제어 handler */
   const getStatusBadge = (isExpired: boolean, goal: Goal) => {
     const progress = calculateProgress(goal);
@@ -123,7 +129,7 @@ const GoalSetting = ({
   const calculateDailyWeightLoss = (goal: Goal) => {
     const daysRemaining = handleGetDaysRemaining(
       String(new Date()),
-      goal.endDate,
+      goal.endDate
     );
     if (daysRemaining <= 0 || !goal.currentWeight) return null;
 
@@ -259,9 +265,9 @@ const GoalSetting = ({
               className="w-full text-[#000080] font-bold"
               size="xl"
               onClick={onClickRecord}
-              disabled={isPending}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              disabled={isPending || !isFormValid()}
+              whileHover={{ scale: isFormValid() ? 1.02 : 1 }}
+              whileTap={{ scale: isFormValid() ? 0.98 : 1 }}
             >
               {isPending ? (
                 <>
@@ -284,7 +290,7 @@ const GoalSetting = ({
             const today = new Date();
             const daysRemaining = handleGetDaysRemaining(
               String(today),
-              goal.endDate,
+              goal.endDate
             );
             return (
               <Card
@@ -318,7 +324,7 @@ const GoalSetting = ({
                   <CardDescription className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     <span className="text-xs">
-                    {formatDate(goal.startDate)} ~ {formatDate(goal.endDate)}
+                      {formatDate(goal.startDate)} ~ {formatDate(goal.endDate)}
                     </span>
                     {!goal.isExpired ? (
                       <span className="ml-2 text-primary font-medium">
@@ -364,7 +370,7 @@ const GoalSetting = ({
 
                       const statusInfo = getDailyLossStatus(
                         dailyLossInfo.status,
-                        dailyLossInfo.isGain,
+                        dailyLossInfo.isGain
                       );
                       return (
                         <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">

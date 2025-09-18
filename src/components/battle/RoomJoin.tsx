@@ -48,10 +48,9 @@ interface Room {
 interface RoomJoinProps {
   roomId?: string; // URL에서 가져온 방 ID
   onCancel: () => void;
-  onRoomJoined: (room: Room) => void;
 }
 
-const RoomJoin = ({ roomId, onCancel, onRoomJoined }: RoomJoinProps) => {
+const RoomJoin = ({ roomId, onCancel }: RoomJoinProps) => {
   const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
@@ -64,7 +63,6 @@ const RoomJoin = ({ roomId, onCancel, onRoomJoined }: RoomJoinProps) => {
   >('enter_info');
 
   // 방 참가 mutation
-  console.log('onRoomJoined', onRoomJoined);
   const joinRoomMutation = useMutation({
     mutationFn: ({
       entryCode,

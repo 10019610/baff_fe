@@ -9,14 +9,7 @@ import { Progress } from '../ui/progress';
 import { Badge } from '../ui/badge';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Separator } from '../ui/separator';
-import {
-  Trophy,
-  Calendar,
-  Target,
-  Zap,
-  TrendingUp,
-  Loader2,
-} from 'lucide-react';
+import { Trophy, Calendar, Target, Zap, TrendingUp } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getActiveBattles } from '../../services/api/activeBattle.api';
 import { useEffect, useRef } from 'react';
@@ -83,10 +76,11 @@ const ActiveBattles = ({
     return (
       <Card>
         <CardContent className="pt-12 pb-12 text-center">
-          <Loader2 className="h-16 w-16 mx-auto mb-6 text-muted-foreground animate-spin" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <h3 className="text-xl font-medium mb-3">
             대결 정보를 불러오는 중...
           </h3>
+          <p className="text-muted-foreground">잠시만 기다려주세요</p>
         </CardContent>
       </Card>
     );
