@@ -1,9 +1,9 @@
 import axios, { type AxiosInstance } from 'axios';
 
-const dynamicBaseUrl = (window as any).API_BASE_URL;
+export const BASE_URL = import.meta.env.VITE_APP_API_URL;
 
 // 주입받은 주소가 있으면 그것을 사용하고, 없으면 기존 환경 변수나 기본값을 사용
-export const BASE_URL = dynamicBaseUrl || import.meta.env.VITE_APP_API_URL;
+// export const BASE_URL = dynamicBaseUrl || import.meta.env.VITE_APP_API_URL;
 
 
 axios.defaults.withCredentials = false;
