@@ -54,7 +54,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           // On initial load, if there's no token, we just stop loading.
           // The user is not authenticated yet.
           setIsLoading(false);
-          return;
+          // return;
         }
 
         console.log('AuthProvider: Attempting to fetch user with token...');
