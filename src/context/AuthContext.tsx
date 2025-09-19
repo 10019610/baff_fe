@@ -90,11 +90,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         setIsAuthenticated(true);
         toast.success('구글 로그인 성공!');
 
-        if (event.data.redirectTo) {
-          setTimeout(() => {
-            window.location.href = event.data.redirectTo;
-          }, 100);
-        }
+        // if (event.data.redirectTo) {
+        //   setTimeout(() => {
+        //     window.location.href = event.data.redirectTo;
+        //   }, 100);
+        // }
       } else if (event.data && event.data.type === 'GOOGLE_LOGIN_ERROR') {
         console.log('AuthProvider: GOOGLE_LOGIN_ERROR received from RN');
         toast.error(event.data.message || '구글 로그인 실패');
