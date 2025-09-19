@@ -21,6 +21,7 @@ import { useEffect } from 'react';
  * @constructor
  */
 const LoginPage = () => {
+  const {isLoading, isAuthenticated} = useAuth();
   useEffect(() => {
     const handleWebViewMessage = (event: CustomEvent) => {
       console.log(event);
@@ -28,6 +29,15 @@ const LoginPage = () => {
 
     window.addEventListener('test', handleWebViewMessage as EventListener);
   }, []);
+
+  useEffect(() => {
+    // Only navigate once loading is complete AND user is authenticated
+    if (!isLoading && isAuthenticated) {
+      navigate('/');
+    }
+    // If loading is complete but not authenticated, stay on login page or show error
+    // (This is implicitly handled by not navigating)
+  }, [isLoading, isAuthenticated]);
 
 
   /**
