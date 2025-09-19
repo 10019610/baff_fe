@@ -70,8 +70,8 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
       } else {
         api.post('/user/logout').then((res) => {
           console.log(res);
-          window.location.href = 'https://baff-fe.vercel.app/';
-          navigate('/');
+          // window.location.href = 'https://baff-fe.vercel.app/';
+          // navigate('/');
         });
       }
     }
