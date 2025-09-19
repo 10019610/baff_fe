@@ -21,6 +21,8 @@ export interface BattleSummaryData {
   daysRemaining: number;
   winner: string; // 'me' | 'opponent' | 'tie'
   roomName: string;
+  myGoalType: string;
+  opponentGoalType: string;
 }
 
 export interface ActiveBattleData {
@@ -30,3 +32,18 @@ export interface ActiveBattleData {
 export interface EndedBattleData {
   activeBattles: BattleSummaryData[];
 }
+
+export interface getBattleWeightHistoryParams {
+  userId: number;
+  startDate: string;
+  endDate: string;
+}
+
+export interface getBattleWeightHistoryData {
+  recordDate: string;
+  recordWeight: number;
+}
+
+// export interface getBattleWeightHistory {
+//   weightHistory: getBattleWeightHistoryData[];
+// }
