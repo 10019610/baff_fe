@@ -65,13 +65,14 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
   const handleLogout = () => {
     if (confirm('로그아웃 하시겠습니까?')) {
       // 개발환경과 배포환경 구분
+      console.log("enviropnment", import.meta.env.VITE_APP_ENV);
       if (import.meta.env.VITE_APP_ENV === 'development') {
         logout();
       } else {
         api.post('/user/logout').then((res) => {
           console.log(res);
-          window.location.href = 'https://baff-fe.vercel.app/';
-          navigate('/');
+          // window.location.href = 'https://baff-fe.vercel.app/';
+          // navigate('/');
         });
       }
     }

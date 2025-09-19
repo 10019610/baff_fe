@@ -13,6 +13,8 @@ const PrivateRoute = () => {
   // 사용자가 로그인되고 키 정보가 없을 때 모달 표시
   useEffect(() => {
     if (isAuthenticated && user && !user.height) {
+      console.log('isAutenticated', isAuthenticated);
+      console.log('user', user);
       setShowHeightModal(true);
       setIsHeightModalOpen(true);
     } else {
@@ -48,7 +50,8 @@ const PrivateRoute = () => {
       <Outlet />
       <HeightInputModal
         isOpen={showHeightModal}
-        onClose={() => {}} // 필수 입력이므로 닫기 불가
+        onClose={() => {
+        }} // 필수 입력이므로 닫기 불가
         onHeightSaved={handleHeightSaved}
       />
     </>

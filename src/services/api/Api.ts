@@ -13,14 +13,22 @@ axios.defaults.headers.common['Content-Type'] = 'application/json';
 const setupInterceptors = (instance: AxiosInstance) => {
   instance.interceptors.request.use(
     (config) => {
-      // console.log('API 호출:', config.url);
-      // TODO (확인필요) (20250821/x) 아래 credential문제 확인 후 해결 필요 -hjkim
-      // const accessToken = '11';
-      //
-      // if (accessToken) {
-      //   config.headers.Authorization = `Bearer ${accessToken}`;
-      //   config.withCredentials = true;
-      // }
+      console.log('API Request Interceptor: URL', config.url);
+      // 기존 쿠키에서 토큰 읽는 로직 (주석 처리)
+      // const accessToken = document.cookie
+      //   .split('; ')
+      //   .find(row => row.startsWith('accessToken='))
+      //   ?.split('=')[1];
+
+      // [수정] localStorage에서 토큰 읽기
+      const accessToken = localStorage.getItem('accessToken');
+
+      if (accessToken) {
+        console.log('API Request Interceptor: accessToken found, adding Authorization header.');
+        config.headers.Authorization = `Bearer ${accessToken}`;
+      } else {
+        console.log('API Request Interceptor: No accessToken found in cookies/localStorage.');
+      }
       config.withCredentials = true;
 
       return config;
@@ -33,6 +41,7 @@ const setupInterceptors = (instance: AxiosInstance) => {
     async (error) => {
       if (error.response?.status === 401) {
         // 인증 실패 시 로그아웃 처리
+        console.error('API Response Interceptor: Authentication failed (401).');
       }
       return Promise.reject(error);
     }
