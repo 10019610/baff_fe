@@ -48,17 +48,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     const fetchUser = async () => {
+      // 토큰 존재 여부를 미리 체크하여 로딩 상태를 바꾸는 로직을 제거합니다.
+      // 토큰이 없으면 api.get 요청이 실패할 것이고, catch 블록에서 처리됩니다.
       try {
-        const token = getToken();
-        if (!token) {
-          // On initial load, if there's no token, we just stop loading.
-          // The user is not authenticated yet.
-          setIsLoading(false);
-          // return;
-        }
-
-        console.log('AuthProvider: Attempting to fetch user with token...');
-        const response = await api.get<User>('/user/me'); // Correct path
+        console.log('AuthProvider: Attempting to fetch user...');
+        const response = await api.get<User>('/user/me');
         console.log('AuthProvider: Fetched user info successfully', response.data);
         setUser(response.data);
         setIsAuthenticated(true);
@@ -66,7 +60,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         console.log('Failed to fetch user, likely no valid token yet:', error);
         setUser(null);
         setIsAuthenticated(false);
+        // 만약 토큰이 유효하지 않다면 쿠키를 지워주는 것이 좋습니다.
+        if (import.meta.env.VITE_APP_ENV === 'development') {
+          document.cookie = 'accessToken=; path=/; max-age=0;';
+        } else {
+          document.cookie = 'accessToken=; path=/; max-age=0; Secure; SameSite=None;';
+        }
       } finally {
+        // 인증 절차가 성공하든 실패하든, 항상 마지막에 로딩 상태를 false로 변경합니다.
         setIsLoading(false);
       }
     };
