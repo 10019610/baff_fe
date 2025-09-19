@@ -130,29 +130,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const logout = React.useCallback(() => {
-    const cookieName = 'accessToken';
-    const path = '/';
-    const domain = window.location.hostname;
-
-    // 1. 가장 기본적인 삭제 (domain 속성 없이)
-    document.cookie = `${cookieName}=; path=${path}; max-age=0;`;
-
-    // 2. 배포 환경을 위한 확실한 삭제 시도
-    if (import.meta.env.VITE_APP_ENV !== 'development') {
-      // Secure, SameSite=None 속성을 포함하여 삭제
-      document.cookie = `${cookieName}=; path=${path}; max-age=0; Secure; SameSite=None;`;
-
-      // 현재 도메인을 명시하여 삭제 (e.g., domain=app.baff.com)
-      document.cookie = `${cookieName}=; path=${path}; domain=${domain}; max-age=0; Secure; SameSite=None;`;
-
-      // 상위 도메인에 대해 삭제 (e.g., domain=.baff.com)
-      const domainParts = domain.split('.');
-      if (domainParts.length > 1) {
-        const parentDomain = '.' + domainParts.slice(-2).join('.');
-        document.cookie = `${cookieName}=; path=${path}; domain=${parentDomain}; max-age=0; Secure; SameSite=None;`;
-      }
+    // 로컬환경과 배포환경 구분하여 처리
+    // if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.VITE_APP_ENV === 'development') {
+      document.cookie = 'accessToken=; path=/; max-age=0;';
+    } else {
+      document.cookie =
+        'accessToken=; path=/; max-age=0; Secure; SameSite=None; Domain=baff-be-ckop.onrender.com;';
     }
 
+    // 백엔드에서 쿠키를 제거하는 API가 있다면 여기에 호출 로직 추가
+    // 예: apiClient.post('/api/auth/logout');
     setUser(null);
     setIsAuthenticated(false);
     window.location.href = '/';
