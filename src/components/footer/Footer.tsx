@@ -78,7 +78,7 @@ export default function Footer() {
         <div className="container mx-auto px-4 py-4">
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-2 text-sm">
-              <LumpenLogo size="lg" showText={false} />
+              <LumpenLogo size="md" showText={false} />
               {/* <span className="font-medium">Lumpen</span> */}
               <span className="text-muted-foreground">v1.0.1</span>
             </div>

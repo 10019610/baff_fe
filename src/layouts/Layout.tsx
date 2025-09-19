@@ -4,18 +4,21 @@ import Header from '../components/header/Header';
 import Navbar from './Navbar.tsx';
 import Footer from '../components/footer/Footer.tsx';
 import { useHeightModal } from '../context/HeightModalContext';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext'; // useAuth 추가
 import type { User } from '../types/User'; // User 타입 추가
+import { ArrowUp } from 'lucide-react';
 
 // 커스텀 로깅 함수
 const customLog = (message: string, ...args: any[]) => {
   const logMessage = `[Web Custom Log] ${message}`;
   if (window.ReactNativeWebView) {
-    window.ReactNativeWebView.postMessage(JSON.stringify({
-      type: 'CUSTOM_LOG',
-      payload: { message: logMessage, args: args }
-    }));
+    window.ReactNativeWebView.postMessage(
+      JSON.stringify({
+        type: 'CUSTOM_LOG',
+        payload: { message: logMessage, args: args },
+      })
+    );
   } else {
     console.log(logMessage, ...args); // RN 환경이 아니면 일반 console.log 사용
   }
@@ -26,6 +29,7 @@ const Layout = () => {
   const navigate = useNavigate(); // useNavigate 훅 사용
   const { login } = useAuth(); // useAuth 훅 사용
   const { isHeightModalOpen } = useHeightModal();
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
     customLog('[웹] Layout useEffect 시작'); // <-- 이 로그 추가
@@ -44,7 +48,9 @@ const Layout = () => {
     customLog('[웹] ReactNativeWebView 객체:', window.ReactNativeWebView);
     // 웹 앱 로드 시 React Native 앱으로 초기 메시지 전송 (선택 사항)
     if (window.ReactNativeWebView) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'WEB_LOADED', message: '웹 앱 로드 완료' }));
+      window.ReactNativeWebView.postMessage(
+        JSON.stringify({ type: 'WEB_LOADED', message: '웹 앱 로드 완료' })
+      );
     }
 
     const handleMessage = (event: MessageEvent) => {
@@ -56,8 +62,15 @@ const Layout = () => {
       let message;
       try {
         // event.data가 문자열이 아니거나 유효한 JSON이 아니면 파싱하지 않습니다。
-        if (typeof event.data !== 'string' || !event.data.startsWith('{') || !event.data.endsWith('}')) {
-          customLog('[웹] 유효하지 않은 JSON 형식의 메시지 수신 (개발자 도구 메시지일 수 있음):', event.data);
+        if (
+          typeof event.data !== 'string' ||
+          !event.data.startsWith('{') ||
+          !event.data.endsWith('}')
+        ) {
+          customLog(
+            '[웹] 유효하지 않은 JSON 형식의 메시지 수신 (개발자 도구 메시지일 수 있음):',
+            event.data
+          );
           return; // 유효하지 않은 메시지는 무시
         }
         message = JSON.parse(event.data);
@@ -90,13 +103,19 @@ const Layout = () => {
         alert('[웹] 앱으로부터 PING 받음!');
         customLog('[웹] 앱으로부터 PING 메시지 수신. PONG으로 응답합니다.');
         if (window.ReactNativeWebView) {
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'PONG' })); // PONG으로 수정
+          window.ReactNativeWebView.postMessage(
+            JSON.stringify({ type: 'PONG' })
+          ); // PONG으로 수정
         } else {
           customLog('[웹] ReactNativeWebView 객체를 찾을 수 없음');
         }
-      } else if (message.type === 'PINGㅇㅇㅇ') { // injectJavaScript에서 보낸 메시지 처리
+      } else if (message.type === 'PINGㅇㅇㅇ') {
+        // injectJavaScript에서 보낸 메시지 처리
         customLog('여기입니다: PINGㅇㅇㅇ 메시지 처리 시작');
-        customLog('[웹] injectJavaScript로부터 PINGㅇㅇㅇ 메시지 수신:', message.payload);
+        customLog(
+          '[웹] injectJavaScript로부터 PINGㅇㅇㅇ 메시지 수신:',
+          message.payload
+        );
         alert('[웹] injectJavaScript PINGㅇㅇㅇ 메시지 받음!');
       } else {
         customLog('[웹] 알 수 없는 타입의 메시지 수신:', message.type, message);
@@ -112,6 +131,21 @@ const Layout = () => {
       window.removeEventListener('message', handleMessage);
     };
   }, [login, navigate]); // login과 navigate를 의존성 배열에 추가
+
+  // 스크롤 이벤트 리스너
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 200);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // 스크롤 투 탑 함수
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // 페이지 전환 애니메이션
   const pageVariants = {
@@ -163,6 +197,20 @@ const Layout = () => {
       <Footer />
       {/* navbar - 키 입력 모달이 열려있을 때는 숨김 */}
       {!isHeightModalOpen && <Navbar />}
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          onClick={scrollToTop}
+          className="fixed bottom-20 right-6 z-50 bg-primary text-primary-foreground rounded-full p-3 shadow-lg hover:bg-primary/90 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 cursor-pointer"
+          aria-label="맨 위로 스크롤"
+        >
+          <ArrowUp className="h-5 w-5" />
+        </motion.button>
+      )}
     </div>
   );
 };

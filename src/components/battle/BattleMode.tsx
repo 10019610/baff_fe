@@ -16,6 +16,8 @@ import RoomList from './RoomList';
 import RoomCreate from './RoomCreate';
 import RoomLobby from './RoomLobby';
 import { useAuth } from '../../context/AuthContext';
+import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { useIsMobile } from '../ui/use-mobile';
 
 interface Room {
   name: string;
@@ -34,6 +36,7 @@ interface Room {
 
 const BattleMode = () => {
   const { isAuthenticated } = useAuth();
+  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState('battles');
   const [roomCount, setRoomCount] = useState(0);
   const [currentView, setCurrentView] = useState<
@@ -48,6 +51,14 @@ const BattleMode = () => {
     password: string;
   } | null>(null);
 
+  // 스와이프 제스처를 위한 motion values
+  const x = useMotionValue(0);
+  const opacity = useTransform(x, [-100, 0, 100], [0.7, 1, 0.7]);
+
+  // 탭 순서 정의
+  const tabs = ['rooms', 'battles', 'history'];
+  const currentTabIndex = tabs.indexOf(activeTab);
+
   // 탭 변경 시 상태 초기화
   const handleTabChange = (newTab: string) => {
     setActiveTab(newTab);
@@ -58,6 +69,27 @@ const BattleMode = () => {
       setSelectedRoom(null);
       setSelectedBattleEntryCode(null);
       setInviteParams(null);
+    }
+  };
+
+  // 스와이프로 탭 변경
+  const handleSwipe = (direction: 'left' | 'right') => {
+    if (direction === 'left') {
+      // 왼쪽으로 스와이프 → 다음 탭
+      const nextIndex = Math.min(currentTabIndex + 1, tabs.length - 1);
+      if (nextIndex !== currentTabIndex) {
+        handleTabChange(tabs[nextIndex]);
+        // 탭 변경 후 최상단으로 스크롤
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } else {
+      // 오른쪽으로 스와이프 → 이전 탭
+      const prevIndex = Math.max(currentTabIndex - 1, 0);
+      if (prevIndex !== currentTabIndex) {
+        handleTabChange(tabs[prevIndex]);
+        // 탭 변경 후 최상단으로 스크롤
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   };
 
@@ -224,7 +256,26 @@ const BattleMode = () => {
         </TabsList>
 
         <TabsContent value="rooms">
-          <div className="space-y-6">
+          <motion.div
+            className="space-y-6"
+            style={{ x, opacity, touchAction: isMobile ? 'pan-y' : 'auto' }}
+            drag={isMobile ? 'x' : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.1}
+            onDragEnd={(_, info) => {
+              if (isMobile) {
+                if (info.offset.x > 50) {
+                  // 오른쪽으로 스와이프 → 이전 탭
+                  handleSwipe('right');
+                } else if (info.offset.x < -50) {
+                  // 왼쪽으로 스와이프 → 다음 탭
+                  handleSwipe('left');
+                }
+                // x 값을 0으로 리셋
+                x.set(0);
+              }
+            }}
+          >
             {/* 상단 액션 버튼들 */}
             {currentView === 'list' && (
               <div className="space-y-4">
@@ -323,18 +374,58 @@ const BattleMode = () => {
             )}
 
             {renderRoomsContent()}
-          </div>
+          </motion.div>
         </TabsContent>
 
         <TabsContent value="battles">
-          <ActiveBattles
-            selectedEntryCode={selectedBattleEntryCode}
-            onBattleSelected={() => setSelectedBattleEntryCode(null)}
-          />
+          <motion.div
+            style={{ x, opacity, touchAction: isMobile ? 'pan-y' : 'auto' }}
+            drag={isMobile ? 'x' : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.1}
+            onDragEnd={(_, info) => {
+              if (isMobile) {
+                if (info.offset.x > 50) {
+                  // 오른쪽으로 스와이프 → 이전 탭
+                  handleSwipe('right');
+                } else if (info.offset.x < -50) {
+                  // 왼쪽으로 스와이프 → 다음 탭
+                  handleSwipe('left');
+                }
+                // x 값을 0으로 리셋
+                x.set(0);
+              }
+            }}
+          >
+            <ActiveBattles
+              selectedEntryCode={selectedBattleEntryCode}
+              onBattleSelected={() => setSelectedBattleEntryCode(null)}
+            />
+          </motion.div>
         </TabsContent>
 
         <TabsContent value="history">
-          <BattleHistory selectedRoomEntryCode={selectedRoom?.entryCode} />
+          <motion.div
+            style={{ x, opacity, touchAction: isMobile ? 'pan-y' : 'auto' }}
+            drag={isMobile ? 'x' : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.1}
+            onDragEnd={(_, info) => {
+              if (isMobile) {
+                if (info.offset.x > 50) {
+                  // 오른쪽으로 스와이프 → 이전 탭
+                  handleSwipe('right');
+                } else if (info.offset.x < -50) {
+                  // 왼쪽으로 스와이프 → 다음 탭
+                  handleSwipe('left');
+                }
+                // x 값을 0으로 리셋
+                x.set(0);
+              }
+            }}
+          >
+            <BattleHistory selectedRoomEntryCode={selectedRoom?.entryCode} />
+          </motion.div>
         </TabsContent>
       </Tabs>
     </div>

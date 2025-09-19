@@ -20,6 +20,7 @@ import {
   Info,
   User,
   Sword,
+  Swords,
 } from 'lucide-react';
 import BattleParticipantDetail from './BattleParticipantDetail';
 import { useQuery } from '@tanstack/react-query';
@@ -248,14 +249,9 @@ const ActiveBattles = ({
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-3">
                     <Trophy className="h-6 w-6 text-primary" />
-                    <div className="flex flex-col">
-                      <span className="text-lg font-semibold">
-                        {battle.roomName}
-                      </span>
-                      <span className="text-sm text-muted-foreground font-normal">
-                        vs {battle.opponentNickname}
-                      </span>
-                    </div>
+                    <span className="text-lg font-semibold">
+                      {battle.roomName}
+                    </span>
                   </CardTitle>
                   <div className="flex items-center gap-2">
                     <Badge
@@ -280,6 +276,12 @@ const ActiveBattles = ({
                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     )}
                   </div>
+                </div>
+                <div className="">
+                  <span className="text-sm text-muted-foreground font-normal flex items-center gap-1">
+                    <Swords className="h-3 w-3" />
+                    {battle.opponentNickname}
+                  </span>
                 </div>
                 <CardDescription className="flex items-center gap-3 flex-wrap">
                   <span className="flex items-center gap-1 text-xs">

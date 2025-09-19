@@ -107,10 +107,24 @@ const BattleParticipantDetail = ({
   console.log(weightData);
 
   // WeightTrendChart용 데이터 변환
-  const chartData =
-    weightData?.map((item, index) => {
+  const chartData = (() => {
+    if (!weightData || weightData.length === 0) return [];
+
+    // 시작 몸무게를 첫 번째 포인트로 추가
+    const startPoint = {
+      date: '시작',
+      weight: startWeight,
+      change: 0, // 시작점이므로 변화량은 0
+      fullDate: '대결 시작',
+      target: startWeight - targetWeightLoss,
+      bmi: 0,
+      dayOfWeek: 0,
+    };
+
+    // 실제 기록된 데이터들
+    const recordedData = weightData.map((item, index) => {
       const prevWeight =
-        index > 0 ? weightData[index - 1].recordWeight : item.recordWeight;
+        index > 0 ? weightData[index - 1].recordWeight : startWeight;
       const change = item.recordWeight - prevWeight;
       const date = new Date(item.recordDate);
       return {
@@ -127,27 +141,46 @@ const BattleParticipantDetail = ({
           weekday: 'short',
         }),
         target: startWeight - targetWeightLoss,
-        bmi: 0, // BMI 계산이 필요하면 추가
+        bmi: 0,
         dayOfWeek: date.getDay(),
       };
-    }) || [];
+    });
+
+    return [startPoint, ...recordedData];
+  })();
 
   // 날짜별 체중 변화량 계산
-  const weightTableData = weightData?.map((item, index) => {
-    const prevWeight =
-      index > 0 ? weightData[index - 1].recordWeight : item.recordWeight;
-    const change = item.recordWeight - prevWeight;
-    return {
-      ...item,
-      weight: item.recordWeight, // 그래프용 weight 필드 추가
-      change: change,
-      formattedDate: new Date(item.recordDate).toLocaleDateString('ko-KR', {
-        month: 'short',
-        day: 'numeric',
-        weekday: 'short',
-      }),
+  const weightTableData = (() => {
+    if (!weightData || weightData.length === 0) return [];
+
+    // 시작 몸무게를 첫 번째 항목으로 추가
+    const startTableItem = {
+      recordWeight: startWeight,
+      recordDate: startDate,
+      weight: startWeight,
+      change: 0, // 시작점이므로 변화량은 0
+      formattedDate: '시작',
     };
-  });
+
+    // 실제 기록된 데이터들
+    const recordedTableData = weightData.map((item, index) => {
+      const prevWeight =
+        index > 0 ? weightData[index - 1].recordWeight : startWeight;
+      const change = item.recordWeight - prevWeight;
+      return {
+        ...item,
+        weight: item.recordWeight,
+        change: change,
+        formattedDate: new Date(item.recordDate).toLocaleDateString('ko-KR', {
+          month: 'short',
+          day: 'numeric',
+          weekday: 'short',
+        }),
+      };
+    });
+
+    return [startTableItem, ...recordedTableData];
+  })();
 
   const content = (
     <div className="space-y-6">
@@ -296,7 +329,7 @@ const BattleParticipantDetail = ({
                       </TableCell>
                       <TableCell className="text-right">
                         {index === weightTableData.length - 1 ? (
-                          <span className="text-muted-foreground">-</span>
+                          <span className="text-muted-foreground">시작점</span>
                         ) : (
                           <span
                             className={`flex items-center justify-end gap-1 ${
