@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   }, [getToken]);
 
   useEffect(() => {
-    const handleWebViewMessage = (event: MessageEvent) => {
+    const handleWebViewMessage = async (event: MessageEvent) => {
       console.log(event);
       if (event.data && event.data.type === 'GOOGLE_LOGIN_SUCCESS') {
         console.log('GOOGLE_LOGIN_SUCCESS message received from RN');
@@ -93,8 +93,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         } else {
           console.warn('AuthProvider: No accessToken received from RN!');
         }
-        const userData = event.data.user;
-        setUser(userData);
+
+        // 유저ID 조회 후 SocialID 수정
+        const response = await api.get<User>('/user/me');
+
+        // const userData = event.data.user;
+
+        // setUser(userData);
+        setUser(response.data);
         setIsAuthenticated(true);
         toast.success('구글 로그인 성공!');
 
