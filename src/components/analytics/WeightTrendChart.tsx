@@ -204,7 +204,8 @@ const WeightTrendChart: React.FC<WeightTrendChartProps> = ({
             weight: 500,
           },
           callback: function (value: string | number) {
-            return `${value}kg`;
+            const num = typeof value === 'number' ? value : parseFloat(value);
+            return `${num.toFixed(1)}kg`;
           },
         },
       },

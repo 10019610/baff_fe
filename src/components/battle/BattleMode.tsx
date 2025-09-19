@@ -34,7 +34,7 @@ interface Room {
 
 const BattleMode = () => {
   const { isAuthenticated } = useAuth();
-  const [activeTab, setActiveTab] = useState('rooms');
+  const [activeTab, setActiveTab] = useState('battles');
   const [roomCount, setRoomCount] = useState(0);
   const [currentView, setCurrentView] = useState<
     'list' | 'create' | 'join' | 'invite' | 'inviteJoin' | 'lobby'
