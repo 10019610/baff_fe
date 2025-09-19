@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import type { User } from '../types/User';
+// import type { User } from '../types/User';
 import { GoogleIcon, KakaoIcon } from '../components/ui/icons.tsx';
 import {
   Card,
@@ -12,6 +12,7 @@ import {
 import { Button } from '../components/ui/button.tsx';
 import { Separator } from '../components/ui/separator.tsx';
 import { useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 /**
  * 로그인 페이지
@@ -46,7 +47,7 @@ const LoginPage = () => {
   /* 기본 API 주소(소셜) */
   const baseUrl = import.meta.env.VITE_GOOGLE_URL;
   const navigate = useNavigate();
-  const { login, loginForGoogleApp } = useAuth();
+  const { loginForGoogleApp } = useAuth();
   const isInsideReactNative = () => {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('isReactNativeApp') === 'true';
@@ -68,7 +69,8 @@ const LoginPage = () => {
     } else {
       if (provider === 'kakao') {
         console.log('카카오 로그인 버튼 클릭');
-        window.location.href = `${baseUrl}/oauth2/authorization/${provider}`;
+        toast.error('카카오 로그인은 준비중에 있습니다.');
+        // window.location.href = `${baseUrl}/oauth2/authorization/${provider}`;
       } else if (provider === 'google') {
         console.log('구글 로그인 버튼 클릭');
         window.location.href = `${baseUrl}/oauth2/authorization/google`;
@@ -77,22 +79,22 @@ const LoginPage = () => {
 
   };
 
-  const handleTempLogin = () => {
-    // 1. 테스트용 임시 사용자 정보를 생성합니다.
-    const tempUser: User = {
-      id: 'temp-user-id-123',
-      email: 'test@example.com',
-      nickname: '테스트유저',
-      profileImage: 'https://via.placeholder.com/150', // 임시 프로필 이미지
-      role: 'USER',
-    };
-
-    // 2. AuthContext의 login 함수를 호출하여 로그인 상태로 변경합니다.
-    login(tempUser);
-
-    // 3. 로그인 후 메인 페이지로 이동합니다.
-    navigate('/');
-  };
+  // const handleTempLogin = () => {
+  //   // 1. 테스트용 임시 사용자 정보를 생성합니다.
+  //   const tempUser: User = {
+  //     id: 'temp-user-id-123',
+  //     email: 'test@example.com',
+  //     nickname: '테스트유저',
+  //     profileImage: 'https://via.placeholder.com/150', // 임시 프로필 이미지
+  //     role: 'USER',
+  //   };
+  //
+  //   // 2. AuthContext의 login 함수를 호출하여 로그인 상태로 변경합니다.
+  //   login(tempUser);
+  //
+  //   // 3. 로그인 후 메인 페이지로 이동합니다.
+  //   navigate('/');
+  // };
 
   return (
     <div
@@ -143,15 +145,15 @@ const LoginPage = () => {
               <KakaoIcon />
               카카오로 계속하기
             </Button>
-            <div className="relative">
-              <Separator />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span>또는</span>
-              </div>
-            </div>
-            <Button className="w-full h-12 text-base" onClick={handleTempLogin}>
-              임시 로그인 (개발용)
-            </Button>
+            {/*<div className="relative">*/}
+            {/*  <Separator />*/}
+            {/*  <div className="absolute inset-0 flex items-center justify-center">*/}
+            {/*    <span>또는</span>*/}
+            {/*  </div>*/}
+            {/*</div>*/}
+            {/*<Button className="w-full h-12 text-base" onClick={handleTempLogin}>*/}
+            {/*  임시 로그인 (개발용)*/}
+            {/*</Button>*/}
             {/* Info */}
             <div className="pt-4 text-center space-y-2">
               <p className="text-sm text-muted-foreground">

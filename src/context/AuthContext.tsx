@@ -164,7 +164,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       // API 호출 성공/실패 여부와 관계없이 프론트엔드 상태를 초기화하고 페이지를 이동합니다.
       setUser(null);
       setIsAuthenticated(false);
-      // window.location.href = '/';
+      window.location.href = '/';
       console.log('Logout: Redirection line commented out.');
     }
   }, []);
