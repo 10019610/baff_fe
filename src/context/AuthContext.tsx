@@ -129,22 +129,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const logout = React.useCallback(() => {
-    // 로컬환경과 배포환경 구분하여 처리
-    // if (process.env.NODE_ENV === 'development') {
-    console.log(import.meta.env.VITE_APP_ENV);
-    if (import.meta.env.VITE_APP_ENV === 'development') {
-      document.cookie = 'accessToken=; path=/; max-age=0;';
-    } else {
-      document.cookie =
-        'accessToken=; path=/; max-age=0; Secure; SameSite=None; Domain=.baff-be-ckop.onrender.com;';
+  const logout = React.useCallback(async () => {
+    try {
+      // 백엔드에 로그아웃 API 호출 (쿠키 삭제 요청)
+      // 백엔드 엔드포인트는 '/logout' 입니다.
+      await api.post('/user/logout');
+    } catch (error) {
+      console.error("Logout API call failed", error);
+      // 에러가 발생하더라도 프론트엔드 상태는 초기화하고 리디렉션합니다.
+    } finally {
+      // API 호출 성공/실패 여부와 관계없이 프론트엔드 상태를 초기화하고 페이지를 이동합니다.
+      setUser(null);
+      setIsAuthenticated(false);
+      window.location.href = '/';
     }
-
-    // 백엔드에서 쿠키를 제거하는 API가 있다면 여기에 호출 로직 추가
-    // 예: apiClient.post('/api/auth/logout');
-    setUser(null);
-    setIsAuthenticated(false);
-    window.location.href = '/';
   }, []);
 
   const value = React.useMemo(
