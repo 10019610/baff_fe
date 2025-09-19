@@ -65,6 +65,7 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
   const handleLogout = () => {
     if (confirm('로그아웃 하시겠습니까?')) {
       // 개발환경과 배포환경 구분
+      console.log(import.meta.env.VITE_APP_ENV);
       if (import.meta.env.VITE_APP_ENV === 'development') {
         logout();
       } else {

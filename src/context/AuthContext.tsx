@@ -138,21 +138,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const logout = React.useCallback(async () => {
+    console.log('Logout: Function started.');
     try {
       // 백엔드에 로그아웃 API 호출 (HttpOnly 쿠키 삭제 요청)
       // 백엔드 엔드포인트는 '/logout' 입니다.
-      await api.post('/user/logout');
+      console.log('Logout: Calling API...');
+      const response = await api.post('/user/logout');
+      console.log('Logout: API call completed successfully:', response.status);
     } catch (error) {
       console.error("Logout API call failed", error);
       // 에러가 발생하더라도 프론트엔드 상태는 초기화하고 리디렉션합니다.
     } finally {
+      console.log('Logout: Finally block entered.');
       // [수정] localStorage에서 토큰 삭제
+      console.log('Logout: Attempting to remove accessToken from localStorage'); // <-- 이 줄 추가
       localStorage.removeItem('accessToken');
+      console.log('Logout: accessToken after removal:', localStorage.getItem('accessToken')); // <-- 이 줄 추가
 
       // API 호출 성공/실패 여부와 관계없이 프론트엔드 상태를 초기화하고 페이지를 이동합니다.
       setUser(null);
       setIsAuthenticated(false);
-      window.location.href = '/';
+      // window.location.href = '/';
+      console.log('Logout: Redirection line commented out.');
     }
   }, []);
 
