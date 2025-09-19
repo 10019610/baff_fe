@@ -132,11 +132,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const logout = React.useCallback(() => {
     // 로컬환경과 배포환경 구분하여 처리
     // if (process.env.NODE_ENV === 'development') {
+    console.log(import.meta.env.VITE_APP_ENV);
     if (import.meta.env.VITE_APP_ENV === 'development') {
       document.cookie = 'accessToken=; path=/; max-age=0;';
     } else {
       document.cookie =
-        'accessToken=; path=/; max-age=0; Secure; SameSite=None; Domain=baff-be-ckop.onrender.com;';
+        'accessToken=; path=/; max-age=0; Secure; SameSite=None; Domain=.baff-be-ckop.onrender.com;';
     }
 
     // 백엔드에서 쿠키를 제거하는 API가 있다면 여기에 호출 로직 추가
