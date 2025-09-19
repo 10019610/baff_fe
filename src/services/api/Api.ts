@@ -14,16 +14,20 @@ const setupInterceptors = (instance: AxiosInstance) => {
   instance.interceptors.request.use(
     (config) => {
       console.log('API Request Interceptor: URL', config.url);
-      const accessToken = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('accessToken='))
-        ?.split('=')[1];
+      // 기존 쿠키에서 토큰 읽는 로직 (주석 처리)
+      // const accessToken = document.cookie
+      //   .split('; ')
+      //   .find(row => row.startsWith('accessToken='))
+      //   ?.split('=')[1];
+
+      // [수정] localStorage에서 토큰 읽기
+      const accessToken = localStorage.getItem('accessToken');
 
       if (accessToken) {
         console.log('API Request Interceptor: accessToken found, adding Authorization header.');
         config.headers.Authorization = `Bearer ${accessToken}`;
       } else {
-        console.log('API Request Interceptor: No accessToken found in cookies.');
+        console.log('API Request Interceptor: No accessToken found in cookies/localStorage.');
       }
       config.withCredentials = true;
 

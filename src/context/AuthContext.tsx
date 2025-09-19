@@ -30,20 +30,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const getToken = React.useCallback((): string | null => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('accessToken='))
-      ?.split('=')[1];
-    return token || null;
+    // 기존 쿠키에서 토큰 읽는 로직 (주석 처리)
+    // const token = document.cookie
+    //   .split('; ')
+    //   .find(row => row.startsWith('accessToken='))
+    //   ?.split('=')[1];
+    // return token || null;
+
+    // [수정] localStorage에서 토큰 읽기
+    return localStorage.getItem('accessToken');
   }, []);
 
   const setToken = React.useCallback((token: string) => {
-    if (import.meta.env.VITE_APP_ENV === 'development') {
-      document.cookie = `accessToken=${token}; path=/; max-age=604800;`;
-    } else {
-      // Production: Remove the incorrect Domain attribute
-      document.cookie = `accessToken=${token}; path=/; max-age=604800; Secure; SameSite=None;`;
-    }
+    // 기존 쿠키 설정 로직 (주석 처리)
+    // if (import.meta.env.VITE_APP_ENV === 'development') {
+    //   document.cookie = `accessToken=${token}; path=/; max-age=604800;`;
+    // } else {
+    //   document.cookie = `accessToken=${token}; path=/; max-age=604800; Secure; SameSite=None;`;
+    // }
+
+    // [수정] 쿠키 대신 localStorage에 토큰 저장 (크로스 도메인 문제 해결)
+    localStorage.setItem('accessToken', token);
   }, []);
 
   useEffect(() => {
@@ -132,13 +139,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const logout = React.useCallback(async () => {
     try {
-      // 백엔드에 로그아웃 API 호출 (쿠키 삭제 요청)
+      // 백엔드에 로그아웃 API 호출 (HttpOnly 쿠키 삭제 요청)
       // 백엔드 엔드포인트는 '/logout' 입니다.
       await api.post('/user/logout');
     } catch (error) {
       console.error("Logout API call failed", error);
       // 에러가 발생하더라도 프론트엔드 상태는 초기화하고 리디렉션합니다.
     } finally {
+      // [수정] localStorage에서 토큰 삭제
+      localStorage.removeItem('accessToken');
+
       // API 호출 성공/실패 여부와 관계없이 프론트엔드 상태를 초기화하고 페이지를 이동합니다.
       setUser(null);
       setIsAuthenticated(false);
