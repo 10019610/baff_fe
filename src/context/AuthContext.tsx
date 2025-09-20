@@ -152,7 +152,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       const response = await api.post('/user/logout');
       console.log('Logout: API call completed successfully:', response.status);
     } catch (error) {
-      console.error("Logout API call failed", error);
+      console.error('Logout API call failed', error);
       // 에러가 발생하더라도 프론트엔드 상태는 초기화하고 리디렉션합니다.
     } finally {
       console.log('Logout: Finally block entered.');
@@ -160,6 +160,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       console.log('Logout: Attempting to remove accessToken from localStorage'); // <-- 이 줄 추가
       localStorage.removeItem('accessToken');
       console.log('Logout: accessToken after removal:', localStorage.getItem('accessToken')); // <-- 이 줄 추가
+
+      // 앱에 로그아웃 전달하여 앱의 로그아웃 처리(앱인 경우만)
+      if (window.ReactNativeWebView) {
+        console.log('Logout: 웹뷰 환경 감지. RN으로 로그아웃 메시지 전송.');
+        const message = { type: 'REQUEST_GOOGLE_LOGOUT' };
+        window.ReactNativeWebView.postMessage(JSON.stringify(message));
+      }
 
       // API 호출 성공/실패 여부와 관계없이 프론트엔드 상태를 초기화하고 페이지를 이동합니다.
       setUser(null);
