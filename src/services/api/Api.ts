@@ -13,13 +13,6 @@ axios.defaults.headers.common['Content-Type'] = 'application/json';
 const setupInterceptors = (instance: AxiosInstance) => {
   instance.interceptors.request.use(
     (config) => {
-      console.log('API Request Interceptor: URL', config.url);
-      // 기존 쿠키에서 토큰 읽는 로직 (주석 처리)
-      // const accessToken = document.cookie
-      //   .split('; ')
-      //   .find(row => row.startsWith('accessToken='))
-      //   ?.split('=')[1];
-
       // [수정] localStorage에서 토큰 읽기
       const accessToken = localStorage.getItem('accessToken');
 

@@ -25,12 +25,10 @@ export const useReactNativeWebViewMessage = ({
       // Ensure the message is from a trusted source if possible
       // For ReactNativeWebView, event.origin might be 'null' or the webview's URL
       // You might want to add more robust origin checking in a production environment
-      console.log('event', event);
       try {
         // event.data is already the parsed object from React Native WebView
         // const message: WebViewMessage = event.data;
         const message: WebViewMessage = JSON.parse(event.data);
-        console.log('use message', message);
         if (typeof event.data !== 'string' || !event.data.startsWith('{') || !event.data.endsWith('}')) {
           console.log('[Web Hook] React Native로부터 메시지 받음:', message);
           console.warn('[웹] 유효하지 않은 JSON 형식의 메시지 수신 (개발자 도구 메시지일 수 있음):', event.data);

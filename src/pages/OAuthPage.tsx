@@ -8,11 +8,8 @@ const OAuthPage = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    console.log('OAuthPage useEffect 실행:', { isLoading, isAuthenticated });
-
     // AuthContext의 로딩 상태가 끝나면 로직을 실행합니다.
     if (!isLoading) {
-      console.log('Check isAuthenticated', isAuthenticated);
       if (isAuthenticated) {
         // sessionStorage에서 초대 URL 확인
         const pendingInviteUrl = sessionStorage.getItem('pendingInviteUrl');

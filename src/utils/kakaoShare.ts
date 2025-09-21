@@ -1,4 +1,5 @@
 import type { KakaoShareParams } from '../types/kakao';
+import toast from 'react-hot-toast';
 
 // 카카오 SDK 초기화
 export const initKakao = () => {
@@ -8,9 +9,7 @@ export const initKakao = () => {
     !window.Kakao.isInitialized()
   ) {
     // 환경변수에서 카카오 앱 키를 가져오거나 하드코딩
-    const appKey = import.meta.env.VITE_KAKAO_APP_KEY || 'YOUR_KAKAO_APP_KEY';
-    console.log('app key', appKey);
-
+    // const appKey = import.meta.env.VITE_KAKAO_APP_KEY || 'YOUR_KAKAO_APP_KEY';
     // window.Kakao.init(appKey);
   }
 };
@@ -61,13 +60,11 @@ export const createRoomInviteShareData = (
 export const shareToKakao = (shareData: KakaoShareParams) => {
   if (typeof window !== 'undefined' && window.Kakao) {
     try {
-      console.log('createRoomInviteShareData', createRoomInviteShareData);
       window.Kakao.Share.sendDefault(shareData);
     } catch (error) {
       console.error('카카오 공유 실패:', error);
-      alert('카카오톡 공유에 실패했습니다. 다시 시도해주세요.');
     }
   } else {
-    alert('카카오톡이 설치되어 있지 않습니다.');
+    toast.error('관리자에게 문의해주세요.');
   }
 };

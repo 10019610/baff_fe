@@ -155,6 +155,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       console.error('Logout API call failed', error);
       // 에러가 발생하더라도 프론트엔드 상태는 초기화하고 리디렉션합니다.
     } finally {
+      toast.error('로그아웃 되었습니다.')
       console.log('Logout: Finally block entered.');
       // [수정] localStorage에서 토큰 삭제
       console.log('Logout: Attempting to remove accessToken from localStorage'); // <-- 이 줄 추가

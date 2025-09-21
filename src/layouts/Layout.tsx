@@ -90,7 +90,6 @@ const Layout = () => {
           }
           customLog('[Web Hook] 로그인 성공, 토큰 저장 및 /home으로 리디렉션');
           navigate('/home'); // 로그인 후 홈으로 이동
-          alert('[웹] 로그인 성공 메시지 받음!'); // Keep alert for immediate feedback
         }
       } else if (message.type === 'LOGOUT_SUCCESS') {
         localStorage.removeItem('userToken');
@@ -98,9 +97,7 @@ const Layout = () => {
         // logout(); // Uncomment this if logout is accessible
         customLog('[Web Hook] 로그아웃 성공, 토큰 삭제 및 /로 리디렉션');
         navigate('/'); // 로그아웃 후 홈으로 이동
-        alert('[웹] 로그아웃 성공 메시지 받음!');
       } else if (message.type === 'PING') {
-        alert('[웹] 앱으로부터 PING 받음!');
         customLog('[웹] 앱으로부터 PING 메시지 수신. PONG으로 응답합니다.');
         if (window.ReactNativeWebView) {
           window.ReactNativeWebView.postMessage(
@@ -116,13 +113,10 @@ const Layout = () => {
           '[웹] injectJavaScript로부터 PINGㅇㅇㅇ 메시지 수신:',
           message.payload
         );
-        alert('[웹] injectJavaScript PINGㅇㅇㅇ 메시지 받음!');
       } else {
         customLog('[웹] 알 수 없는 타입의 메시지 수신:', message.type, message);
       }
     };
-
-    alert('[웹] 앱 환경 감지! 메시지 리스너 등록 준비 완료.');
     window.addEventListener('message', handleMessage);
     customLog('[웹] window.addEventListener("message") 등록 완료');
 

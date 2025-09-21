@@ -104,7 +104,6 @@ const BattleParticipantDetail = ({
         endDate,
       }),
   });
-  console.log(weightData);
 
   // WeightTrendChart용 데이터 변환
   const chartData = (() => {

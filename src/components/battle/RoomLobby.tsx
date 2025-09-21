@@ -320,7 +320,6 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
     };
 
     updateUserGoalMutation.mutate(goalData);
-    console.log('goalData', goalData);
   };
 
   const handleStartBattle = () => {

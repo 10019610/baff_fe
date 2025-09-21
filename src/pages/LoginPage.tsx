@@ -24,14 +24,6 @@ import toast from 'react-hot-toast';
 const LoginPage = () => {
   const {isLoading, isAuthenticated} = useAuth();
   useEffect(() => {
-    const handleWebViewMessage = (event: CustomEvent) => {
-      console.log(event);
-    };
-
-    window.addEventListener('test', handleWebViewMessage as EventListener);
-  }, []);
-
-  useEffect(() => {
     // Only navigate once loading is complete AND user is authenticated
     if (!isLoading && isAuthenticated) {
       navigate('/');
