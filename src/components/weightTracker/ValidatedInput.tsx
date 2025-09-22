@@ -20,6 +20,7 @@ interface ValidatedInputProps {
   validateOnBlur?: boolean;
   validateOnChange?: boolean;
   customValidation?: (value: string | number) => string | null;
+  maxLength?: number;
 }
 
 export default function ValidatedInput({
@@ -37,6 +38,7 @@ export default function ValidatedInput({
   validateOnBlur = true,
   validateOnChange = false,
   customValidation,
+  maxLength,
 }: ValidatedInputProps) {
   const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
@@ -78,14 +80,23 @@ export default function ValidatedInput({
   }, [value, type]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue =
-      type === 'number'
-        ? e.target.value === ''
-          ? ''
-          : Number(e.target.value)
-        : e.target.value;
+    let newValue = e.target.value;
 
-    onChange(newValue);
+    // maxLength 처리
+    if (maxLength && newValue.length > maxLength) {
+      return;
+    }
+
+    // 숫자 타입 처리
+    if (type === 'number') {
+      newValue = newValue === '' ? '' : String(Number(newValue));
+      // 숫자가 아닌 값이나 음수는 무시
+      if (isNaN(Number(newValue)) || Number(newValue) < 0) {
+        return;
+      }
+    }
+
+    onChange(type === 'number' ? Number(newValue) || '' : newValue);
 
     if (validateOnChange && touched) {
       validate(newValue);
@@ -126,6 +137,7 @@ export default function ValidatedInput({
             type === 'date' ? new Date().toISOString().split('T')[0] : undefined
           }
           step={type === 'number' ? '0.1' : undefined}
+          maxLength={maxLength}
           className={`pr-10 ${
             error
               ? 'border-destructive focus:ring-destructive'

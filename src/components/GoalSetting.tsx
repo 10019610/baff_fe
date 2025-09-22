@@ -9,19 +9,12 @@ import {
   AlertCircle,
   Calendar,
   CheckCircle,
+  Plus,
   Scale,
   Target,
   Trash2,
 } from 'lucide-react';
-import { Label } from './ui/label.tsx';
-import { Input } from './ui/input.tsx';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select.tsx';
+
 import { Button } from './ui/button.tsx';
 import type { Goal, PresetDurationType } from '../types/Goals.type.ts';
 import type {
@@ -31,8 +24,9 @@ import type {
 import { formatDate } from '../utils/DateUtil.ts';
 import { Badge } from './ui/badge.tsx';
 import { Progress } from './ui/progress.tsx';
-import { motion } from 'motion/react';
-import LoadingSpinnerForButton from './LoadingSpinnerForButton.tsx';
+import AnimatedContainer from './weightTracker/AnimatedContainer.tsx';
+import { useState } from 'react';
+import GoalsCreate from './GoalsCreate.tsx';
 
 interface GoalSettingProps {
   onClickRecord: () => void;
@@ -69,22 +63,13 @@ const GoalSetting = ({
   isPending,
 }: GoalSettingProps) => {
   /**
-   * Variables
-   */
-  const hasWeightData = currentWeight !== null;
-  /**
    * States
    */
-
+  /* 목표 설정 생성 컴포넌트 상태 */
+  const [showCreateGoal, setShowCreateGoal] = useState(false);
   /**
    * UI
    */
-  const MotionButton = motion(Button);
-
-  /* 폼 유효성 검사 */
-  const isFormValid = () => {
-    return param.title.trim() !== '' && param.targetWeight > 0;
-  };
 
   /**
    * Handlers
@@ -172,305 +157,237 @@ const GoalSetting = ({
 
   return (
     <div className="space-y-6">
-      {/* 목표 설정 생성 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5" />
-            새로운 목표 설정
-          </CardTitle>
-          <CardDescription>
-            주별 또는 월별 체중 목표를 설정하여 동기부여를 받아보세요
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="goalTitle">목표 제목</Label>
-              <Input
-                id="goalTitle"
-                placeholder="예: 여름 준비 다이어트"
-                value={param.title}
-                onChange={(e) => onChangeParam('title', e.target.value)}
-                disabled={!hasWeightData}
-                className={
-                  !hasWeightData ? 'opacity-50 cursor-not-allowed h-12' : 'h-12'
-                }
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="goalType">목표 기간</Label>
-                <Select
-                  value={String(param.presetDuration)}
-                  onValueChange={(e) => onChangeParam('presetDuration', e)}
-                >
-                  <SelectTrigger className="w-full" size="xl">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {presetDuration.map((duration) => (
-                      <SelectItem
-                        key={duration.label}
-                        value={String(duration.hours)}
-                      >
-                        {duration.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="targetWeight">목표 체중(kg)</Label>
-                <Input
-                  id="targetWeight"
-                  type="number"
-                  step="0.1"
-                  placeholder="예: 65"
-                  value={param.targetWeight}
-                  onChange={(e) =>
-                    onChangeParam('targetWeight', e.target.value)
-                  }
-                  className="h-12"
-                />
-              </div>
-            </div>
-            <div className="p-3 bg-muted rounded-lg h-12">
-              <p className="text-sm text-muted-foreground">
-                현재 체중:{' '}
-                <span className="font-medium">{param.startWeight}kg</span>
-                {param.targetWeight > 0 && (
-                  <>
-                    {' -> 목표 체중: '}
-                    <span className="font-medium">{param.targetWeight}kg</span>
-                    {' ('}
-                    <span
-                      className={
-                        param.targetWeight < currentWeight
-                          ? 'text-green-600'
-                          : 'text-blue-600'
-                      }
-                    >
-                      {param.targetWeight < currentWeight ? '-' : '+'}
-                      {Math.abs(param.targetWeight - currentWeight).toFixed(1)}
-                      kg
-                    </span>
-                    {')'}
-                  </>
-                )}
-              </p>
-            </div>
-            <MotionButton
-              type="submit"
-              className="w-full text-[#000080] font-bold"
-              size="xl"
-              onClick={onClickRecord}
-              disabled={isPending || !isFormValid()}
-              whileHover={{ scale: isFormValid() ? 1.02 : 1 }}
-              whileTap={{ scale: isFormValid() ? 0.98 : 1 }}
+      {showCreateGoal ? (
+        <GoalsCreate
+          currentWeight={currentWeight}
+          presetDuration={presetDuration}
+          onClickRecord={onClickRecord}
+          onChangeParam={onChangeParam}
+          param={param}
+          isPending={isPending}
+          onClose={() => setShowCreateGoal(false)}
+        />
+      ) : (
+        <div>
+          {/* 목표 설정 생성 버튼*/}
+          <AnimatedContainer>
+            <Card
+              className="hover:shadow-lg transition-all duration-200 cursor-pointer group border-2 border-primary/40 bg-gradient-to-br from-primary/20 to-primary/30 hover:from-primary/25 hover:to-primary/35 hover:border-primary/50 hover:scale-[1.02]"
+              onClick={() => setShowCreateGoal(true)}
             >
-              {isPending ? (
-                <>
-                  <LoadingSpinnerForButton />
-                  설정 중
-                </>
-              ) : (
-                '목표 설정하기'
-              )}
-            </MotionButton>
-          </div>
-        </CardContent>
-      </Card>
-      {/* Active Goals */}
-      {goalList.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">설정된 목표</h3>
-          {goalList.map((goal) => {
-            const progress = calculateProgress(goal);
-            const today = new Date();
-            const daysRemaining = handleGetDaysRemaining(
-              String(today),
-              goal.endDate
-            );
-            return (
-              <Card
-                key={goal.goalsId}
-                className={
-                  goal.isExpired
-                    ? 'opacity-70 bg-muted/30 border-muted/50'
-                    : 'border-border'
-                }
-              >
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
-                    <CardTitle
-                      className={`text-lg ${goal.isExpired ? 'text-muted-foreground' : ''}`}
-                    >
-                      {goal.title}
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
-                      {getStatusBadge(goal.isExpired, goal)}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteGoalModal(goal.goalsId)}
-                        className="h-8 w-8 p-0 text-muted-foreground hover:text-red-600 hover:bg-red-50"
-                        title="목표 삭제"
-                      >
-                        <Trash2 />
-                      </Button>
-                    </div>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-primary/30 rounded-full group-hover:bg-primary/40 transition-all duration-200 shadow-sm group-hover:shadow group-hover:scale-110">
+                    <Target className="h-5 w-5 text-primary-600 dark:text-primary-400" />
                   </div>
-                  <CardDescription className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    <span className="text-xs">
-                      {formatDate(goal.startDate)} ~ {formatDate(goal.endDate)}
-                    </span>
-                    {!goal.isExpired ? (
-                      <span className="ml-2 text-primary font-medium">
-                        ({daysRemaining}일 남음)
-                      </span>
-                    ) : (
-                      <span className="ml-2 text-muted-foreground font-medium">
-                        (종료된 목표)
-                      </span>
-                    )}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">시작 체중</p>
-                      <p className="font-medium">{goal.startWeight}kg</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">목표 체중</p>
-                      <p className="font-medium">{goal.targetWeight}kg</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">현재 체중</p>
-                      <p className="font-medium">{goal.currentWeight}kg</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">목표까지</p>
-                      <p className="font-medium">
-                        {currentWeight
-                          ? `${Math.abs(goal.currentWeight - goal.targetWeight).toFixed(1)}kg`
-                          : '-'}
-                      </p>
-                    </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg transition-colors">
+                      새로운 목표 설정
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      새로운 목표를 설정해보세요
+                    </p>
                   </div>
-
-                  {!goal.isExpired &&
-                    goal.currentWeight &&
-                    daysRemaining > 0 &&
-                    (() => {
-                      const dailyLossInfo = calculateDailyWeightLoss(goal);
-                      if (!dailyLossInfo) return null;
-
-                      const statusInfo = getDailyLossStatus(
-                        dailyLossInfo.status,
-                        dailyLossInfo.isGain
-                      );
-                      return (
-                        <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Scale className="h-4 w-4 text-primary" />
-                              <span className="text-sm font-medium">
-                                일일 권장 {dailyLossInfo.isGain}
-                              </span>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm font-medium">
-                                {dailyLossInfo.dailyLoss.toFixed(2)}kg/일
-                              </p>
-                              <p className={`text-xs ${statusInfo.color}`}>
-                                {statusInfo.message}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="mt-2 text-xs text-muted-foreground">
-                            {dailyLossInfo.isGain ? (
-                              <>
-                                목표 달성을 위해 매일 약{' '}
-                                {dailyLossInfo.dailyLoss.toFixed(2)}kg씩 체중을
-                                늘려야 합니다.
-                              </>
-                            ) : (
-                              <>
-                                목표 달성을 위해 매일 약{' '}
-                                {dailyLossInfo.dailyLoss.toFixed(2)}kg씩 체중을
-                                줄여야 합니다.
-                              </>
-                            )}
-                            {dailyLossInfo.status === 'aggressive' && (
-                              <span className="block mt-1 text-orange-600 text-xs">
-                                ⚠️ 너무 빠른 속도입니다. 건강을 위해 목표 기간을
-                                늘리는 것을 고려해보세요.
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  {!goal.isExpired && currentWeight && (
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>진행률</span>
-                        <span
-                          className={
-                            progress >= 80
-                              ? 'text-green-600 font-medium'
-                              : progress >= 50
-                                ? 'text-primary font-medium'
-                                : ''
-                          }
+                  <div className="bg-primary/20 p-2 rounded-full group-hover:bg-primary/30 transition-all duration-200">
+                    <Plus className="h-5 w-5 text-primary-600 dark:text-primary-400 group-hover:scale-110 transition-transform" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </AnimatedContainer>
+          {/* Active Goals */}
+          {goalList.length > 0 && (
+            <div className="space-y-4 mt-4">
+              {/* <h3 className="text-lg font-medium">설정된 목표</h3> */}
+              {goalList.map((goal) => {
+                const progress = calculateProgress(goal);
+                const today = new Date();
+                const daysRemaining = handleGetDaysRemaining(
+                  String(today),
+                  goal.endDate
+                );
+                return (
+                  <Card
+                    key={goal.goalsId}
+                    className={
+                      goal.isExpired
+                        ? 'opacity-70 bg-muted/30 border-muted/50'
+                        : 'border-border'
+                    }
+                  >
+                    <CardHeader className="pb-4">
+                      <div className="flex items-center justify-between">
+                        <CardTitle
+                          className={`text-lg ${goal.isExpired ? 'text-muted-foreground' : ''}`}
                         >
-                          {progress.toFixed(0)}%
-                        </span>
+                          {goal.title}
+                        </CardTitle>
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(goal.isExpired, goal)}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteGoalModal(goal.goalsId)}
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-red-600 hover:bg-red-50"
+                            title="목표 삭제"
+                          >
+                            <Trash2 />
+                          </Button>
+                        </div>
                       </div>
-                      <Progress value={progress} className="h-2" />
-                      {progress >= 80 && (
-                        <p className="text-xs text-green-600 font-medium">
-                          🎉 목표 달성이 가까워졌습니다!
-                        </p>
+                      <CardDescription className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        <span className="text-xs">
+                          {formatDate(goal.startDate)} ~{' '}
+                          {formatDate(goal.endDate)}
+                        </span>
+                        {!goal.isExpired ? (
+                          <span className="ml-2 text-primary font-medium">
+                            ({daysRemaining}일 남음)
+                          </span>
+                        ) : (
+                          <span className="ml-2 text-muted-foreground font-medium">
+                            (종료된 목표)
+                          </span>
+                        )}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <p className="text-muted-foreground">시작 체중</p>
+                          <p className="font-medium">{goal.startWeight}kg</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">목표 체중</p>
+                          <p className="font-medium">{goal.targetWeight}kg</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">현재 체중</p>
+                          <p className="font-medium">{goal.currentWeight}kg</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">목표까지</p>
+                          <p className="font-medium">
+                            {currentWeight
+                              ? `${Math.abs(goal.currentWeight - goal.targetWeight).toFixed(1)}kg`
+                              : '-'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {!goal.isExpired &&
+                        goal.currentWeight &&
+                        daysRemaining > 0 &&
+                        (() => {
+                          const dailyLossInfo = calculateDailyWeightLoss(goal);
+                          if (!dailyLossInfo) return null;
+
+                          const statusInfo = getDailyLossStatus(
+                            dailyLossInfo.status,
+                            dailyLossInfo.isGain
+                          );
+                          return (
+                            <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Scale className="h-4 w-4 text-primary" />
+                                  <span className="text-sm font-medium">
+                                    일일 권장 {dailyLossInfo.isGain}
+                                  </span>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-sm font-medium">
+                                    {dailyLossInfo.dailyLoss.toFixed(2)}kg/일
+                                  </p>
+                                  <p className={`text-xs ${statusInfo.color}`}>
+                                    {statusInfo.message}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="mt-2 text-xs text-muted-foreground">
+                                {dailyLossInfo.isGain ? (
+                                  <>
+                                    목표 달성을 위해 매일 약{' '}
+                                    {dailyLossInfo.dailyLoss.toFixed(2)}kg씩
+                                    체중을 늘려야 합니다.
+                                  </>
+                                ) : (
+                                  <>
+                                    목표 달성을 위해 매일 약{' '}
+                                    {dailyLossInfo.dailyLoss.toFixed(2)}kg씩
+                                    체중을 줄여야 합니다.
+                                  </>
+                                )}
+                                {dailyLossInfo.status === 'aggressive' && (
+                                  <span className="block mt-1 text-orange-600 text-xs">
+                                    ⚠️ 너무 빠른 속도입니다. 건강을 위해 목표
+                                    기간을 늘리는 것을 고려해보세요.
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      {!goal.isExpired && currentWeight && (
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>진행률</span>
+                            <span
+                              className={
+                                progress >= 80
+                                  ? 'text-green-600 font-medium'
+                                  : progress >= 50
+                                    ? 'text-primary font-medium'
+                                    : ''
+                              }
+                            >
+                              {progress.toFixed(0)}%
+                            </span>
+                          </div>
+                          <Progress value={progress} className="h-2" />
+                          {progress >= 80 && (
+                            <p className="text-xs text-green-600 font-medium">
+                              🎉 목표 달성이 가까워졌습니다!
+                            </p>
+                          )}
+                        </div>
                       )}
-                    </div>
-                  )}
-                  {progress === 100 && goal.isExpired && (
-                    <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200">
-                      <p className="text-xs text-green-800">
-                        🎉 축하합니다! 목표를 성공적으로 달성했습니다.
-                      </p>
-                    </div>
-                  )}
-                  {progress < 100 && goal.isExpired && (
-                    <div className="p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200">
-                      <p className="text-xs text-red-800">
-                        💪 목표 달성에 실패했지만, 새로운 목표로 다시
-                        도전해보세요!
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+                      {progress === 100 && goal.isExpired && (
+                        <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200">
+                          <p className="text-xs text-green-800">
+                            🎉 축하합니다! 목표를 성공적으로 달성했습니다.
+                          </p>
+                        </div>
+                      )}
+                      {progress < 100 && goal.isExpired && (
+                        <div className="p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200">
+                          <p className="text-xs text-red-800">
+                            💪 목표 달성에 실패했지만, 새로운 목표로 다시
+                            도전해보세요!
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+          {goalList.length === 0 && (
+            <Card className="mt-4">
+              <CardContent className="pt-6 text-center">
+                <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-medium mb-2">
+                  아직 설정된 목표가 없습니다.
+                </h3>
+                <p className="text-muted-foreground">
+                  첫 번째 체중 목표를 설정하여 건강한 변화를 시작해보세요!
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
-      )}
-      {goalList.length === 0 && (
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-medium mb-2">
-              아직 설정된 목표가 없습니다.
-            </h3>
-            <p className="text-muted-foreground">
-              첫 번째 체중 목표를 설정하여 건강한 변화를 시작해보세요!
-            </p>
-          </CardContent>
-        </Card>
       )}
     </div>
   );

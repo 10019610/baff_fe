@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import { Label } from '../ui/label';
+import { Input } from '../ui/input';
 import { Users, Lock, Calendar, Target, Plus, UserPlus } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
@@ -213,19 +214,48 @@ const RoomCreate = ({ onRoomCreated, onCancel }: RoomCreationProps) => {
 
             <div>
               <Label>대결 기간</Label>
-              <div className="flex gap-2 mt-2">
-                {[7, 14, 30, 60].map((days) => (
-                  <Button
-                    key={days}
-                    variant={formData.duration === days ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handleInputChange('duration', days)}
-                    className="flex items-center gap-1"
-                  >
-                    <Calendar className="h-4 w-4" />
-                    {days}일
-                  </Button>
-                ))}
+              <div className="space-y-2 mt-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[7, 14, 30, 60].map((days) => (
+                    <Button
+                      key={days}
+                      variant={
+                        formData.duration === days ? 'default' : 'outline'
+                      }
+                      onClick={() => handleInputChange('duration', days)}
+                      className="w-full h-10 text-xs cursor-pointer"
+                    >
+                      <Calendar className="h-4 w-4 mr-2" />
+                      {days}일
+                    </Button>
+                  ))}
+                </div>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="직접 입력"
+                    className="h-10 pr-8"
+                    value={
+                      [7, 14, 30, 60].includes(formData.duration)
+                        ? ''
+                        : formData.duration
+                    }
+                    onChange={(e) => {
+                      const value = Number(e.target.value);
+                      if (value > 0 && value <= 60) {
+                        handleInputChange('duration', value);
+                      }
+                    }}
+                    min={1}
+                    max={60}
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                    일
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  * 1-60일 사이로 설정해주세요
+                </p>
               </div>
             </div>
           </div>

@@ -219,7 +219,7 @@ const WeightTrackerPage = () => {
   };
 
   return (
-    <div className="tracker-page">
+    <div className="">
       <WeightTracker
         ref={weightTrackerRef}
         onClickRecord={handleRecordWeight}
