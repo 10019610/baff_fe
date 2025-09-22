@@ -12,6 +12,7 @@ import DashboardPage from '../pages/DashboardPage.tsx';
 import BattlePage from '../pages/BattlePage.tsx';
 import InvitePage from '../pages/InvitePage.tsx';
 import LoginErrorPage from '../pages/LoginErrorPage.tsx';
+import { WithdrawalPage } from '../pages/WithdrawalPage.tsx';
 
 const Router = () => {
   return (
@@ -38,6 +39,7 @@ const Router = () => {
         </Route>
         <Route path="/user">
           <Route path="profile/:userId" element={<ProfilePage />} />
+          <Route path="withdrawal" element={<WithdrawalPage />} />
         </Route>
       </Route>
     </Routes>
