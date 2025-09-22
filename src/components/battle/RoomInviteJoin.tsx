@@ -237,7 +237,7 @@ const RoomInviteJoin = ({
               <Button
                 onClick={handleJoinRoom}
                 disabled={isJoining}
-                className="w-full h-12 text-base"
+                className="w-full h-12 text-base cursor-pointer"
               >
                 {isJoining ? (
                   <>
@@ -260,7 +260,7 @@ const RoomInviteJoin = ({
               variant="outline"
               onClick={onCancel}
               disabled={isJoining}
-              className="h-12 px-6"
+              className="h-12 px-6 cursor-pointer"
             >
               취소
             </Button>

@@ -672,7 +672,8 @@ export default function BattleHistory({
                             </div>
                             <div>
                               <p className="text-muted-foreground mb-1">
-                                {battle.opponent}
+                                {/* {battle.opponent} */}
+                                상대
                               </p>
                               <p className="font-medium">
                                 {battle.opponentStartWeight}kg →{' '}

@@ -120,14 +120,14 @@ const GoalsCreate = ({
                 />
               </div>
             </div>
-            <div className="p-3 bg-muted rounded-lg h-12">
-              <p className="text-sm text-muted-foreground">
+            <div className="p-3 bg-muted rounded-lg h-full">
+              <p className="text-xs text-muted-foreground">
                 현재 체중:{' '}
-                <span className="font-medium">{param.startWeight}kg</span>
+                <span className="font-sm">{param.startWeight}kg</span>
                 {param.targetWeight > 0 && (
                   <>
                     {' -> 목표 체중: '}
-                    <span className="font-medium">{param.targetWeight}kg</span>
+                    <span className="font-sm">{param.targetWeight}kg</span>
                     {' ('}
                     <span
                       className={

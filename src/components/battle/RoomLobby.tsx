@@ -5,6 +5,8 @@ import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Input } from '../ui/input';
+import ValidatedInput from '../weightTracker/ValidatedInput';
+import { validationRules } from '../../utils/validation';
 import { Label } from '../ui/label';
 import {
   AlertDialog,
@@ -44,6 +46,7 @@ import {
   Trash2,
   LogOut,
   AlertTriangle,
+  FileWarning,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
@@ -851,26 +854,39 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
 
                       {personalGoal.type !== 'MAINTAIN' && (
                         <div className="space-y-2">
-                          <Label htmlFor="targetAmount">
+                          {/* <Label htmlFor="targetAmount">
                             목표{' '}
                             {personalGoal.type === 'WEIGHT_LOSS'
                               ? '감량'
                               : '증량'}{' '}
                             (kg)
-                          </Label>
-                          <Input
+                          </Label> */}
+                          <ValidatedInput
                             id="targetAmount"
+                            label={`목표 ${personalGoal.type === 'WEIGHT_LOSS' ? '감량' : '증량'} (kg)`}
                             type="number"
-                            step="0.1"
-                            placeholder="5.0"
                             value={personalGoal.targetValue || ''}
-                            onChange={(e) =>
+                            onChange={(value) => {
+                              const numValue = Number(value);
+                              if (
+                                numValue >= getCurrentWeightInfo.currentWeight
+                              )
+                                return;
                               setPersonalGoal({
                                 ...personalGoal,
-                                targetValue: parseFloat(e.target.value) || 0,
-                              })
-                            }
+                                targetValue: numValue || 0,
+                              });
+                            }}
+                            validationRules={validationRules.weight}
+                            placeholder="예: 65.5"
+                            validateOnChange={false}
+                            maxLength={5}
+                            className="h-12"
                           />
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <FileWarning className="h-3 w-3 text-yellow-500" />
+                            본인 체중 이하로만 설정할 수 있습니다
+                          </p>
                         </div>
                       )}
 
@@ -995,8 +1011,7 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  방에서 나가면 다시 입장하려면 초대 링크나 입장 코드가
-                  필요합니다.
+                  재입장시 초대 링크나 입장 코드가 필요합니다.
                 </p>
                 <motion.div
                   whileHover={{ scale: 1.02 }}
@@ -1108,8 +1123,7 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                   방을 나가시겠습니까?
                 </AlertDialogTitle>
                 <AlertDialogDescription className="mt-1 text-left">
-                  방을 나가면 다시 입장하려면 초대 링크나 입장 코드가
-                  필요합니다.
+                  다시 입장하려면 초대 링크나 입장 코드가 필요합니다.
                   <br />
                   정말로 나가시겠습니까?
                 </AlertDialogDescription>
