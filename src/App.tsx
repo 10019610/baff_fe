@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import Router from './routes/Router';
 import { HeightModalProvider } from './context/HeightModalContext';
+import SplashScreen from './components/SplashScreen';
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => {
       <BrowserRouter>
         <AuthProvider>
           <HeightModalProvider>
+            <SplashScreen />
             <Router />
           </HeightModalProvider>
           <Toaster
