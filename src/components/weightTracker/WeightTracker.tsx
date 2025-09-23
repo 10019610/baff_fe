@@ -480,7 +480,7 @@ const WeightTracker = forwardRef<WeightTrackerRef, WeightTrackerProps>(
                             <Button
                               onClick={handleLoadMore}
                               variant="outline"
-                              className="w-full h-12 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 border-indigo-200 dark:border-indigo-800 hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/30 dark:hover:to-purple-900/30 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-200"
+                              className="w-full h-12 bg-gradient-to-r cursor-pointer from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 border-indigo-200 dark:border-indigo-800 hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/30 dark:hover:to-purple-900/30 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-200"
                             >
                               <div className="flex items-center gap-2">
                                 <div className="flex items-center gap-1">

@@ -4,6 +4,7 @@ import { Label } from '../ui/label';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { validateField, type ValidationRule } from '../../utils/validation';
+import { formatNumberInput } from '../../utils/numberUtils';
 
 interface ValidatedInputProps {
   id: string;
@@ -21,6 +22,8 @@ interface ValidatedInputProps {
   validateOnChange?: boolean;
   customValidation?: (value: string | number) => string | null;
   maxLength?: number;
+  decimalPlaces?: number; // 소수점 자릿수 제어 (number 타입일 때만 적용)
+  maxNumber?: number; // 최대 입력 가능한 숫자 (number 타입일 때만 적용)
 }
 
 export default function ValidatedInput({
@@ -39,6 +42,8 @@ export default function ValidatedInput({
   validateOnChange = false,
   customValidation,
   maxLength,
+  decimalPlaces,
+  maxNumber,
 }: ValidatedInputProps) {
   const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
@@ -80,7 +85,7 @@ export default function ValidatedInput({
   }, [value, type]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let newValue = e.target.value;
+    const newValue = e.target.value;
 
     // maxLength 처리
     if (maxLength && newValue.length > maxLength) {
@@ -89,14 +94,22 @@ export default function ValidatedInput({
 
     // 숫자 타입 처리
     if (type === 'number') {
-      newValue = newValue === '' ? '' : String(Number(newValue));
-      // 숫자가 아닌 값이나 음수는 무시
-      if (isNaN(Number(newValue)) || Number(newValue) < 0) {
+      const formattedValue = formatNumberInput(newValue, {
+        decimalPlaces,
+        maxNumber,
+        allowNegative: false,
+      });
+
+      // 유효하지 않은 값이면 무시
+      if (formattedValue === '') {
         return;
       }
+
+      onChange(formattedValue);
+      return;
     }
 
-    onChange(type === 'number' ? Number(newValue) || '' : newValue);
+    onChange(newValue);
 
     if (validateOnChange && touched) {
       validate(newValue);
@@ -134,9 +147,17 @@ export default function ValidatedInput({
           placeholder={placeholder}
           disabled={disabled}
           max={
-            type === 'date' ? new Date().toISOString().split('T')[0] : undefined
+            type === 'date'
+              ? new Date().toISOString().split('T')[0]
+              : type === 'number' && maxNumber !== undefined
+                ? maxNumber
+                : undefined
           }
-          step={type === 'number' ? '0.1' : undefined}
+          step={
+            type === 'number' && decimalPlaces !== undefined
+              ? String(Math.pow(0.1, decimalPlaces))
+              : undefined
+          }
           maxLength={maxLength}
           className={`pr-10 ${
             error

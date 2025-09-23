@@ -222,10 +222,10 @@ const WeightCreate = ({
                   type="number"
                   value={param.weight || ''}
                   onChange={(value) => {
-                    const numValue = Number(value);
-                    if (numValue >= 200) return;
-                    onChangeParam('weight', numValue || 0);
+                    onChangeParam('weight', value === '' ? 0 : value);
                   }}
+                  decimalPlaces={1}
+                  maxNumber={199.9}
                   validationRules={validationRules.weight}
                   placeholder="예: 65.5"
                   disabled={isSubmitting}

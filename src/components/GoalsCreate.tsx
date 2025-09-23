@@ -107,10 +107,10 @@ const GoalsCreate = ({
                   type="number"
                   value={param.targetWeight || ''}
                   onChange={(value) => {
-                    const numValue = Number(value);
-                    if (numValue >= 200) return;
-                    onChangeParam('targetWeight', numValue || 0);
+                    onChangeParam('targetWeight', value === '' ? 0 : value);
                   }}
+                  decimalPlaces={1}
+                  maxNumber={199.9}
                   validationRules={validationRules.weight}
                   placeholder="예: 65.5"
                   disabled={isPending}
@@ -148,7 +148,7 @@ const GoalsCreate = ({
             <div className="flex gap-4">
               <MotionButton
                 type="submit"
-                className="flex-1 text-[#000080] font-bold"
+                className="flex-1 text-[#000080] font-bold cursor-pointer"
                 size="xl"
                 onClick={() => {
                   onClickRecord();
@@ -167,7 +167,12 @@ const GoalsCreate = ({
                   '목표 설정하기'
                 )}
               </MotionButton>
-              <MotionButton variant="outline" size="xl" onClick={onClose}>
+              <MotionButton
+                className="cursor-pointer"
+                variant="outline"
+                size="xl"
+                onClick={onClose}
+              >
                 취소
               </MotionButton>
             </div>
