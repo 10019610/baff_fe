@@ -11,7 +11,7 @@ import {
 } from '../components/ui/card.tsx';
 import { Button } from '../components/ui/button.tsx';
 import { Separator } from '../components/ui/separator.tsx';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
 /**
@@ -22,7 +22,30 @@ import toast from 'react-hot-toast';
  * @constructor
  */
 const LoginPage = () => {
-  const {isLoading, isAuthenticated} = useAuth();
+  /**
+   * Hooks
+   */
+  /* 사용자 정보 */
+  const { isLoading, isAuthenticated } = useAuth();
+
+  /**
+   * States
+   */
+  /* 카카오 브라우져 여부 체크 state */
+  const [isKakaoBrowser, setIsKakaoBrowser] = useState<boolean>(false);
+
+  /**
+   * Init
+   */
+  /* 카카오 브라우져 여부 확인 */
+  useEffect(() => {
+    const userAgent = navigator.userAgent;
+    console.log('userAgent', userAgent);
+    if (userAgent.includes('KAKAOTALK')) {
+      setIsKakaoBrowser(true);
+    }
+
+  }, []);
   useEffect(() => {
     // Only navigate once loading is complete AND user is authenticated
     if (!isLoading && isAuthenticated) {
@@ -62,7 +85,7 @@ const LoginPage = () => {
       if (provider === 'kakao') {
         console.log('카카오 로그인 버튼 클릭');
         toast.error('카카오 로그인은 준비중에 있습니다.');
-        // window.location.href = `${baseUrl}/oauth2/authorization/${provider}`;
+        window.location.href = `${baseUrl}/oauth2/authorization/${provider}`;
       } else if (provider === 'google') {
         console.log('구글 로그인 버튼 클릭');
         window.location.href = `${baseUrl}/oauth2/authorization/google`;
@@ -112,31 +135,43 @@ const LoginPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Google Login */}
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => onSignInHandler('google')}
-              className="w-full h-12 text-base gap-3 hover:bg-muted/50 border-2"
-            >
-              <GoogleIcon />
-              Google로 계속하기
-            </Button>
-            <div className="relative">
-              <Separator />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span>또는</span>
+            {isKakaoBrowser ? (
+              <Button
+                size="lg"
+                onClick={() => onSignInHandler('kakao')}
+                className="w-full h-12 text-base gap-3 bg-[#FEE500] hover:bg-[#FCDD00] text-black border-2 border-[#FEE500] hover:border-[#FCDD00]"
+              >
+                <KakaoIcon />
+                카카오로 계속하기
+              </Button>
+            ) : (
+              <div className="space-y-4">
+                {/* Google Login */}
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => onSignInHandler('google')}
+                  className="w-full h-12 text-base gap-3 hover:bg-muted/50 border-2"
+                >
+                  <GoogleIcon />
+                  Google로 계속하기
+                </Button>
+                <div className="relative">
+                  <Separator />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span>또는</span>
+                  </div>
+                </div>
+                <Button
+                  size="lg"
+                  onClick={() => onSignInHandler('kakao')}
+                  className="w-full h-12 text-base gap-3 bg-[#FEE500] hover:bg-[#FCDD00] text-black border-2 border-[#FEE500] hover:border-[#FCDD00]"
+                >
+                  <KakaoIcon />
+                  카카오로 계속하기
+                </Button>
               </div>
-            </div>
-            {/* Kakao Login */}
-            <Button
-              size="lg"
-              onClick={() => onSignInHandler('kakao')}
-              className="w-full h-12 text-base gap-3 bg-[#FEE500] hover:bg-[#FCDD00] text-black border-2 border-[#FEE500] hover:border-[#FCDD00]"
-            >
-              <KakaoIcon />
-              카카오로 계속하기
-            </Button>
+            )}
             {/*<div className="relative">*/}
             {/*  <Separator />*/}
             {/*  <div className="absolute inset-0 flex items-center justify-center">*/}

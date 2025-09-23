@@ -84,7 +84,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     const handleWebViewMessage = async (event: MessageEvent) => {
-      console.log(event);
       if (event.data && event.data.type === 'GOOGLE_LOGIN_SUCCESS') {
         console.log('GOOGLE_LOGIN_SUCCESS message received from RN');
         if (event.data.accessToken) {
