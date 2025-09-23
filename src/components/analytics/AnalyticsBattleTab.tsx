@@ -1,6 +1,5 @@
 import { Award, Trophy, Zap, Users } from 'lucide-react';
 import type { BattleStats } from '../../types/Analytics.type';
-import type { CustomChartData } from '../../types/Chart.type';
 import {
   Card,
   CardTitle,
@@ -37,7 +36,7 @@ const AnalyticsBattleTab = ({
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={battleStats as CustomChartData[]}
+                    data={battleStats}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}

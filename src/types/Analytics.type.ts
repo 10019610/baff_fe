@@ -50,6 +50,7 @@ export interface BattleStats {
   name: string;
   value: number;
   color: string;
+  [key: string]: string | number; // recharts 호환을 위한 인덱스 시그니처
 }
 
 export interface MonthlyProgress {
