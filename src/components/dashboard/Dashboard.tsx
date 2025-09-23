@@ -18,6 +18,7 @@ import {
   BarChart3,
   Calendar,
   Award,
+  Swords,
 } from 'lucide-react';
 import type { GetGoalListResponse } from '../../types/Goals.api.type';
 import type { WeightEntry } from '../../types/WeightTracker.api.type';
@@ -483,7 +484,7 @@ const Dashboard = ({
         >
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 sm:gap-3">
-              <Award className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500 group-hover:scale-110 transition-transform" />
+              <Swords className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500 group-hover:scale-110 transition-transform" />
               <div>
                 <h4 className="text-sm sm:text-base font-medium group-hover:text-primary transition-colors">
                   대결 모드

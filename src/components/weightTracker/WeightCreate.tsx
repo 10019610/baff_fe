@@ -74,17 +74,23 @@ const WeightCreate = ({
     } else {
       // 새로운 날짜 - 바로 진행
       onClickRecord();
-      onClose();
+      // 1초 후에 닫기
+      setTimeout(() => {
+        onClose();
+      }, 1000);
     }
   };
 
   const handleDuplicateConfirm = async () => {
     if (pendingEntry) {
       onClickRecord();
-      onClose();
-      setPendingEntry(null);
+      // 1초 후에 닫기
+      setTimeout(() => {
+        onClose();
+        setPendingEntry(null);
+        setShowDuplicateDialog(false);
+      }, 1000);
     }
-    setShowDuplicateDialog(false);
   };
 
   const handleDuplicateCancel = () => {
