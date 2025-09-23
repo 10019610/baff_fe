@@ -4,7 +4,6 @@ import { Label } from '../ui/label';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { validateField, type ValidationRule } from '../../utils/validation';
-import { formatNumberInput } from '../../utils/numberUtils';
 
 interface ValidatedInputProps {
   id: string;
@@ -94,18 +93,32 @@ export default function ValidatedInput({
 
     // 숫자 타입 처리
     if (type === 'number') {
-      const formattedValue = formatNumberInput(newValue, {
-        decimalPlaces,
-        maxNumber,
-        allowNegative: false,
-      });
-
-      // 유효하지 않은 값이면 무시
-      if (formattedValue === '') {
+      // 빈 값 처리
+      if (newValue === '') {
+        onChange('');
         return;
       }
 
-      onChange(formattedValue);
+      // 숫자가 아닌 값이나 음수는 무시
+      const numValue = Number(newValue);
+      if (isNaN(numValue) || numValue < 0) {
+        return;
+      }
+
+      // 최대값 체크
+      if (maxNumber !== undefined && numValue > maxNumber) {
+        return;
+      }
+
+      // 소수점 자릿수 처리
+      if (decimalPlaces !== undefined) {
+        const parts = newValue.split('.');
+        if (parts[1] && parts[1].length > decimalPlaces) {
+          return;
+        }
+      }
+
+      onChange(newValue);
       return;
     }
 

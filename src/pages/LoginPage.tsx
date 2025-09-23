@@ -12,7 +12,6 @@ import {
 import { Button } from '../components/ui/button.tsx';
 import { Separator } from '../components/ui/separator.tsx';
 import { useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
 
 /**
  * 로그인 페이지
@@ -44,7 +43,6 @@ const LoginPage = () => {
     if (userAgent.includes('KAKAOTALK')) {
       setIsKakaoBrowser(true);
     }
-
   }, []);
   useEffect(() => {
     // Only navigate once loading is complete AND user is authenticated
@@ -54,7 +52,6 @@ const LoginPage = () => {
     // If loading is complete but not authenticated, stay on login page or show error
     // (This is implicitly handled by not navigating)
   }, [isLoading, isAuthenticated]);
-
 
   /**
    * Variables
@@ -84,14 +81,12 @@ const LoginPage = () => {
     } else {
       if (provider === 'kakao') {
         console.log('카카오 로그인 버튼 클릭');
-        toast.error('카카오 로그인은 준비중에 있습니다.');
         window.location.href = `${baseUrl}/oauth2/authorization/${provider}`;
       } else if (provider === 'google') {
         console.log('구글 로그인 버튼 클릭');
         window.location.href = `${baseUrl}/oauth2/authorization/google`;
       }
     }
-
   };
 
   // const handleTempLogin = () => {
@@ -112,8 +107,7 @@ const LoginPage = () => {
   // };
 
   return (
-    <div
-      className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
         <div className="text-center">

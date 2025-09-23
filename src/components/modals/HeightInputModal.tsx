@@ -53,7 +53,7 @@ const HeightInputModal: React.FC<HeightInputModalProps> = ({
 
     // 유효성 검사
     if (!heightValue || heightValue < 100 || heightValue > 250) {
-      toast.error('키는 100cm ~ 250cm 사이의 값을 입력해주세요.');
+      toast.error('신장은 100cm ~ 250cm 사이의 값을 입력해주세요.');
       return;
     }
 
@@ -63,12 +63,12 @@ const HeightInputModal: React.FC<HeightInputModalProps> = ({
       // 사용자 키 정보 업데이트 API 호출
       await api.post(`/user/insertHeight`, heightValue);
 
-      toast.success('키 정보가 성공적으로 저장되었습니다!');
+      toast.success('신장 정보가 성공적으로 저장되었습니다!');
       onHeightSaved(heightValue);
       onClose();
     } catch (error) {
       console.error('Failed to save height:', error);
-      toast.error('키 정보 저장에 실패했습니다. 다시 시도해주세요.');
+      toast.error('신장 정보 저장에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsLoading(false);
     }
@@ -88,10 +88,10 @@ const HeightInputModal: React.FC<HeightInputModalProps> = ({
           </div>
           <div>
             <CardTitle className="text-2xl font-bold text-foreground">
-              키 정보 입력
+              신장(키) 정보 입력
             </CardTitle>
             <CardDescription className="text-muted-foreground mt-2">
-              정확한 건강 분석을 위해 키 정보 입력이 필요합니다
+              정확한 건강 분석을 위해 신장 정보 입력이 필요합니다
             </CardDescription>
           </div>
         </CardHeader>
@@ -123,7 +123,7 @@ const HeightInputModal: React.FC<HeightInputModalProps> = ({
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="height" className="text-sm font-medium">
-                키 (cm)
+                신장 (cm)
               </Label>
               <div className="relative">
                 <Input

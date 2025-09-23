@@ -137,7 +137,7 @@ const WeightSetupGuide = ({
         <CardContent className="pt-6">
           <h4 className="font-medium mb-3">💡 체중 기록 팁</h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>• 매일 같은 시���대에 측정하세요 (예: 기상 후)</li>
+            <li>• 매일 같은 시간대에 측정하세요 (예: 기상 후)</li>
             <li>• 화장실을 다녀온 후 측정하는 것이 좋습니다</li>
             <li>• 가벼운 옷차림 상태에서 측정해주세요</li>
             <li>• 식사 전 공복 상태에서 측정하시길 권장합니다</li>

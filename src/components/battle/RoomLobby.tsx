@@ -6,7 +6,6 @@ import { Separator } from '../ui/separator';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Input } from '../ui/input';
 import ValidatedInput from '../weightTracker/ValidatedInput';
-import { validationRules } from '../../utils/validation';
 import { Label } from '../ui/label';
 import {
   AlertDialog,
@@ -867,17 +866,39 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                             type="number"
                             value={personalGoal.targetValue || ''}
                             onChange={(value) => {
-                              const numValue = Number(value);
-                              if (
-                                numValue >= getCurrentWeightInfo.currentWeight
-                              )
-                                return;
                               setPersonalGoal({
                                 ...personalGoal,
-                                targetValue: numValue || 0,
+                                targetValue: value === '' ? 0 : Number(value),
                               });
                             }}
-                            validationRules={validationRules.weight}
+                            decimalPlaces={1}
+                            maxNumber={99.9}
+                            validationRules={{
+                              required: false,
+                              custom: (value: string | number) => {
+                                // if (
+                                //   // value === '' ||
+                                //   value === null ||
+                                //   value === undefined
+                                // ) {
+                                //   return null;
+                                // }
+                                const num = Number(value);
+                                if (isNaN(num)) {
+                                  return '올바른 숫자를 입력해주세요';
+                                }
+                                if (num > 99.9) {
+                                  return '0에서 99.9 사이의 값을 입력해주세요';
+                                }
+                                if (
+                                  num % 0.1 !== 0 &&
+                                  String(value).split('.')[1]?.length > 1
+                                ) {
+                                  return '소수점 첫째 자리까지만 입력 가능합니다';
+                                }
+                                return null;
+                              },
+                            }}
                             placeholder="예: 65.5"
                             validateOnChange={false}
                             maxLength={5}

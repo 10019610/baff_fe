@@ -29,6 +29,9 @@ import toast from 'react-hot-toast';
 import AnimatedContainer from '../weightTracker/AnimatedContainer';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../services/api/Api';
+import { getParticipantsList } from '../../services/api/battleRoom.api';
+import BattleParticipantList from './BattleParticipantList';
+import type { BattleParticipant } from '../../types/BattleRoom.api.type';
 import type { BattleRoomListQueryResult } from '../../types/BattleRoom.api.type';
 import { useEffect, useState } from 'react';
 
@@ -63,6 +66,23 @@ const RoomList = ({
   const { user } = useAuth();
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [roomToLeave, setRoomToLeave] = useState<string | null>(null);
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [showParticipants, setShowParticipants] = useState(false);
+
+  // 참가자 목록 조회
+  const { data: participants, isLoading: isLoadingParticipants } = useQuery<
+    BattleParticipant[]
+  >({
+    queryKey: ['battleParticipants', selectedRoom?.entryCode],
+    queryFn: async () => {
+      if (!selectedRoom?.entryCode) {
+        throw new Error('Entry code is required');
+      }
+      return getParticipantsList(selectedRoom.entryCode);
+    },
+    enabled: !!selectedRoom?.entryCode && showParticipants,
+    retry: 1,
+  });
 
   // 배틀룸 리스트 조회
   const {
@@ -236,10 +256,19 @@ const RoomList = ({
                     )}
 
                     <div className="flex flex-wrap gap-2 mb-4">
-                      <Badge variant="outline" className="text-xs">
-                        <Users className="h-3 w-3 mr-1" />
-                        {room.currentParticipant}/{room.maxParticipant}명
-                      </Badge>
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <Badge
+                          variant="outline"
+                          className="text-xs cursor-pointer hover:bg-muted/80 transition-colors"
+                          onClick={() => {
+                            setSelectedRoom(room);
+                            setShowParticipants(true);
+                          }}
+                        >
+                          <Users className="h-3 w-3 mr-1" />
+                          {room.currentParticipant}/{room.maxParticipant}명
+                        </Badge>
+                      </div>
 
                       {/* <Badge variant="outline" className="text-xs">
                         <Target className="h-3 w-3 mr-1" />
@@ -264,7 +293,15 @@ const RoomList = ({
                         {room.hostNickName} 👑
                       </Badge>
                       {room.currentParticipant > 1 && (
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge
+                          variant="secondary"
+                          className="text-xs cursor-pointer hover:bg-muted/80 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedRoom(room);
+                            setShowParticipants(true);
+                          }}
+                        >
                           +{room.currentParticipant - 1}명
                         </Badge>
                       )}
@@ -380,6 +417,21 @@ const RoomList = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 참가자 목록 모달 */}
+      {selectedRoom && (
+        <BattleParticipantList
+          isOpen={showParticipants}
+          onClose={() => {
+            setShowParticipants(false);
+            setSelectedRoom(null);
+          }}
+          isLoading={isLoadingParticipants}
+          participants={participants || []}
+          roomName={selectedRoom.name}
+          hostId={selectedRoom.hostId}
+        />
+      )}
     </div>
   );
 };

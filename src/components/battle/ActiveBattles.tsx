@@ -163,7 +163,7 @@ const ActiveBattles = ({
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Target className="h-4 w-4" />
-              상대 찾기에서 새로운 도전자를 만나보세요
+              대기방에서 새로운 대결을 만나보세요
             </div>
           </div>
         </CardContent>

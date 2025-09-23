@@ -1,5 +1,6 @@
 import { api } from './Api';
 import type { BattleRoomDetail } from '../../types/BattleRoom.detail.type';
+import type { BattleParticipant } from '../../types/BattleRoom.api.type';
 
 /**
  * 대결방 상세 정보 조회
@@ -32,4 +33,11 @@ export const joinBattleRoom = async (
 export default {
   getBattleRoomDetails,
   joinBattleRoom,
+};
+
+export const getParticipantsList = async (
+  entryCode: string
+): Promise<BattleParticipant[]> => {
+  const response = await api.get(`/battle/${entryCode}/getParticipantsList`);
+  return response.data;
 };

@@ -42,15 +42,15 @@ export const validateField = (
   }
 
   // Number validations
-  if (typeof value === 'number' || !isNaN(Number(value))) {
-    const numValue = Number(value);
-    if (rules.min !== undefined && numValue < rules.min) {
-      return `${fieldName}은(는) ${rules.min} 이상이어야 합니다`;
-    }
-    if (rules.max !== undefined && numValue > rules.max) {
-      return `${fieldName}은(는) ${rules.max} 이하여야 합니다`;
-    }
-  }
+  // if (typeof value === 'number' || !isNaN(Number(value))) {
+  //   const numValue = Number(value);
+  //   if (rules.min !== undefined && numValue < rules.min) {
+  //     return `${fieldName}은(는) ${rules.min} 이상이어야 합니다`;
+  //   }
+  //   if (rules.max !== undefined && numValue > rules.max) {
+  //     return `${fieldName}은(는) ${rules.max} 이하여야 합니다`;
+  //   }
+  // }
 
   // Pattern validation
   if (

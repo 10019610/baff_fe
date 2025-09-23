@@ -90,3 +90,15 @@ export interface UpdateUserGoalRequest {
   targetValue: number;
   startingWeight: number;
 }
+
+export interface BattleParticipant {
+  userNickName: string;
+  userId: number;
+  startingWeight: number;
+  currentWeight: number;
+  progress: number;
+  rank: number;
+  goalType: 'WEIGHT_LOSS' | 'WEIGHT_GAIN' | 'MAINTAIN';
+  targetValue: number;
+  ready: boolean;
+}

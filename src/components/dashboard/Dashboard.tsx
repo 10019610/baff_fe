@@ -198,7 +198,7 @@ const Dashboard = ({
                 </div>
                 <h4 className="font-medium">친구와 대결</h4>
                 <p className="text-sm text-muted-foreground">
-                  최대 4명과 함께 체중 관리 챌린지
+                  친구와 함께 체중 관리 챌린지
                 </p>
               </div>
               <div className="text-center space-y-2">
