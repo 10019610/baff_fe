@@ -119,27 +119,36 @@ const BMITrendChart: React.FC<BMITrendChartProps> = ({ data }) => {
     responsive: true,
     maintainAspectRatio: false,
     interaction: {
-      intersect: false,
-      mode: 'index' as const,
+      intersect: true,
+      mode: 'point' as const,
     },
     plugins: {
       legend: {
         display: false,
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        backgroundColor: 'rgba(15, 23, 42, 0.8)', // slate-900 with opacity
         titleColor: '#ffffff',
         bodyColor: '#ffffff',
-        borderColor: primaryColor,
+        borderColor: primaryColor.replace('0.8', '0.3'), // 투명도 조정
         borderWidth: 1,
         cornerRadius: 12,
-        padding: 16,
+        padding: 10,
+        boxPadding: 4,
+        usePointStyle: true,
+        position: 'average',
+        caretSize: 6,
+        displayColors: false,
+        yAlign: 'bottom',
+        xAlign: 'center',
+        enabled: true,
+        intersect: true,
         titleFont: {
-          size: 14,
+          size: 12,
           weight: 600,
         },
         bodyFont: {
-          size: 13,
+          size: 11,
           weight: 500,
         },
         callbacks: {
@@ -212,31 +221,10 @@ const BMITrendChart: React.FC<BMITrendChartProps> = ({ data }) => {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
-      className="relative h-80 w-full"
+      className="relative h-80 w-full overflow-x-auto"
     >
-      <Line ref={chartRef} data={chartData} options={options} />
-
-      {/* BMI 범위 가이드 */}
-      <div className="absolute -top-20 right-0 bg-background/80 backdrop-blur-sm border rounded-lg p-3 text-xs">
-        <div className="font-medium mb-2 text-foreground">BMI 범위</div>
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-            <span className="text-muted-foreground">18.5 미만: 저체중</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <span className="text-muted-foreground">18.5-25: 정상</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-            <span className="text-muted-foreground">25-30: 과체중</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <span className="text-muted-foreground">30 이상: 비만</span>
-          </div>
-        </div>
+      <div className="min-w-[350px] h-full">
+        <Line ref={chartRef} data={chartData} options={options} />
       </div>
     </motion.div>
   );

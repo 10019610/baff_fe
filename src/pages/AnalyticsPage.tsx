@@ -218,13 +218,19 @@ const AnalyticsPage = () => {
   const weeklyConsistency = useMemo(() => {
     if (!weightData?.entries || weightData.entries.length === 0) return 0;
 
-    const now = new Date();
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    // 가장 최근 기록 날짜를 기준으로 7일 계산
+    const sortedEntries = [...weightData.entries].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+    const latestDate = new Date(sortedEntries[0].date);
+    const sevenDaysAgo = new Date(
+      latestDate.getTime() - 6 * 24 * 60 * 60 * 1000
+    ); // 오늘 포함 7일
 
-    // 최근 7일간 기록된 일수 계산
-    const recentEntries = weightData.entries.filter((entry) => {
+    // 해당 기간의 기록 수 계산
+    const recentEntries = sortedEntries.filter((entry) => {
       const entryDate = new Date(entry.date);
-      return entryDate >= sevenDaysAgo && entryDate <= now;
+      return entryDate >= sevenDaysAgo && entryDate <= latestDate;
     });
 
     const uniqueDays = new Set(recentEntries.map((entry) => entry.date)).size;

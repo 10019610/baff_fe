@@ -47,8 +47,30 @@ export default function AnalyticsOverviewTab({
         {/* BMI 트렌드 */}
         <Card>
           <CardHeader>
-            <CardTitle>BMI 트렌드</CardTitle>
-            <CardDescription>체질량지수 변화 추이</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>BMI 트렌드</CardTitle>
+                <CardDescription>체질량지수 변화 추이</CardDescription>
+              </div>
+              <div className="flex flex-col text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <span className="text-muted-foreground">저체중 (18.5↓)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <span className="text-muted-foreground">정상 (18.5~25)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                  <span className="text-muted-foreground">과체중 (25~30)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                  <span className="text-muted-foreground">비만 (30↑)</span>
+                </div>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <BMITrendChart data={weightData} />

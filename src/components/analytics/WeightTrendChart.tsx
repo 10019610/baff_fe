@@ -122,27 +122,36 @@ const WeightTrendChart: React.FC<WeightTrendChartProps> = ({
     responsive: true,
     maintainAspectRatio: false,
     interaction: {
-      intersect: false,
-      mode: 'index' as const,
+      intersect: true,
+      mode: 'point' as const,
     },
     plugins: {
       legend: {
         display: false,
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        backgroundColor: 'rgba(15, 23, 42, 0.8)', // slate-900 with opacity
         titleColor: '#ffffff',
         bodyColor: '#ffffff',
-        borderColor: 'rgb(34, 197, 94)',
+        borderColor: 'rgba(34, 197, 94, 0.3)', // green-500 with opacity
         borderWidth: 1,
         cornerRadius: 12,
-        padding: 16,
+        padding: 10,
+        boxPadding: 4,
+        usePointStyle: true,
+        position: 'average',
+        caretSize: 6,
+        displayColors: false,
+        yAlign: 'bottom',
+        xAlign: 'center',
+        enabled: true,
+        intersect: true,
         titleFont: {
-          size: 14,
+          size: 12,
           weight: 600,
         },
         bodyFont: {
-          size: 13,
+          size: 11,
           weight: 500,
         },
         callbacks: {
@@ -204,8 +213,7 @@ const WeightTrendChart: React.FC<WeightTrendChartProps> = ({
             weight: 500,
           },
           callback: function (value: string | number) {
-            const num = typeof value === 'number' ? value : parseFloat(value);
-            return `${num.toFixed(1)}kg`;
+            return `${Number(value).toFixed(1)}kg`;
           },
         },
       },
@@ -221,9 +229,11 @@ const WeightTrendChart: React.FC<WeightTrendChartProps> = ({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
-      className="h-80 w-full"
+      className="h-80 w-full overflow-x-auto"
     >
-      <Line ref={chartRef} data={chartData} options={options} />
+      <div className="min-w-[450px] h-full">
+        <Line ref={chartRef} data={chartData} options={options} />
+      </div>
     </motion.div>
   );
 };

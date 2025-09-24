@@ -104,30 +104,44 @@ const WeightChart: React.FC<WeightChartProps> = ({
   const options: ChartOptions<'line'> = {
     responsive: true,
     maintainAspectRatio: false,
+    layout: {
+      padding: {
+        right: 20, // 오른쪽 여백 추가
+      },
+    },
     interaction: {
-      intersect: false,
-      mode: 'index' as const,
+      intersect: true,
+      mode: 'point' as const,
     },
     plugins: {
       legend: {
         display: false, // 범례 숨김
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        backgroundColor: 'rgba(15, 23, 42, 0.8)', // slate-900 with opacity
         titleColor: '#ffffff',
         bodyColor: '#ffffff',
-        borderColor: 'rgb(59, 130, 246)',
+        borderColor: 'rgba(59, 130, 246, 0.3)', // blue-500 with opacity
         borderWidth: 1,
         cornerRadius: 12,
-        padding: 16,
+        padding: 10,
+        boxPadding: 4,
+        usePointStyle: true,
         titleFont: {
-          size: 14,
+          size: 12,
           weight: 600,
         },
         bodyFont: {
-          size: 13,
+          size: 11,
           weight: 500,
         },
+        // 툴팁이 차트 영역을 벗어나지 않도록 설정
+        position: 'average',
+        caretSize: 6,
+        displayColors: false, // 범례 색상 표시 제거
+        yAlign: 'bottom',
+        xAlign: 'center',
+        enabled: true,
         callbacks: {
           title: (context: TooltipItem<'line'>[]) => {
             const index = context[0].dataIndex;
@@ -188,7 +202,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
             weight: 500,
           },
           callback: function (value: string | number) {
-            return `${value}kg`;
+            return `${Number(value).toFixed(1)}kg`;
           },
           stepSize: 1, // 0.5kg 단위로 표시
         },
@@ -256,8 +270,10 @@ const WeightChart: React.FC<WeightChartProps> = ({
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className={`relative ${className}`}
     >
-      <div className="h-80 w-full">
-        <Line ref={chartRef} data={data} options={options} />
+      <div className="h-80 w-full overflow-x-auto">
+        <div className="min-w-[450px] h-full">
+          <Line ref={chartRef} data={data} options={options} />
+        </div>
       </div>
 
       {/* 차트 하단 통계 정보 */}
