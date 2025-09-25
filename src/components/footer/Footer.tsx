@@ -3,6 +3,7 @@ import { Separator } from '../ui/separator';
 import LumpenLogo from '../ui/LumpenLogo';
 
 export default function Footer() {
+  const APP_VERSION = 'v1.0.3';
   return (
     <footer className="bg-card border-t border-border mt-auto">
       {/* Main Footer Content - Hidden on mobile when bottom nav is present */}
@@ -17,7 +18,7 @@ export default function Footer() {
                   <LumpenLogo size="lg" showText={true} />
                   <div>
                     {/* <h3 className="font-medium">ChangeUp</h3> */}
-                    <p className="text-sm text-muted-foreground">v1.0.1</p>
+                    <p className="text-sm text-muted-foreground">{APP_VERSION}</p>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -80,7 +81,7 @@ export default function Footer() {
             <div className="flex items-center justify-center gap-2 text-sm">
               <LumpenLogo size="md" showText={false} />
               {/* <span className="font-medium">Lumpen</span> */}
-              <span className="text-muted-foreground">v1.0.1</span>
+              <span className="text-muted-foreground">{APP_VERSION}</span>
             </div>
             <p className="text-xs text-muted-foreground">
               변화의 시작, 건강한 체중 관리 • © 2025 Lumpen

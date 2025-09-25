@@ -46,14 +46,22 @@ const AdminUserManagement = ({ userList }: AdminUserManagementProps) => {
     },
     {
       id: 3,
-      name: '상태',
+      name: 'Provider',
     },
     {
       id: 4,
-      name: '목표현황',
+      name: 'Platform',
     },
     {
       id: 5,
+      name: '상태',
+    },
+    {
+      id: 6,
+      name: '목표현황',
+    },
+    {
+      id: 7,
       name: '가입일',
     },
   ];
@@ -95,6 +103,22 @@ const AdminUserManagement = ({ userList }: AdminUserManagementProps) => {
       return <Badge className="bg-green-500 text-white"><UserCheck className="h-3 w-3 mr-1" />활성</Badge>;
     } else {
       return <Badge variant="secondary"><UserX className="h-3 w-3 mr-1" />비활성</Badge>;
+    }
+  };
+  /* Provider Badge handler */
+  const getProviderBadge = (provider: string) => {
+    if (provider === 'google') {
+      return (
+        <Badge className="bg-[#0F9D58] text-[#FFFFFF]">GOOGLE</Badge>
+      );
+    } else if (provider === 'kakao') {
+      return (
+        <Badge className="bg-[#FEE102] text-[#3C1E1E ]">KAKAO</Badge>
+      );
+    } else if (provider === 'toss') {
+      return (
+        <Badge className="bg-[#0064FF] text-[#FFFFFF]">TOSS</Badge>
+      );
     }
   };
   /* 관리자 수 */
@@ -205,6 +229,8 @@ const AdminUserManagement = ({ userList }: AdminUserManagementProps) => {
                     </div>
                   </TableCell>
                   <TableCell>{getRoleBadge(user.role)}</TableCell>
+                  <TableCell>{getProviderBadge(user.provider)}</TableCell>
+                  <TableCell>{user.platform}</TableCell>
                   <TableCell>{getStatusBadge(user.status)}</TableCell>
                   <TableCell>
                     <div className="text-sm">

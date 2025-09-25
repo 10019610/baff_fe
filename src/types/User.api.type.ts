@@ -9,6 +9,8 @@ export interface GetUserListResponse {
   regDateTime: string;
   role: string;
   status: string;
+  platform: string;
+  provider: string;
 }
 
 /**
