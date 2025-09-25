@@ -3,11 +3,11 @@ import { Separator } from '../ui/separator';
 import LumpenLogo from '../ui/LumpenLogo';
 
 export default function Footer() {
-  const APP_VERSION = 'v1.0.3';
+  const APP_VERSION = 'v1.1.0';
   return (
     <footer className="bg-card border-t border-border mt-auto">
       {/* Main Footer Content - Hidden on mobile when bottom nav is present */}
-      <div className="hidden md:block">
+      <div className="hidden md:block md:mb-[72px]">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -18,7 +18,9 @@ export default function Footer() {
                   <LumpenLogo size="lg" showText={true} />
                   <div>
                     {/* <h3 className="font-medium">ChangeUp</h3> */}
-                    <p className="text-sm text-muted-foreground">{APP_VERSION}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {APP_VERSION}
+                    </p>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">

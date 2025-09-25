@@ -547,6 +547,7 @@ const AnalyticsPage = () => {
         currentStreak={calculateStreak(
           convertWeightEntries(weightData.entries, user?.height)
         )}
+        weightData={weightData.entries}
       />
       {/* 차트 섹션  */}
       <Tabs defaultValue="overview" className="space-y-4">
