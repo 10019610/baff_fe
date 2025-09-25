@@ -109,17 +109,45 @@ const AdminUserManagement = ({ userList }: AdminUserManagementProps) => {
   const getProviderBadge = (provider: string) => {
     if (provider === 'google') {
       return (
-        <Badge className="bg-[#0F9D58] text-[#FFFFFF]">GOOGLE</Badge>
+        <Badge className="bg-[#0F9D58] text-[#FFFFFF] font-bold">GOOGLE</Badge>
       );
     } else if (provider === 'kakao') {
       return (
-        <Badge className="bg-[#FEE102] text-[#3C1E1E ]">KAKAO</Badge>
+        <Badge className="bg-[#FEE102] text-[#3C1E1E] font-bold">KAKAO</Badge>
       );
     } else if (provider === 'toss') {
       return (
-        <Badge className="bg-[#0064FF] text-[#FFFFFF]">TOSS</Badge>
+        <Badge className="bg-[#0064FF] text-[#FFFFFF] font-bold">TOSS</Badge>
       );
     }
+  };
+  /* Provier Counts */
+  const getProviderCounts = (provider: string) => {
+    return userList.filter(user => user.provider === provider).length;
+  };
+  /* Platform Badge handler */
+  const getPlatformBadge = (platform: string) => {
+    if (platform === 'WEB') {
+      return (
+        <Badge className="bg-[#287BDE] text-[#FFFFFF] font-bold">WEB</Badge>
+      );
+    } else if (platform === 'ANDROID') {
+      return (
+        <Badge className="bg-[#3DDC84] text-[#FFFFFF] font-bold">ANDROID</Badge>
+      );
+    } else if (platform === 'IOS') {
+      return (
+        <Badge className="bg-[#8E8E93] text-[#FFFFFF] font-bold">IOS</Badge>
+      );
+    } else if (platform === 'TOSS') {
+      return (
+        <Badge className="bg-[#0064FF] text-[#FFFFFF] font-bold">TOSS</Badge>
+      );
+    }
+  };
+  /* Platform Counts */
+  const getPlatformCounts = (platform: string) => {
+    return userList.filter(user => user.platform === platform).length;
   };
   /* 관리자 수 */
   const getAdmins = () => {
@@ -184,6 +212,46 @@ const AdminUserManagement = ({ userList }: AdminUserManagementProps) => {
               <span className="text-sm font-medium">이번 주 신규</span>
             </div>
             <p className="text-2xl font-bold mt-2">{getNewUsersThisWeek()}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col">
+              <div className="flex justify-between">
+                <span>{getProviderBadge('google')}</span>
+                <span className="font-bold">{getProviderCounts('google')}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>{getProviderBadge('kakao')}</span>
+                <span className="font-bold">{getProviderCounts('kakao')}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>{getProviderBadge('toss')}</span>
+                <span className="font-bold">{getProviderCounts('toss')}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col">
+              <div className="flex justify-between">
+                <span>{getPlatformBadge('WEB')}</span>
+                <span className="font-bold">{getPlatformCounts('WEB')}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>{getPlatformBadge('ANDROID')}</span>
+                <span className="font-bold">{getPlatformCounts('ANDROID')}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>{getPlatformBadge('IOS')}</span>
+                <span className="font-bold">{getPlatformCounts('IOS')}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>{getPlatformBadge('TOSS')}</span>
+                <span className="font-bold">{getPlatformCounts('TOSS')}</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
