@@ -5,4 +5,5 @@ export interface User {
   profileImage: string;
   role: string;
   height?: number; // 키 (cm 단위)
+  provider: string;
 }

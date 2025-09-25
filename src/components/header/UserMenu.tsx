@@ -41,25 +41,19 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
   if (!user) return null;
   //
   const getProviderBadge = () => {
-    return <Badge>Google</Badge>;
-    // if (user.provider === 'google') {
-    //   return (
-    //     <Badge variant="outline" className="text-xs">
-    //       Google
-    //     </Badge>
-    //   );
-    // }
-    // if (user.provider === 'kakao') {
-    //   return (
-    //     <Badge
-    //       variant="outline"
-    //       className="text-xs bg-[#FEE500] text-black border-[#FEE500]"
-    //     >
-    //       Kakao
-    //     </Badge>
-    //   );
-    // }
-    // return null;
+    if (user.provider === 'google') {
+      return (
+        <Badge className="bg-[#0F9D58] text-[#FFFFFF] font-bold">GOOGLE</Badge>
+      );
+    } else if (user.provider  === 'kakao') {
+      return (
+        <Badge className="bg-[#FEE102] text-[#3C1E1E] font-bold">KAKAO</Badge>
+      );
+    } else if (user.provider  === 'toss') {
+      return (
+        <Badge className="bg-[#0064FF] text-[#FFFFFF] font-bold">TOSS</Badge>
+      );
+    }
   };
 
   const handleLogout = () => {

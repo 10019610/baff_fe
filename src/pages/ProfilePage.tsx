@@ -49,6 +49,13 @@ const ProfilePage = () => {
         textColor: 'text-black'
       };
     }
+    if (userInfo.provider === 'toss') {
+      return {
+        name: 'TOSS',
+        color: 'bg-[#0064FF]',
+        textColor: 'text-white'
+      };
+    }
     return {
       name: 'ChangeUp',
       color: 'bg-gray-500',
