@@ -785,7 +785,7 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                     <Button
                       onClick={() => {
                         // 체중 추적 페이지로 이동
-                        window.location.href = '/weight-tracker';
+                        window.location.href = '/weightTracker';
                       }}
                       className="w-full"
                       size="sm"

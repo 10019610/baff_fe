@@ -1,9 +1,17 @@
 import { Mail, Github } from 'lucide-react';
 import { Separator } from '../ui/separator';
 import LumpenLogo from '../ui/LumpenLogo';
+import { useNavigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 export default function Footer() {
   const APP_VERSION = 'v1.1.0';
+  const navigate = useNavigate();
+
+  const handleWithdraw = () => {
+    navigate('/user/withdrawal');
+  };
+
   return (
     <footer className="bg-card border-t border-border mt-auto">
       {/* Main Footer Content - Hidden on mobile when bottom nav is present */}
@@ -14,10 +22,8 @@ export default function Footer() {
               {/* App Info */}
               <div className="">
                 <div className="flex items-center gap-3">
-                  {/* <ChangeUpLogo size="md" /> */}
                   <LumpenLogo size="lg" showText={true} />
                   <div>
-                    {/* <h3 className="font-medium">ChangeUp</h3> */}
                     <p className="text-sm text-muted-foreground">
                       {APP_VERSION}
                     </p>
@@ -43,12 +49,6 @@ export default function Footer() {
                     <span>https://github.com/20220330jin/baff_be</span>
                   </div>
                 </div>
-                {/* <div className="pt-2">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full text-xs text-primary">
-                    <Heart className="h-3 w-3" />
-                    <span>소셜 로그인 지원</span>
-                  </div>
-                </div> */}
               </div>
             </div>
           </div>
@@ -65,11 +65,37 @@ export default function Footer() {
               </div>
               <div className="flex items-center gap-4">
                 <Separator orientation="vertical" className="h-4" />
-                <span>개인정보처리방침</span>
+                <Link
+                  to="/legal/privacy-policy"
+                  className="hover:text-foreground transition-colors"
+                >
+                  개인정보처리방침
+                </Link>
                 <Separator orientation="vertical" className="h-4" />
-                <span>이용약관</span>
+                <Link
+                  to="/legal/terms"
+                  className="hover:text-foreground transition-colors"
+                >
+                  이용약관
+                </Link>
                 <Separator orientation="vertical" className="h-4" />
-                <span>문의하기</span>
+                <button
+                  onClick={() => {
+                    toast.success(
+                      '문의사항은 20220330jin@gmail.com으로 보내주세요.'
+                    );
+                  }}
+                  className="hover:text-foreground transition-colors cursor-pointer"
+                >
+                  문의하기
+                </button>
+                <Separator orientation="vertical" className="h-4" />
+                <button
+                  onClick={handleWithdraw}
+                  className="hover:text-destructive transition-colors cursor-pointer"
+                >
+                  탈퇴하기
+                </button>
               </div>
             </div>
           </div>
@@ -82,7 +108,6 @@ export default function Footer() {
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-2 text-sm">
               <LumpenLogo size="md" showText={false} />
-              {/* <span className="font-medium">Lumpen</span> */}
               <span className="text-muted-foreground">{APP_VERSION}</span>
             </div>
             <p className="text-xs text-muted-foreground">
@@ -90,11 +115,37 @@ export default function Footer() {
             </p>
             <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
               <span>•</span>
-              <span>개인정보처리방침</span>
+              <Link
+                to="/legal/privacy-policy"
+                className="hover:text-foreground transition-colors"
+              >
+                개인정보처리방침
+              </Link>
               <span>•</span>
-              <span>이용약관</span>
+              <Link
+                to="/legal/terms"
+                className="hover:text-foreground transition-colors"
+              >
+                이용약관
+              </Link>
               <span>•</span>
-              <span>문의하기</span>
+              <button
+                onClick={() => {
+                  toast.success(
+                    '문의사항은 20220330jin@gmail.com으로 보내주세요.'
+                  );
+                }}
+                className="hover:text-foreground transition-colors cursor-pointer"
+              >
+                문의하기
+              </button>
+              <span>•</span>
+              <button
+                onClick={handleWithdraw}
+                className="hover:text-destructive transition-colors cursor-pointer"
+              >
+                탈퇴하기
+              </button>
             </div>
           </div>
         </div>
