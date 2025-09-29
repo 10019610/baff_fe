@@ -98,12 +98,10 @@ const WeightCreate = ({
     setShowDuplicateDialog(false);
   };
 
+  // 컴포넌트가 처음 마운트될 때만 오늘 날짜로 초기화
   useEffect(() => {
-    if (!param.recordDate) {
-      // Set today as default
-      const today = new Date().toISOString().split('T')[0];
-      onChangeParam('recordDate', today);
-    }
+    const today = new Date().toISOString().split('T')[0];
+    onChangeParam('recordDate', today);
   }, []);
 
   return (
