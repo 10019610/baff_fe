@@ -5,7 +5,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 export default function Footer() {
-  const APP_VERSION = 'v1.1.0';
+  const APP_VERSION = 'v1.1.1';
   const navigate = useNavigate();
 
   const handleWithdraw = () => {

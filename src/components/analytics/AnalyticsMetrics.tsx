@@ -122,12 +122,23 @@ const AnalyticsMetrics = ({
         <CardContent>
           <div>
             <div className="text-2xl font-semibold flex items-center gap-1">
-              15
+              {
+                weightData.filter((entry) => {
+                  const entryDate = new Date(entry.date);
+                  const now = new Date();
+                  return (
+                    entryDate.getMonth() === now.getMonth() &&
+                    entryDate.getFullYear() === now.getFullYear()
+                  );
+                }).length
+              }
               <span className="text-base font-normal text-muted-foreground">
                 회
               </span>
             </div>
-            <p className="text-xs text-muted-foreground">9월 기록 횟수</p>
+            <p className="text-xs text-muted-foreground">
+              {new Date().getMonth() + 1}월 기록 횟수
+            </p>
             <button
               onClick={() => setIsCalendarOpen(true)}
               className="mt-3 w-full cursor-pointer flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-muted/50 hover:bg-muted rounded-lg transition-colors"
