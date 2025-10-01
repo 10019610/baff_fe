@@ -242,7 +242,7 @@ const BattleParticipantDetail = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
-          className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-3 sm:grid-cols-3 gap-4"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4"
         >
           <div
             className={`p-4 rounded-lg border ${
@@ -378,13 +378,13 @@ const BattleParticipantDetail = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="max-w-4xl max-h-[90vh] overflow-y-auto"
+        className="max-w-4xl max-h-[90vh] flex flex-col"
         aria-describedby="battle-detail-description"
       >
-        <DialogHeader>
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-xl">상세 정보</DialogTitle>
         </DialogHeader>
-        {content}
+        <div className="overflow-y-auto flex-1">{content}</div>
       </DialogContent>
     </Dialog>
   );

@@ -2,10 +2,9 @@ import { Mail, Github } from 'lucide-react';
 import { Separator } from '../ui/separator';
 import LumpenLogo from '../ui/LumpenLogo';
 import { useNavigate, Link } from 'react-router-dom';
-import toast from 'react-hot-toast';
 
 export default function Footer() {
-  const APP_VERSION = 'v1.1.1';
+  const APP_VERSION = 'v1.1.2';
   const navigate = useNavigate();
 
   const handleWithdraw = () => {
@@ -79,16 +78,12 @@ export default function Footer() {
                   이용약관
                 </Link>
                 <Separator orientation="vertical" className="h-4" />
-                <button
-                  onClick={() => {
-                    toast.success(
-                      '문의사항은 20220330jin@gmail.com으로 보내주세요.'
-                    );
-                  }}
-                  className="hover:text-foreground transition-colors cursor-pointer"
+                <Link
+                  to="/inquiry"
+                  className="hover:text-foreground transition-colors"
                 >
                   문의하기
-                </button>
+                </Link>
                 <Separator orientation="vertical" className="h-4" />
                 <button
                   onClick={handleWithdraw}
@@ -129,16 +124,12 @@ export default function Footer() {
                 이용약관
               </Link>
               <span>•</span>
-              <button
-                onClick={() => {
-                  toast.success(
-                    '문의사항은 20220330jin@gmail.com으로 보내주세요.'
-                  );
-                }}
-                className="hover:text-foreground transition-colors cursor-pointer"
+              <Link
+                to="/inquiry"
+                className="hover:text-foreground transition-colors"
               >
                 문의하기
-              </button>
+              </Link>
               <span>•</span>
               <button
                 onClick={handleWithdraw}
