@@ -15,6 +15,8 @@ import LoginErrorPage from '../pages/LoginErrorPage.tsx';
 import { WithdrawalPage } from '../pages/WithdrawalPage.tsx';
 import { PrivacyPolicyPage } from '../pages/PrivacyPolicyPage.tsx';
 import { TermsPage } from '../pages/TermsPage.tsx';
+import InquiryPage from '../pages/InquiryPage.tsx';
+import InquiryCreatePage from '../pages/InquiryCreatePage.tsx';
 
 const Router = () => {
   return (
@@ -28,6 +30,7 @@ const Router = () => {
         />
         {/* 초대 링크 전용 페이지 (PrivateRoute 밖) */}
         <Route path="/invite" element={<InvitePage />} />
+
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/weightTracker" element={<WeightTrackerPage />} />
@@ -35,13 +38,15 @@ const Router = () => {
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/battle" element={<BattlePage />} />
           <Route path="/battle/*" element={<BattlePage />} />
-        </Route>
-        <Route path="/admin">
-          <Route path="dashboard" element={<AdminPage />} />
-        </Route>
-        <Route path="/user">
-          <Route path="profile/:userId" element={<ProfilePage />} />
-          <Route path="withdrawal" element={<WithdrawalPage />} />
+          <Route path="/inquiry" element={<InquiryPage />} />
+          <Route path="/inquiry/create" element={<InquiryCreatePage />} />
+          <Route path="/admin">
+            <Route path="dashboard" element={<AdminPage />} />
+          </Route>
+          <Route path="/user">
+            <Route path="profile/:userId" element={<ProfilePage />} />
+            <Route path="withdrawal" element={<WithdrawalPage />} />
+          </Route>
         </Route>
         <Route path="/legal">
           <Route path="privacy-policy" element={<PrivacyPolicyPage />} />

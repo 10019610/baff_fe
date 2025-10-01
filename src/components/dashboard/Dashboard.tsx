@@ -429,7 +429,10 @@ const Dashboard = ({
                   체중 목표를 설정하면 더 체계적인 관리가 가능합니다
                 </p>
               </div>
-              <Button onClick={() => navigate('goals')} className="mt-4">
+              <Button
+                onClick={() => navigate('goals')}
+                className="mt-4 cursor-pointer"
+              >
                 <Target className="h-4 w-4 mr-2" />
                 목표 설정하기
               </Button>
