@@ -10,17 +10,24 @@ export const BASE_URL = import.meta.env.VITE_APP_API_URL;
 
 axios.defaults.withCredentials = false;
 axios.defaults.headers.common['Content-Type'] = 'application/json';
+const getCookie = (name: string) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift();
+  return null;
+};
+
 const setupInterceptors = (instance: AxiosInstance) => {
   instance.interceptors.request.use(
     (config) => {
-      // [수정] localStorage에서 토큰 읽기
-      const accessToken = localStorage.getItem('accessToken');
+      // [수정] 쿠키에서 토큰 읽기
+      const accessToken = getCookie('accessToken');
 
       if (accessToken) {
         console.log('API Request Interceptor: accessToken found, adding Authorization header.');
         config.headers.Authorization = `Bearer ${accessToken}`;
       } else {
-        console.log('API Request Interceptor: No accessToken found in cookies/localStorage.');
+        console.log('API Request Interceptor: No accessToken found in cookies.');
       }
       config.withCredentials = true;
 
@@ -33,8 +40,11 @@ const setupInterceptors = (instance: AxiosInstance) => {
     (response) => response,
     async (error) => {
       if (error.response?.status === 401) {
-        // 인증 실패 시 로그아웃 처리
-        console.error('API Response Interceptor: Authentication failed (401).');
+        console.error('API Response Interceptor: Authentication failed (401). Clearing token and redirecting to login.');
+        // 토큰 삭제 (쿠키에서 삭제)
+        document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        // 로그인 페이지로 리다이렉트
+        window.location.href = '/login';
       }
       return Promise.reject(error);
     }
