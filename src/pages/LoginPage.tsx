@@ -59,11 +59,6 @@ const LoginPage = () => {
   /* 기본 API 주소(소셜) */
   const baseUrl = import.meta.env.VITE_GOOGLE_URL;
   const navigate = useNavigate();
-  const { loginForGoogleApp } = useAuth();
-  const isInsideReactNative = () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('isReactNativeApp') === 'true';
-  };
 
   /**
    * Handlers
@@ -76,7 +71,7 @@ const LoginPage = () => {
     if (isApp) {
       console.log('앱 환경에서 로그인을 시도합니다:', provider);
       if (provider === 'google') {
-        window.ReactNativeWebView.postMessage(
+        window.ReactNativeWebView!.postMessage(
           JSON.stringify({ type: 'REQUEST_GOOGLE_LOGIN' }),
         );
       } else if (provider === 'kakao') {
