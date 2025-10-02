@@ -71,21 +71,25 @@ const LoginPage = () => {
   /* 로그인 버튼 handler */
   const onSignInHandler = (provider: string) => {
     console.log('로그인 시도:', provider);
-    console.log('vercel', isInsideReactNative());
-    console.log('RN', window.ReactNativeWebView);
-    if (window.ReactNativeWebView) {
-      console.log('웹뷰 로그인');
-      loginForGoogleApp();
-      console.log('앱로그인 완료');
-      // navigate('/');
-    } else {
-      if (provider === 'kakao') {
-        console.log('카카오 로그인 버튼 클릭');
-        window.location.href = `${baseUrl}/oauth2/authorization/${provider}`;
-      } else if (provider === 'google') {
-        console.log('구글 로그인 버튼 클릭');
-        window.location.href = `${baseUrl}/oauth2/authorization/google`;
+    const isApp = window.ReactNativeWebView;
+
+    if (isApp) {
+      console.log('앱 환경에서 로그인을 시도합니다:', provider);
+      if (provider === 'google') {
+        window.ReactNativeWebView.postMessage(
+          JSON.stringify({ type: 'REQUEST_GOOGLE_LOGIN' }),
+        );
+      } else if (provider === 'kakao') {
+        // RN에서 카카오 로그인을 네이티브로 처리하고 싶을 경우를 위해 postMessage를 보낼 수 있습니다.
+        // window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'REQUEST_KAKAO_LOGIN' }));
+        
+        // 현재 RN 코드에 카카오 처리가 없으므로, 웹 로그인으로 fallback합니다.
+        console.log('앱 내 웹뷰에서 카카오 로그인을 시도합니다. (웹 방식)');
+        window.location.href = `${baseUrl}/oauth2/authorization/kakao`;
       }
+    } else {
+      console.log('웹 환경에서 로그인을 시도합니다:', provider);
+      window.location.href = `${baseUrl}/oauth2/authorization/${provider}`;
     }
   };
 
