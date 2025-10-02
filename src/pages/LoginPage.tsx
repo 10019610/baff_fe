@@ -59,6 +59,10 @@ const LoginPage = () => {
   /* 기본 API 주소(소셜) */
   const baseUrl = import.meta.env.VITE_GOOGLE_URL;
   const navigate = useNavigate();
+  const isInsideReactNative = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('isReactNativeApp') === 'true';
+  };
 
   /**
    * Handlers
@@ -66,17 +70,29 @@ const LoginPage = () => {
   /* 로그인 버튼 handler */
   const onSignInHandler = (provider: string) => {
     console.log('로그인 시도:', provider);
-    const isApp = window.ReactNativeWebView;
+    const isApp = isInsideReactNative(); // Use the URL parameter check
 
     if (isApp) {
       console.log('앱 환경에서 로그인을 시도합니다:', provider);
       if (provider === 'google') {
-        window.ReactNativeWebView!.postMessage(
-          JSON.stringify({ type: 'REQUEST_GOOGLE_LOGIN' }),
-        );
+        // Ensure window.ReactNativeWebView is available before calling postMessage
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(
+            JSON.stringify({ type: 'REQUEST_GOOGLE_LOGIN' }),
+          );
+        } else {
+          console.error('RN: window.ReactNativeWebView is not available despite isReactNativeApp=true. Falling back to web login.');
+          // Fallback to web login if postMessage is not available
+          window.location.href = `${baseUrl}/oauth2/authorization/google`;
+        }
       } else if (provider === 'kakao') {
         // RN에서 카카오 로그인을 네이티브로 처리하고 싶을 경우를 위해 postMessage를 보낼 수 있습니다.
-        // window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'REQUEST_KAKAO_LOGIN' }));
+        // if (window.ReactNativeWebView) {
+        //   window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'REQUEST_KAKAO_LOGIN' }));
+        // } else {
+        //   console.error('RN: window.ReactNativeWebView is not available for Kakao despite isReactNativeApp=true');
+        //   window.location.href = `${baseUrl}/oauth2/authorization/kakao`;
+        // }
         
         // 현재 RN 코드에 카카오 처리가 없으므로, 웹 로그인으로 fallback합니다.
         console.log('앱 내 웹뷰에서 카카오 로그인을 시도합니다. (웹 방식)');
