@@ -73,12 +73,18 @@ const LoginPage = () => {
     console.log('로그인 시도:', provider);
     console.log('vercel', isInsideReactNative());
     console.log('RN', window.ReactNativeWebView);
-    if (window.ReactNativeWebView) {
+    if (window.ReactNativeWebView) { // If in RN WebView
       console.log('웹뷰 로그인');
-      loginForGoogleApp();
+      if (provider === 'google') {
+        loginForGoogleApp(); // Call Google login for app
+      } else if (provider === 'kakao') {
+        // For Kakao in app WebView, use web-based redirect as it works
+        console.log('앱 내 웹뷰에서 카카오 로그인을 시도합니다. (웹 방식)');
+        window.location.href = `${baseUrl}/oauth2/authorization/kakao`;
+      }
       console.log('앱로그인 완료');
       // navigate('/');
-    } else {
+    } else { // If not in RN WebView (pure web)
       if (provider === 'kakao') {
         console.log('카카오 로그인 버튼 클릭');
         window.location.href = `${baseUrl}/oauth2/authorization/${provider}`;
