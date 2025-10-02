@@ -30,27 +30,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const getToken = React.useCallback((): string | null => {
-    // 기존 쿠키에서 토큰 읽는 로직 (주석 처리)
-    // const token = document.cookie
-    //   .split('; ')
-    //   .find(row => row.startsWith('accessToken='))
-    //   ?.split('=')[1];
-    // return token || null;
-
-    // [수정] localStorage에서 토큰 읽기
-    return localStorage.getItem('accessToken');
+    // [수정] 쿠키에서 토큰 읽기
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('accessToken='))
+      ?.split('=')[1];
+    return token || null;
   }, []);
 
   const setToken = React.useCallback((token: string) => {
-    // 기존 쿠키 설정 로직 (주석 처리)
-    // if (import.meta.env.VITE_APP_ENV === 'development') {
-    //   document.cookie = `accessToken=${token}; path=/; max-age=604800;`;
-    // } else {
-    //   document.cookie = `accessToken=${token}; path=/; max-age=604800; Secure; SameSite=None;`;
-    // }
-
-    // [수정] 쿠키 대신 localStorage에 토큰 저장 (크로스 도메인 문제 해결)
-    localStorage.setItem('accessToken', token);
+    // [수정] 쿠키에 토큰 저장
+    if (import.meta.env.VITE_APP_ENV === 'development') {
+      document.cookie = `accessToken=${token}; path=/; max-age=604800;`;
+    } else {
+      document.cookie = `accessToken=${token}; path=/; max-age=604800; Secure; SameSite=None;`;
+    }
   }, []);
 
   useEffect(() => {
@@ -156,10 +150,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     } finally {
       toast.error('로그아웃 되었습니다.')
       console.log('Logout: Finally block entered.');
-      // [수정] localStorage에서 토큰 삭제
-      console.log('Logout: Attempting to remove accessToken from localStorage'); // <-- 이 줄 추가
-      localStorage.removeItem('accessToken');
-      console.log('Logout: accessToken after removal:', localStorage.getItem('accessToken')); // <-- 이 줄 추가
+      // [수정] 쿠키에서 토큰 삭제
+      console.log('Logout: Attempting to remove accessToken from cookie');
+      document.cookie = 'accessToken=; path=/; max-age=0;';
 
       // 앱에 로그아웃 전달하여 앱의 로그아웃 처리(앱인 경우만)
       if (window.ReactNativeWebView) {
