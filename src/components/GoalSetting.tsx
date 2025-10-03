@@ -33,7 +33,7 @@ interface GoalSettingProps {
   presetDuration: PresetDurationType[];
   onChangeParam: (
     key: keyof RecordGoalsRequest,
-    value: string | number
+    value: string | number,
   ) => void;
   param: RecordGoalsRequest;
   currentWeight: number;
@@ -52,16 +52,16 @@ interface GoalSettingProps {
  * @constructor
  */
 const GoalSetting = ({
-  onClickRecord,
-  presetDuration,
-  onChangeParam,
-  param,
-  currentWeight,
-  goalList,
-  handleGetDaysRemaining,
-  handleDeleteGoalModal,
-  isPending,
-}: GoalSettingProps) => {
+                       onClickRecord,
+                       presetDuration,
+                       onChangeParam,
+                       param,
+                       currentWeight,
+                       goalList,
+                       handleGetDaysRemaining,
+                       handleDeleteGoalModal,
+                       isPending,
+                     }: GoalSettingProps) => {
   /**
    * States
    */
@@ -114,7 +114,7 @@ const GoalSetting = ({
   const calculateDailyWeightLoss = (goal: Goal) => {
     const daysRemaining = handleGetDaysRemaining(
       String(new Date()),
-      goal.endDate
+      goal.endDate,
     );
     if (daysRemaining <= 0 || !goal.currentWeight) return null;
 
@@ -177,7 +177,8 @@ const GoalSetting = ({
             >
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-primary/30 rounded-full group-hover:bg-primary/40 transition-all duration-200 shadow-sm group-hover:shadow group-hover:scale-110">
+                  <div
+                    className="p-3 bg-primary/30 rounded-full group-hover:bg-primary/40 transition-all duration-200 shadow-sm group-hover:shadow group-hover:scale-110">
                     <Target className="h-5 w-5 text-primary-600 dark:text-primary-400" />
                   </div>
                   <div className="flex-1">
@@ -189,7 +190,8 @@ const GoalSetting = ({
                     </p>
                   </div>
                   <div className="bg-primary/20 p-2 rounded-full group-hover:bg-primary/30 transition-all duration-200">
-                    <Plus className="h-5 w-5 text-primary-600 dark:text-primary-400 group-hover:scale-110 transition-transform" />
+                    <Plus
+                      className="h-5 w-5 text-primary-600 dark:text-primary-400 group-hover:scale-110 transition-transform" />
                   </div>
                 </div>
               </CardContent>
@@ -204,14 +206,14 @@ const GoalSetting = ({
                 const today = new Date();
                 const daysRemaining = handleGetDaysRemaining(
                   String(today),
-                  goal.endDate
+                  goal.endDate,
                 );
                 return (
                   <Card
                     key={goal.goalsId}
                     className={
                       goal.isExpired
-                        ? 'opacity-70 bg-muted/30 border-muted/50'
+                        ? 'opacity-60 bg-muted/60 border-muted/50'
                         : 'border-border'
                     }
                   >
@@ -263,7 +265,7 @@ const GoalSetting = ({
                           <p className="font-medium">{goal.targetWeight}kg</p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">현재 체중</p>
+                          <p className="text-muted-foreground">{goal.isExpired ? '최종 체중' : '현재 체중'}</p>
                           <p className="font-medium">{goal.currentWeight}kg</p>
                         </div>
                         <div>
@@ -285,7 +287,7 @@ const GoalSetting = ({
 
                           const statusInfo = getDailyLossStatus(
                             dailyLossInfo.status,
-                            dailyLossInfo.isGain
+                            dailyLossInfo.isGain,
                           );
                           return (
                             <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
