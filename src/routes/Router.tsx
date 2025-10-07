@@ -17,6 +17,7 @@ import { PrivacyPolicyPage } from '../pages/PrivacyPolicyPage.tsx';
 import { TermsPage } from '../pages/TermsPage.tsx';
 import InquiryPage from '../pages/InquiryPage.tsx';
 import InquiryCreatePage from '../pages/InquiryCreatePage.tsx';
+import InquiryDetailPage from '../pages/InquiryDetailPage.tsx';
 
 const Router = () => {
   return (
@@ -40,6 +41,7 @@ const Router = () => {
           <Route path="/battle/*" element={<BattlePage />} />
           <Route path="/inquiry" element={<InquiryPage />} />
           <Route path="/inquiry/create" element={<InquiryCreatePage />} />
+          <Route path="/inquiry/:inquiryId" element={<InquiryDetailPage />} />
           <Route path="/admin">
             <Route path="dashboard" element={<AdminPage />} />
           </Route>

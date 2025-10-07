@@ -3,7 +3,6 @@ import {
   MessageSquare,
   Sparkles,
   Bug,
-  HelpCircle,
   CheckCircle2,
   Lightbulb,
 } from 'lucide-react';
@@ -24,21 +23,8 @@ interface CategoryInfo {
 
 const categories: CategoryInfo[] = [
   {
-    id: 'inquiry',
-    label: '문의사항',
-    icon: <MessageSquare className="h-5 w-5" />,
-    description: '서비스 이용 방법이나 기능에 대한 질문',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50 dark:bg-blue-950/30',
-    borderColor: 'border-blue-200 dark:border-blue-800',
-    examples: [
-      '체중 기록은 어떻게 수정하나요?',
-      '대결 모드 참여 방법이 궁금해요',
-    ],
-  },
-  {
-    id: 'improvement',
-    label: '개선 제안',
+    id: 'IMPROVEMENT',
+    label: '개선',
     icon: <Sparkles className="h-5 w-5" />,
     description: '더 나은 서비스를 위한 아이디어와 제안',
     color: 'text-purple-600',
@@ -50,24 +36,27 @@ const categories: CategoryInfo[] = [
     ],
   },
   {
-    id: 'bug',
-    label: '버그 제보',
+    id: 'QUESTION',
+    label: '문의',
+    icon: <MessageSquare className="h-5 w-5" />,
+    description: '서비스 이용 방법이나 기능에 대한 질문',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50 dark:bg-blue-950/30',
+    borderColor: 'border-blue-200 dark:border-blue-800',
+    examples: [
+      '체중 기록은 어떻게 수정하나요?',
+      '대결 모드 참여 방법이 궁금해요',
+    ],
+  },
+  {
+    id: 'BUG',
+    label: '오류 제보',
     icon: <Bug className="h-5 w-5" />,
     description: '오류나 문제점 발견 시 알려주세요',
     color: 'text-red-600',
     bgColor: 'bg-red-50 dark:bg-red-950/30',
     borderColor: 'border-red-200 dark:border-red-800',
     examples: ['로그인이 안 돼요', '데이터가 사라졌어요'],
-  },
-  {
-    id: 'other',
-    label: '기타',
-    icon: <HelpCircle className="h-5 w-5" />,
-    description: '위 항목에 해당하지 않는 기타 문의',
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-50 dark:bg-gray-950/30',
-    borderColor: 'border-gray-200 dark:border-gray-800',
-    examples: ['협업 제안', '기타 피드백'],
   },
 ];
 

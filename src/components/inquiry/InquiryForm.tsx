@@ -3,7 +3,6 @@ import {
   MessageSquare,
   Sparkles,
   Bug,
-  HelpCircle,
   CheckCircle2,
   Send,
   Lightbulb,
@@ -30,17 +29,8 @@ interface CategoryInfo {
 
 const categories: CategoryInfo[] = [
   {
-    id: 'inquiry',
-    label: '문의사항',
-    icon: <MessageSquare className="h-5 w-5" />,
-    description: '서비스 이용 방법이나 기능에 대한 질문',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50 dark:bg-blue-950/30',
-    borderColor: 'border-blue-200 dark:border-blue-800',
-  },
-  {
-    id: 'improvement',
-    label: '개선 제안',
+    id: 'IMPROVEMENT',
+    label: '개선',
     icon: <Sparkles className="h-5 w-5" />,
     description: '더 나은 서비스를 위한 아이디어와 제안',
     color: 'text-purple-600',
@@ -48,22 +38,22 @@ const categories: CategoryInfo[] = [
     borderColor: 'border-purple-200 dark:border-purple-800',
   },
   {
-    id: 'bug',
-    label: '버그 제보',
+    id: 'QUESTION',
+    label: '문의',
+    icon: <MessageSquare className="h-5 w-5" />,
+    description: '서비스 이용 방법이나 기능에 대한 질문',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50 dark:bg-blue-950/30',
+    borderColor: 'border-blue-200 dark:border-blue-800',
+  },
+  {
+    id: 'BUG',
+    label: '오류 제보',
     icon: <Bug className="h-5 w-5" />,
     description: '오류나 문제점 발견 시 알려주세요',
     color: 'text-red-600',
     bgColor: 'bg-red-50 dark:bg-red-950/30',
     borderColor: 'border-red-200 dark:border-red-800',
-  },
-  {
-    id: 'other',
-    label: '기타',
-    icon: <HelpCircle className="h-5 w-5" />,
-    description: '위 항목에 해당하지 않는 기타 문의',
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-50 dark:bg-gray-950/30',
-    borderColor: 'border-gray-200 dark:border-gray-800',
   },
 ];
 
@@ -172,7 +162,7 @@ const InquiryForm: React.FC<InquiryFormProps> = ({
           <Label htmlFor="content" className="text-base">
             내용 <span className="text-destructive">*</span>
           </Label>
-          <div className="relative">
+          <div className="space-y-2">
             <Textarea
               id="content"
               value={content}
@@ -189,8 +179,10 @@ const InquiryForm: React.FC<InquiryFormProps> = ({
               disabled={isSubmitting}
               className="resize-none border-2 focus:border-primary transition-colors leading-relaxed text-base"
             />
-            <div className="absolute right-4 bottom-4 text-xs text-muted-foreground bg-background/80 backdrop-blur-sm px-2 py-1 rounded">
-              {content.length}/2000
+            <div className="flex justify-end">
+              <div className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded">
+                {content.length}/2000
+              </div>
             </div>
           </div>
           {content.length > 0 && content.length < 10 && (

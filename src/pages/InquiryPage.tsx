@@ -3,7 +3,6 @@ import {
   CheckCircle2,
   Clock,
   FileText,
-  HelpCircle,
   MessageSquare,
   Plus,
   Sparkles,
@@ -18,7 +17,15 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Badge } from '../components/ui/badge';
 import { formatDate } from '../utils/DateUtil';
 import { Input } from '../components/ui/input';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '../services/api/Api';
+import type {
+  GetInquiryListRequest,
+  GetInquiryListResponse,
+  InquiryType,
+  InquiryStatus,
+} from '../types/Inquiry.api.type';
 interface CategoryInfo {
   id: string;
   label: string;
@@ -28,47 +35,32 @@ interface CategoryInfo {
   borderColor: string;
 }
 
-interface InquiryItem {
-  id: string;
-  title: string;
-  category: string;
-  status: string;
-  createdAt: string;
-  response?: string;
-}
+// InquiryResponseDto를 직접 사용
 
 const categories: CategoryInfo[] = [
   {
-    id: 'inquiry',
-    label: '문의사항',
-    icon: <MessageSquare className="h-4 w-4" />,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50 dark:bg-blue-950/30',
-    borderColor: 'border-blue-200 dark:border-blue-800',
-  },
-  {
-    id: 'improvement',
-    label: '개선 제안',
+    id: 'IMPROVEMENT',
+    label: '개선',
     icon: <Sparkles className="h-4 w-4" />,
     color: 'text-purple-600',
     bgColor: 'bg-purple-50 dark:bg-purple-950/30',
     borderColor: 'border-purple-200 dark:border-purple-800',
   },
   {
-    id: 'bug',
-    label: '버그 제보',
+    id: 'QUESTION',
+    label: '문의',
+    icon: <MessageSquare className="h-4 w-4" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50 dark:bg-blue-950/30',
+    borderColor: 'border-blue-200 dark:border-blue-800',
+  },
+  {
+    id: 'BUG',
+    label: '오류 제보',
     icon: <Bug className="h-4 w-4" />,
     color: 'text-red-600',
     bgColor: 'bg-red-50 dark:bg-red-950/30',
     borderColor: 'border-red-200 dark:border-red-800',
-  },
-  {
-    id: 'other',
-    label: '기타',
-    icon: <HelpCircle className="h-4 w-4" />,
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-50 dark:bg-gray-950/30',
-    borderColor: 'border-gray-200 dark:border-gray-800',
   },
 ];
 
@@ -81,42 +73,92 @@ interface StatusInfo {
 }
 const statuses: StatusInfo[] = [
   {
-    id: 'pending',
-    label: '접수 완료',
+    id: 'RECEIVED',
+    label: '접수됨',
     icon: <Clock className="h-3 w-3" />,
     color: 'text-orange-600',
     bgColor: 'bg-orange-50 dark:bg-orange-950/30',
   },
   {
-    id: 'in-progress',
-    label: '확인 중',
+    id: 'IN_PROGRESS',
+    label: '처리 중',
     icon: <FileText className="h-3 w-3" />,
     color: 'text-blue-600',
     bgColor: 'bg-blue-50 dark:bg-blue-950/30',
   },
   {
-    id: 'resolved',
+    id: 'ANSWERED',
     label: '답변 완료',
     icon: <CheckCircle2 className="h-3 w-3" />,
     color: 'text-green-600',
     bgColor: 'bg-green-50 dark:bg-green-950/30',
   },
+  {
+    id: 'CLOSED',
+    label: '종결',
+    icon: <X className="h-3 w-3" />,
+    color: 'text-gray-600',
+    bgColor: 'bg-gray-50 dark:bg-gray-950/30',
+  },
 ];
 
 const InquiryPage = () => {
   const navigate = useNavigate();
+
+  // 페이지 로드 시 스크롤을 맨 위로 이동
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   /**
    * states
    */
-  // TODO: 실제 API 연동 시 사용할 상태들
-  // const [inquiryList, setInquiryList] = useState<InquiryItem[]>([]);
-  // const [filteredInquiryList, setFilteredInquiryList] = useState<InquiryItem[]>([]);
-
-  // 임시 데이터 (개발용)
-  const filteredInquiryList: InquiryItem[] = [];
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  // 문의 목록 조회 API
+  const { data: inquiryList = [] } = useQuery<GetInquiryListResponse>({
+    queryKey: ['inquiryList', categoryFilter, statusFilter],
+    queryFn: async () => {
+      try {
+        const params: GetInquiryListRequest = {
+          inquiryType:
+            categoryFilter === 'all' ? 'ALL' : (categoryFilter as InquiryType),
+          inquiryStatus:
+            statusFilter === 'all' ? 'ALL' : (statusFilter as InquiryStatus),
+        };
+
+        const response = await api.get('/inquiry/getInquiryList', { params });
+        return response.data;
+      } catch (error) {
+        console.warn('getInquiryList API not available:', error);
+        return [];
+      }
+    },
+  });
+
+  // 검색어로 필터링된 목록
+  const filteredInquiryList = inquiryList.filter(
+    (inquiry) =>
+      searchQuery === '' ||
+      inquiry.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      inquiry.content.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // 카테고리별 카운트 계산
+  const getCategoryCount = (categoryId: string) => {
+    if (categoryId === 'all') return inquiryList.length;
+    return inquiryList.filter((inquiry) => inquiry.inquiryType === categoryId)
+      .length;
+  };
+
+  // 상태별 카운트 계산
+  const getStatusCount = (statusId: string) => {
+    if (statusId === 'all') return inquiryList.length;
+    return inquiryList.filter((inquiry) => inquiry.inquiryStatus === statusId)
+      .length;
+  };
 
   const hasActiveFilters =
     categoryFilter !== 'all' || statusFilter !== 'all' || searchQuery !== '';
@@ -154,7 +196,7 @@ const InquiryPage = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
@@ -166,7 +208,7 @@ const InquiryPage = () => {
                 전체 문의
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl">22</span>
+                <span className="text-3xl">{inquiryList.length}</span>
                 <span className="text-muted-foreground">건</span>
               </div>
             </CardContent>
@@ -187,14 +229,16 @@ const InquiryPage = () => {
                     </div>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl">22</span>
+                    <span className="text-3xl">
+                      {getStatusCount(status.id)}
+                    </span>
                     <span className="text-muted-foreground">건</span>
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
           ))}
-        </motion.div>
+        </motion.div> */}
         {/* Filters */}
         <div className="space-y-4">
           {/* Search Bar */}
@@ -239,30 +283,55 @@ const InquiryPage = () => {
                     </Button>
                   )}
                 </div>
-                {/* 모바일: 전체 + 2x2 그리드, 데스크탑: 5개 한 줄 */}
-                <div className="md:hidden space-y-2">
-                  {/* 모바일 레이아웃: 전체 버튼 - 첫 번째 줄 */}
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setCategoryFilter('all')}
-                    className={`w-full p-2.5 rounded-lg border-2 transition-all cursor-pointer ${
-                      categoryFilter === 'all'
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border bg-card hover:border-primary/30'
-                    }`}
-                  >
-                    <div className="flex flex-col items-center gap-1.5">
-                      <Sparkles className="h-4 w-4" />
-                      <span className="text-xs">전체</span>
-                      <span className="text-[10px] text-muted-foreground">
-                        22
-                      </span>
-                    </div>
-                  </motion.button>
-
-                  {/* 모바일 레이아웃: 카테고리 버튼들 - 2x2 그리드 */}
+                {/* 카테고리 필터: 전체 + 3개 카테고리를 2열로 배치 */}
+                <div className="space-y-2">
+                  {/* 첫 번째 줄: 전체 + 개선 */}
                   <div className="grid grid-cols-2 gap-2">
-                    {categories.map((category) => (
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setCategoryFilter('all')}
+                      className={`p-2.5 rounded-lg border-2 transition-all cursor-pointer ${
+                        categoryFilter === 'all'
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border bg-card hover:border-primary/30'
+                      }`}
+                    >
+                      <div className="flex flex-col items-center gap-1.5">
+                        <Sparkles className="h-4 w-4" />
+                        <span className="text-xs">전체</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {getCategoryCount('all')}
+                        </span>
+                      </div>
+                    </motion.button>
+
+                    {categories[0] && (
+                      <motion.button
+                        key={categories[0].id}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setCategoryFilter(categories[0].id)}
+                        className={`p-2.5 rounded-lg border-2 transition-all cursor-pointer ${
+                          categoryFilter === categories[0].id
+                            ? `${categories[0].borderColor} ${categories[0].bgColor} ${categories[0].color}`
+                            : 'border-border bg-card hover:border-primary/30'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center gap-1.5">
+                          {categories[0].icon}
+                          <span className="text-xs leading-tight text-center">
+                            {categories[0].label}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {getCategoryCount(categories[0].id)}
+                          </span>
+                        </div>
+                      </motion.button>
+                    )}
+                  </div>
+
+                  {/* 두 번째 줄: 문의 + 오류 제보 */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {categories.slice(1).map((category) => (
                       <motion.button
                         key={category.id}
                         whileTap={{ scale: 0.95 }}
@@ -279,56 +348,12 @@ const InquiryPage = () => {
                             {category.label}
                           </span>
                           <span className="text-[10px] text-muted-foreground">
-                            22
+                            {getCategoryCount(category.id)}
                           </span>
                         </div>
                       </motion.button>
                     ))}
                   </div>
-                </div>
-
-                {/* 데스크탑 레이아웃: 5개 한 줄 */}
-                <div className="hidden md:grid grid-cols-5 gap-2">
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setCategoryFilter('all')}
-                    className={`p-2.5 rounded-lg border-2 transition-all cursor-pointer ${
-                      categoryFilter === 'all'
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border bg-card hover:border-primary/30'
-                    }`}
-                  >
-                    <div className="flex flex-col items-center gap-1.5">
-                      <Sparkles className="h-4 w-4" />
-                      <span className="text-xs">전체</span>
-                      <span className="text-[10px] text-muted-foreground">
-                        22
-                      </span>
-                    </div>
-                  </motion.button>
-
-                  {categories.map((category) => (
-                    <motion.button
-                      key={category.id}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setCategoryFilter(category.id)}
-                      className={`p-2.5 rounded-lg border-2 transition-all cursor-pointer ${
-                        categoryFilter === category.id
-                          ? `${category.borderColor} ${category.bgColor} ${category.color}`
-                          : 'border-border bg-card hover:border-primary/30'
-                      }`}
-                    >
-                      <div className="flex flex-col items-center gap-1.5">
-                        {category.icon}
-                        <span className="text-xs leading-tight text-center">
-                          {category.label}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground">
-                          22
-                        </span>
-                      </div>
-                    </motion.button>
-                  ))}
                 </div>
               </div>
 
@@ -348,11 +373,13 @@ const InquiryPage = () => {
                     </Button>
                   )}
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {/* 상태 필터: 전체가 첫 열 혹자, 나머지 2열에 2개씩 */}
+                <div className="space-y-2">
+                  {/* 첫 번째 줄: 전체 */}
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setStatusFilter('all')}
-                    className={`p-2.5 rounded-lg border-2 transition-all cursor-pointer ${
+                    className={`w-full p-2.5 rounded-lg border-2 transition-all cursor-pointer ${
                       statusFilter === 'all'
                         ? 'border-primary bg-primary/10 text-primary'
                         : 'border-border bg-card hover:border-primary/30'
@@ -363,34 +390,67 @@ const InquiryPage = () => {
                       <div className="flex-1 text-left min-w-0">
                         <div className="text-xs">전체</div>
                         <div className="text-[10px] text-muted-foreground">
-                          22건
+                          {getStatusCount('all')}건
                         </div>
                       </div>
                     </div>
                   </motion.button>
 
-                  {statuses.map((status) => (
-                    <motion.button
-                      key={status.id}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setStatusFilter(status.id)}
-                      className={`p-2.5 rounded-lg border-2 transition-all cursor-pointer ${
-                        statusFilter === status.id
-                          ? `${status.bgColor} ${status.color} border-current`
-                          : 'border-border bg-card hover:border-primary/30'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="flex-shrink-0">{status.icon}</div>
-                        <div className="flex-1 text-left min-w-0">
-                          <div className="text-xs truncate">{status.label}</div>
-                          <div className="text-[10px] text-muted-foreground">
-                            22 건
+                  {/* 두 번째 줄: 접수됨 + 처리 중 */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {statuses.slice(0, 2).map((status) => (
+                      <motion.button
+                        key={status.id}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setStatusFilter(status.id)}
+                        className={`p-2.5 rounded-lg border-2 transition-all cursor-pointer ${
+                          statusFilter === status.id
+                            ? `${status.bgColor} ${status.color} border-current`
+                            : 'border-border bg-card hover:border-primary/30'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="flex-shrink-0">{status.icon}</div>
+                          <div className="flex-1 text-left min-w-0">
+                            <div className="text-xs truncate">
+                              {status.label}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground">
+                              {getStatusCount(status.id)}건
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </motion.button>
-                  ))}
+                      </motion.button>
+                    ))}
+                  </div>
+
+                  {/* 세 번째 줄: 답변 완료 + 종결 */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {statuses.slice(2).map((status) => (
+                      <motion.button
+                        key={status.id}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setStatusFilter(status.id)}
+                        className={`p-2.5 rounded-lg border-2 transition-all cursor-pointer ${
+                          statusFilter === status.id
+                            ? `${status.bgColor} ${status.color} border-current`
+                            : 'border-border bg-card hover:border-primary/30'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="flex-shrink-0">{status.icon}</div>
+                          <div className="flex-1 text-left min-w-0">
+                            <div className="text-xs truncate">
+                              {status.label}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground">
+                              {getStatusCount(status.id)}건
+                            </div>
+                          </div>
+                        </div>
+                      </motion.button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -467,22 +527,22 @@ const InquiryPage = () => {
             >
               {filteredInquiryList.map((ticket, index) => {
                 const categoryInfo = categories.find(
-                  (category) => category.id === ticket.category
+                  (category) => category.id === ticket.inquiryType
                 );
                 const statusInfo = statuses.find(
-                  (status) => status.id === ticket.status
+                  (status) => status.id === ticket.inquiryStatus
                 );
 
                 return (
                   <motion.div
-                    key={ticket.id}
+                    key={ticket.inquiryId}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
                   >
                     <Card
                       className="border-2 hover:border-primary/30 hover:shadow-lg transition-all cursor-pointer group"
-                      onClick={() => navigate('/inquiry/detail')}
+                      onClick={() => navigate(`/inquiry/${ticket.inquiryId}`)}
                     >
                       <CardContent className="p-4 sm:p-6">
                         <div className="flex items-start gap-3 sm:gap-4">
@@ -526,13 +586,13 @@ const InquiryPage = () => {
                             <div className="flex items-center justify-between text-xs sm:text-sm text-muted-foreground">
                               <div className="flex items-center gap-2 sm:gap-4 min-w-0">
                                 <span className="truncate">
-                                  {formatDate(ticket.createdAt)}
+                                  {formatDate(ticket.regDateTime)}
                                 </span>
-                                {ticket.response && (
+                                {ticket.inquiryStatus === 'ANSWERED' && (
                                   <span className="flex items-center gap-1 text-green-600 flex-shrink-0">
                                     <CheckCircle2 className="h-3 w-3" />
                                     <span className="hidden sm:inline">
-                                      답변 있음
+                                      답변 완료
                                     </span>
                                     <span className="sm:hidden">답변</span>
                                   </span>
