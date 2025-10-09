@@ -117,7 +117,26 @@ const InquiryPage = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  // 문의 목록 조회 API
+  // 전체 문의 목록 조회 API (필터별 건수 계산용)
+  const { data: allInquiryList = [] } = useQuery<GetInquiryListResponse>({
+    queryKey: ['allInquiryList'],
+    queryFn: async () => {
+      try {
+        const params: GetInquiryListRequest = {
+          inquiryType: 'ALL',
+          inquiryStatus: 'ALL',
+        };
+
+        const response = await api.get('/inquiry/getInquiryList', { params });
+        return response.data;
+      } catch (error) {
+        console.warn('getInquiryList API not available:', error);
+        return [];
+      }
+    },
+  });
+
+  // 필터링된 문의 목록 조회 API
   const { data: inquiryList = [] } = useQuery<GetInquiryListResponse>({
     queryKey: ['inquiryList', categoryFilter, statusFilter],
     queryFn: async () => {
@@ -146,18 +165,28 @@ const InquiryPage = () => {
       inquiry.content.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // 카테고리별 카운트 계산
+  // 카테고리별 카운트 계산 (전체 데이터 기준)
   const getCategoryCount = (categoryId: string) => {
-    if (categoryId === 'all') return inquiryList.length;
-    return inquiryList.filter((inquiry) => inquiry.inquiryType === categoryId)
-      .length;
+    if (categoryId === 'all') return allInquiryList.length;
+    return allInquiryList.filter(
+      (inquiry) => inquiry.inquiryType === categoryId
+    ).length;
   };
 
-  // 상태별 카운트 계산
+  // 상태별 카운트 계산 (현재 선택된 카테고리 기준)
   const getStatusCount = (statusId: string) => {
-    if (statusId === 'all') return inquiryList.length;
-    return inquiryList.filter((inquiry) => inquiry.inquiryStatus === statusId)
-      .length;
+    // 현재 선택된 카테고리에 맞는 데이터만 필터링
+    const categoryFilteredData =
+      categoryFilter === 'all'
+        ? allInquiryList
+        : allInquiryList.filter(
+            (inquiry) => inquiry.inquiryType === categoryFilter
+          );
+
+    if (statusId === 'all') return categoryFilteredData.length;
+    return categoryFilteredData.filter(
+      (inquiry) => inquiry.inquiryStatus === statusId
+    ).length;
   };
 
   const hasActiveFilters =
@@ -290,10 +319,13 @@ const InquiryPage = () => {
                     <motion.button
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setCategoryFilter('all')}
-                      className={`p-2.5 rounded-lg border-2 transition-all cursor-pointer ${
-                        categoryFilter === 'all'
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-border bg-card hover:border-primary/30'
+                      disabled={getCategoryCount('all') === 0}
+                      className={`p-2.5 rounded-lg border-2 transition-all ${
+                        getCategoryCount('all') === 0
+                          ? 'cursor-not-allowed opacity-50 border-muted bg-muted/30'
+                          : categoryFilter === 'all'
+                            ? 'border-primary bg-primary/10 text-primary cursor-pointer'
+                            : 'border-border bg-card hover:border-primary/30 cursor-pointer'
                       }`}
                     >
                       <div className="flex flex-col items-center gap-1.5">
@@ -310,10 +342,13 @@ const InquiryPage = () => {
                         key={categories[0].id}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setCategoryFilter(categories[0].id)}
-                        className={`p-2.5 rounded-lg border-2 transition-all cursor-pointer ${
-                          categoryFilter === categories[0].id
-                            ? `${categories[0].borderColor} ${categories[0].bgColor} ${categories[0].color}`
-                            : 'border-border bg-card hover:border-primary/30'
+                        disabled={getCategoryCount(categories[0].id) === 0}
+                        className={`p-2.5 rounded-lg border-2 transition-all ${
+                          getCategoryCount(categories[0].id) === 0
+                            ? 'cursor-not-allowed opacity-50 border-muted bg-muted/30'
+                            : categoryFilter === categories[0].id
+                              ? `${categories[0].borderColor} ${categories[0].bgColor} ${categories[0].color} cursor-pointer`
+                              : 'border-border bg-card hover:border-primary/30 cursor-pointer'
                         }`}
                       >
                         <div className="flex flex-col items-center gap-1.5">
@@ -336,10 +371,13 @@ const InquiryPage = () => {
                         key={category.id}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setCategoryFilter(category.id)}
-                        className={`p-2.5 rounded-lg border-2 transition-all cursor-pointer ${
-                          categoryFilter === category.id
-                            ? `${category.borderColor} ${category.bgColor} ${category.color}`
-                            : 'border-border bg-card hover:border-primary/30'
+                        disabled={getCategoryCount(category.id) === 0}
+                        className={`p-2.5 rounded-lg border-2 transition-all ${
+                          getCategoryCount(category.id) === 0
+                            ? 'cursor-not-allowed opacity-50 border-muted bg-muted/30'
+                            : categoryFilter === category.id
+                              ? `${category.borderColor} ${category.bgColor} ${category.color} cursor-pointer`
+                              : 'border-border bg-card hover:border-primary/30 cursor-pointer'
                         }`}
                       >
                         <div className="flex flex-col items-center gap-1.5">
@@ -379,10 +417,13 @@ const InquiryPage = () => {
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setStatusFilter('all')}
-                    className={`w-full p-2.5 rounded-lg border-2 transition-all cursor-pointer ${
-                      statusFilter === 'all'
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border bg-card hover:border-primary/30'
+                    disabled={getStatusCount('all') === 0}
+                    className={`w-full p-2.5 rounded-lg border-2 transition-all ${
+                      getStatusCount('all') === 0
+                        ? 'cursor-not-allowed opacity-50 border-muted bg-muted/30'
+                        : statusFilter === 'all'
+                          ? 'border-primary bg-primary/10 text-primary cursor-pointer'
+                          : 'border-border bg-card hover:border-primary/30 cursor-pointer'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -403,10 +444,13 @@ const InquiryPage = () => {
                         key={status.id}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setStatusFilter(status.id)}
-                        className={`p-2.5 rounded-lg border-2 transition-all cursor-pointer ${
-                          statusFilter === status.id
-                            ? `${status.bgColor} ${status.color} border-current`
-                            : 'border-border bg-card hover:border-primary/30'
+                        disabled={getStatusCount(status.id) === 0}
+                        className={`p-2.5 rounded-lg border-2 transition-all ${
+                          getStatusCount(status.id) === 0
+                            ? 'cursor-not-allowed opacity-50 border-muted bg-muted/30'
+                            : statusFilter === status.id
+                              ? `${status.bgColor} ${status.color} border-current cursor-pointer`
+                              : 'border-border bg-card hover:border-primary/30 cursor-pointer'
                         }`}
                       >
                         <div className="flex items-center gap-2">
@@ -431,10 +475,13 @@ const InquiryPage = () => {
                         key={status.id}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setStatusFilter(status.id)}
-                        className={`p-2.5 rounded-lg border-2 transition-all cursor-pointer ${
-                          statusFilter === status.id
-                            ? `${status.bgColor} ${status.color} border-current`
-                            : 'border-border bg-card hover:border-primary/30'
+                        disabled={getStatusCount(status.id) === 0}
+                        className={`p-2.5 rounded-lg border-2 transition-all ${
+                          getStatusCount(status.id) === 0
+                            ? 'cursor-not-allowed opacity-50 border-muted bg-muted/30'
+                            : statusFilter === status.id
+                              ? `${status.bgColor} ${status.color} border-current cursor-pointer`
+                              : 'border-border bg-card hover:border-primary/30 cursor-pointer'
                         }`}
                       >
                         <div className="flex items-center gap-2">
