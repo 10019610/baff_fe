@@ -25,7 +25,7 @@ import { motion } from 'motion/react';
 import { api } from '../services/api/Api';
 import { formatDate } from '../utils/DateUtil';
 import type {
-  GetInquiryListResponse,
+  InquiryResponseDto,
   InquiryType,
   InquiryStatus,
 } from '../types/Inquiry.api.type';
@@ -114,26 +114,20 @@ const InquiryDetailPage = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  // 문의 목록에서 해당 문의 찾기 (임시로 전체 목록 조회)
-  const { data: inquiryList = [], isLoading } =
-    useQuery<GetInquiryListResponse>({
-      queryKey: ['inquiryList'],
-      queryFn: async () => {
-        try {
-          const response = await api.get('/inquiry/getInquiryList', {
-            params: { inquiryType: 'ALL', inquiryStatus: 'ALL' },
-          });
-          return response.data;
-        } catch (error) {
-          console.warn('getInquiryList API not available:', error);
-          return [];
-        }
-      },
-    });
-
-  const inquiry = inquiryList.find(
-    (item) => item.inquiryId.toString() === inquiryId
-  );
+  const { data: inquiry, isLoading } = useQuery<InquiryResponseDto>({
+    queryKey: ['inquiryDetail', inquiryId],
+    queryFn: async () => {
+      try {
+        const response = await api.get(
+          `/inquiry/getInquiryDetail/${inquiryId}`
+        );
+        return response.data;
+      } catch (error) {
+        console.warn('getInquiryDetail API not available:', error);
+        return null;
+      }
+    },
+  });
 
   if (isLoading) {
     return (
