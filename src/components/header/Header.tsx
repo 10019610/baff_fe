@@ -44,12 +44,12 @@ export default function Header({ activeMenuItem }: HeaderProps) {
             {/* <Scale className="h-7 w-7 text-primary" /> */}
             <div className="flex items-center gap-1">
               <ChangeUpLogo size="md" />
-              <Badge
+              {/* <Badge
                 variant="outline"
                 className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-[10px] font-semibold border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 p-3 h-4"
               >
                 BETA
-              </Badge>
+              </Badge> */}
             </div>
             <div>
               {/* <h1 className="text-lg font-bold">ChangeUp</h1> */}

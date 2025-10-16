@@ -4,7 +4,7 @@ import LumpenLogo from '../ui/LumpenLogo';
 import { useNavigate, Link } from 'react-router-dom';
 
 export default function Footer() {
-  const APP_VERSION = 'v1.2.0';
+  const APP_VERSION = 'v1.3.0';
   const navigate = useNavigate();
 
   const handleWithdraw = () => {
