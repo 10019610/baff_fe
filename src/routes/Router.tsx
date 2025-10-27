@@ -18,6 +18,7 @@ import { TermsPage } from '../pages/TermsPage.tsx';
 import InquiryPage from '../pages/InquiryPage.tsx';
 import InquiryCreatePage from '../pages/InquiryCreatePage.tsx';
 import InquiryDetailPage from '../pages/InquiryDetailPage.tsx';
+import ReviewPage from '../pages/ReviewPage.tsx';
 
 const Router = () => {
   return (
@@ -39,6 +40,8 @@ const Router = () => {
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/battle" element={<BattlePage />} />
           <Route path="/battle/*" element={<BattlePage />} />
+          <Route path="/review" element={<ReviewPage />} />
+          <Route path="/review/:id" element={<ReviewPage />} />
           <Route path="/inquiry" element={<InquiryPage />} />
           <Route path="/inquiry/create" element={<InquiryCreatePage />} />
           <Route path="/inquiry/:inquiryId" element={<InquiryDetailPage />} />

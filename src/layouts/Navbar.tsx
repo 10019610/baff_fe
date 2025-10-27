@@ -1,4 +1,4 @@
-import { BarChart3, Scale, Target, Users } from 'lucide-react';
+import { BarChart3, BookOpen, Scale, Target, Users } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Badge } from '../components/ui/badge.tsx';
 import { cn } from '../components/ui/utils.tsx';
@@ -29,12 +29,6 @@ const Navbar = () => {
   // Navbar Item 정의 용도 데이터
   const navItems: NavMenuItem[] = [
     {
-      id: 'tracker',
-      label: '체중 기록',
-      icon: Scale,
-      url: '/weightTracker',
-    },
-    {
       id: 'goals',
       label: '목표',
       icon: Target,
@@ -47,10 +41,22 @@ const Navbar = () => {
       url: '/battle',
     },
     {
+      id: 'tracker',
+      label: '체중 기록',
+      icon: Scale,
+      url: '/weightTracker',
+    },
+    {
       id: 'analytics',
       label: '분석',
       icon: BarChart3,
       url: '/analytics',
+    },
+    {
+      id: 'review',
+      label: '후기',
+      icon: BookOpen,
+      url: '/review',
     },
   ];
 
@@ -118,7 +124,7 @@ const Navbar = () => {
       </div>
       {/* 모바일 네비게이션 */}
       <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50 md:hidden">
-        <div className="grid grid-cols-4 h-16">
+        <div className="grid grid-cols-5 h-16">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeMenu === item.id;

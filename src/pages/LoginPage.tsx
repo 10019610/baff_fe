@@ -12,6 +12,7 @@ import {
 import { Button } from '../components/ui/button.tsx';
 import { Separator } from '../components/ui/separator.tsx';
 import { useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 
 /**
  * 로그인 페이지
@@ -32,6 +33,8 @@ const LoginPage = () => {
    */
   /* 카카오 브라우져 여부 체크 state */
   const [isKakaoBrowser, setIsKakaoBrowser] = useState<boolean>(false);
+  /* 로그인 로딩 상태 */
+  const [loginLoading, setLoginLoading] = useState<string | null>(null); // 'google' | 'kakao' | null
 
   /**
    * Init
@@ -70,10 +73,14 @@ const LoginPage = () => {
    */
   /* 로그인 버튼 handler */
   const onSignInHandler = (provider: string) => {
+    // 로딩 상태 시작
+    setLoginLoading(provider);
+
     console.log('로그인 시도:', provider);
     console.log('vercel', isInsideReactNative());
     console.log('RN', window.ReactNativeWebView);
-    if (window.ReactNativeWebView) { // If in RN WebView
+    if (window.ReactNativeWebView) {
+      // If in RN WebView
       console.log('웹뷰 로그인');
       if (provider === 'google') {
         loginForGoogleApp(); // Call Google login for app
@@ -84,7 +91,8 @@ const LoginPage = () => {
       }
       console.log('앱로그인 완료');
       // navigate('/');
-    } else { // If not in RN WebView (pure web)
+    } else {
+      // If not in RN WebView (pure web)
       if (provider === 'kakao') {
         console.log('카카오 로그인 버튼 클릭');
         window.location.href = `${baseUrl}/oauth2/authorization/${provider}`;
@@ -139,10 +147,20 @@ const LoginPage = () => {
               <Button
                 size="lg"
                 onClick={() => onSignInHandler('kakao')}
-                className="w-full h-12 text-base gap-3 bg-[#FEE500] hover:bg-[#FCDD00] text-black border-2 border-[#FEE500] hover:border-[#FCDD00]"
+                disabled={loginLoading !== null}
+                className="w-full h-12 text-base gap-3 bg-[#FEE500] hover:bg-[#FCDD00] text-black border-2 border-[#FEE500] hover:border-[#FCDD00] disabled:opacity-70"
               >
-                <KakaoIcon />
-                카카오로 계속하기
+                {loginLoading === 'kakao' ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    로그인 중...
+                  </>
+                ) : (
+                  <>
+                    <KakaoIcon />
+                    카카오로 계속하기
+                  </>
+                )}
               </Button>
             ) : (
               <div className="space-y-4">
@@ -151,10 +169,20 @@ const LoginPage = () => {
                   variant="outline"
                   size="lg"
                   onClick={() => onSignInHandler('google')}
+                  disabled={loginLoading !== null}
                   className="w-full h-12 text-base gap-3 hover:bg-muted/50 border-2"
                 >
-                  <GoogleIcon />
-                  Google로 계속하기
+                  {loginLoading === 'google' ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      로그인 중...
+                    </>
+                  ) : (
+                    <>
+                      <GoogleIcon />
+                      Google로 계속하기
+                    </>
+                  )}
                 </Button>
                 <div className="relative">
                   <Separator />
@@ -165,10 +193,20 @@ const LoginPage = () => {
                 <Button
                   size="lg"
                   onClick={() => onSignInHandler('kakao')}
-                  className="w-full h-12 text-base gap-3 bg-[#FEE500] hover:bg-[#FCDD00] text-black border-2 border-[#FEE500] hover:border-[#FCDD00]"
+                  disabled={loginLoading !== null}
+                  className="w-full h-12 text-base gap-3 bg-[#FEE500] hover:bg-[#FCDD00] text-black border-2 border-[#FEE500] hover:border-[#FCDD00] disabled:opacity-70"
                 >
-                  <KakaoIcon />
-                  카카오로 계속하기
+                  {loginLoading === 'kakao' ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      로그인 중...
+                    </>
+                  ) : (
+                    <>
+                      <KakaoIcon />
+                      카카오로 계속하기
+                    </>
+                  )}
                 </Button>
               </div>
             )}

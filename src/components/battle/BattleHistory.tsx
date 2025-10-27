@@ -16,9 +16,12 @@ import {
   Award,
   TrendingUp,
   TrendingDown,
+  PenSquare,
 } from 'lucide-react';
 import { getEndedBattles } from '../../services/api/activeBattle.api';
 import type { BattleSummaryData } from '../../types/ActiveBattle.type';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '../ui/button';
 
 interface Battle {
   id: string;
@@ -126,6 +129,7 @@ export default function BattleHistory({
   selectedRoomEntryCode,
 }: BattleHistoryProps) {
   const [completedBattles, setCompletedBattles] = useState<Battle[]>([]);
+  const navigate = useNavigate();
 
   // TanStack Query를 사용하여 종료된 대결 데이터 가져오기
   const {
@@ -567,6 +571,18 @@ export default function BattleHistory({
                           </div>
                         )}
                       </div>
+
+                      {/* 리뷰 작성 버튼 - 승리했을 때만 표시 */}
+                      {battle.result === 'me' && (
+                        <Button
+                          onClick={() => navigate(`/review/${battle.id}`)}
+                          className="w-full gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md hover:shadow-lg transition-all mt-2"
+                          size="lg"
+                        >
+                          <PenSquare className="h-4 w-4" />
+                          대결 리뷰 작성하기
+                        </Button>
+                      )}
                     </div>
                   </Card>
 
@@ -689,6 +705,18 @@ export default function BattleHistory({
                           )}
                         </div>
                       </details>
+
+                      {/* 리뷰 작성 버튼 - 승리했을 때만 표시 (모바일) */}
+                      {battle.result === 'me' && (
+                        <Button
+                          onClick={() => navigate(`/review/${battle.id}`)}
+                          className="w-full gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-sm hover:shadow-md transition-all"
+                          size="default"
+                        >
+                          <PenSquare className="h-4 w-4" />
+                          대결 리뷰 작성
+                        </Button>
+                      )}
                     </div>
                   </Card>
                 </div>

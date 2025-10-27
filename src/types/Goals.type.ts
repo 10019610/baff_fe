@@ -20,3 +20,14 @@ export interface Goal {
   isExpired: boolean;
   currentWeight: number;
 }
+
+/**
+ * 리뷰 작성용 목표 상세 정보
+ */
+export interface GoalDetailForReview {
+  goalsId: number;
+  durationDays: number;
+  startWeight: number;
+  targetWeight: number;
+  currentWeight: number | null;
+}

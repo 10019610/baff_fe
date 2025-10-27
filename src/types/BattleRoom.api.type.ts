@@ -102,3 +102,14 @@ export interface BattleParticipant {
   targetValue: number;
   ready: boolean;
 }
+
+/**
+ * 리뷰 작성용 배틀 상세 정보
+ */
+export interface BattleDetailForReview {
+  battleRoomId: number;
+  durationDays: number;
+  startWeight: number;
+  targetWeight: number;
+  currentWeight: number | null;
+}

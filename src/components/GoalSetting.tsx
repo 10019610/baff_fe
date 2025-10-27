@@ -13,6 +13,7 @@ import {
   Scale,
   Target,
   Trash2,
+  PenSquare,
 } from 'lucide-react';
 
 import { Button } from './ui/button.tsx';
@@ -27,13 +28,14 @@ import { Progress } from './ui/progress.tsx';
 import AnimatedContainer from './weightTracker/AnimatedContainer.tsx';
 import { useState } from 'react';
 import GoalsCreate from './GoalsCreate.tsx';
+import { useNavigate } from 'react-router-dom';
 
 interface GoalSettingProps {
   onClickRecord: () => void;
   presetDuration: PresetDurationType[];
   onChangeParam: (
     key: keyof RecordGoalsRequest,
-    value: string | number,
+    value: string | number
   ) => void;
   param: RecordGoalsRequest;
   currentWeight: number;
@@ -52,21 +54,22 @@ interface GoalSettingProps {
  * @constructor
  */
 const GoalSetting = ({
-                       onClickRecord,
-                       presetDuration,
-                       onChangeParam,
-                       param,
-                       currentWeight,
-                       goalList,
-                       handleGetDaysRemaining,
-                       handleDeleteGoalModal,
-                       isPending,
-                     }: GoalSettingProps) => {
+  onClickRecord,
+  presetDuration,
+  onChangeParam,
+  param,
+  currentWeight,
+  goalList,
+  handleGetDaysRemaining,
+  handleDeleteGoalModal,
+  isPending,
+}: GoalSettingProps) => {
   /**
    * States
    */
   /* 목표 설정 생성 컴포넌트 상태 */
   const [showCreateGoal, setShowCreateGoal] = useState(false);
+  const navigate = useNavigate();
   /**
    * UI
    */
@@ -74,6 +77,10 @@ const GoalSetting = ({
   /**
    * Handlers
    */
+  /* 리뷰 작성 페이지로 이동 handler */
+  const handleNavigateToReview = (goalId: string) => {
+    navigate(`/review/${goalId}`);
+  };
 
   /* 설정목표 카드 만료여부 배지 제어 handler */
   const getStatusBadge = (isExpired: boolean, goal: Goal) => {
@@ -114,7 +121,7 @@ const GoalSetting = ({
   const calculateDailyWeightLoss = (goal: Goal) => {
     const daysRemaining = handleGetDaysRemaining(
       String(new Date()),
-      goal.endDate,
+      goal.endDate
     );
     if (daysRemaining <= 0 || !goal.currentWeight) return null;
 
@@ -177,8 +184,7 @@ const GoalSetting = ({
             >
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
-                  <div
-                    className="p-3 bg-primary/30 rounded-full group-hover:bg-primary/40 transition-all duration-200 shadow-sm group-hover:shadow group-hover:scale-110">
+                  <div className="p-3 bg-primary/30 rounded-full group-hover:bg-primary/40 transition-all duration-200 shadow-sm group-hover:shadow group-hover:scale-110">
                     <Target className="h-5 w-5 text-primary-600 dark:text-primary-400" />
                   </div>
                   <div className="flex-1">
@@ -190,8 +196,7 @@ const GoalSetting = ({
                     </p>
                   </div>
                   <div className="bg-primary/20 p-2 rounded-full group-hover:bg-primary/30 transition-all duration-200">
-                    <Plus
-                      className="h-5 w-5 text-primary-600 dark:text-primary-400 group-hover:scale-110 transition-transform" />
+                    <Plus className="h-5 w-5 text-primary-600 dark:text-primary-400 group-hover:scale-110 transition-transform" />
                   </div>
                 </div>
               </CardContent>
@@ -206,7 +211,7 @@ const GoalSetting = ({
                 const today = new Date();
                 const daysRemaining = handleGetDaysRemaining(
                   String(today),
-                  goal.endDate,
+                  goal.endDate
                 );
                 return (
                   <Card
@@ -265,7 +270,9 @@ const GoalSetting = ({
                           <p className="font-medium">{goal.targetWeight}kg</p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">{goal.isExpired ? '최종 체중' : '현재 체중'}</p>
+                          <p className="text-muted-foreground">
+                            {goal.isExpired ? '최종 체중' : '현재 체중'}
+                          </p>
                           <p className="font-medium">{goal.currentWeight}kg</p>
                         </div>
                         <div>
@@ -287,7 +294,7 @@ const GoalSetting = ({
 
                           const statusInfo = getDailyLossStatus(
                             dailyLossInfo.status,
-                            dailyLossInfo.isGain,
+                            dailyLossInfo.isGain
                           );
                           return (
                             <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
@@ -356,10 +363,20 @@ const GoalSetting = ({
                         </div>
                       )}
                       {progress === 100 && goal.isExpired && (
-                        <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200">
-                          <p className="text-xs text-green-800">
-                            🎉 축하합니다! 목표를 성공적으로 달성했습니다.
-                          </p>
+                        <div className="space-y-3 !opacity-100">
+                          <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200">
+                            <p className="text-xs text-green-800 dark:text-green-200">
+                              🎉 축하합니다! 목표를 성공적으로 달성했습니다.
+                            </p>
+                          </div>
+                          <Button
+                            onClick={() => handleNavigateToReview(goal.goalsId)}
+                            className="w-full gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md hover:shadow-lg transition-all"
+                            size="lg"
+                          >
+                            <PenSquare className="h-4 w-4" />
+                            리뷰 작성하기
+                          </Button>
                         </div>
                       )}
                       {progress < 100 && goal.isExpired && (
