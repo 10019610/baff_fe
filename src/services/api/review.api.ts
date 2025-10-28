@@ -105,8 +105,15 @@ export const getReviewCommentList = async (
  * @param commentId 댓글 ID
  * @returns void
  */
-export const deleteReviewComment = async (commentId: number): Promise<void> => {
-  await api.post(`/review/deleteReviewComment/${commentId}`);
+export const deleteReviewComment = async (
+  commentId: number,
+  reviewId: string
+): Promise<void> => {
+  const reviewIdNumber = parseInt(reviewId, 10);
+  await api.post(`/review/deleteReviewComment`, {
+    commentId,
+    reviewId: reviewIdNumber,
+  });
 };
 
 /**

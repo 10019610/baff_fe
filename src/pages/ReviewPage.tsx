@@ -1,4 +1,4 @@
-import { PenSquare, Search, Star, Loader2 } from 'lucide-react';
+import { PenSquare, Star, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useEffect, useState, useRef } from 'react';
 import { Drawer, DrawerContent, DrawerTitle } from '../components/ui/drawer';
@@ -7,14 +7,14 @@ import ReviewForm from '../components/review/ReviewForm';
 import { useIsMobile } from '../components/ui/use-mobile';
 import { Skeleton } from '../components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '../components/ui/card';
-import {
-  Select,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from '../components/ui/select';
-import { Input } from '../components/ui/input';
+// import {
+//   Select,
+//   SelectValue,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+// } from '../components/ui/select';
+// import { Input } from '../components/ui/input';
 import ReviewCard from '../components/review/ReviewCard';
 import type { Review, ReviewListItem } from '../types/review.type';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -54,10 +54,10 @@ const ReviewPage = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [searchQuery] = useState('');
-  const [filterDifficulty, setFilterDifficulty] = useState<
-    'all' | '쉬웠어요' | '적당했어요' | '힘들었어요'
-  >('all');
+  // const [searchQuery] = useState('');
+  // const [filterDifficulty, setFilterDifficulty] = useState<
+  //   'all' | '쉬웠어요' | '적당했어요' | '힘들었어요'
+  // >('all');
 
   // 무한 스크롤을 위한 observer ref
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -256,7 +256,7 @@ const ReviewPage = () => {
         </Card>
       </div>
       {/* Search and Filters */}
-      <Card>
+      {/* <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
@@ -299,7 +299,7 @@ const ReviewPage = () => {
             </Select>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Reviews List */}
       <div className="space-y-4">
@@ -309,9 +309,7 @@ const ReviewPage = () => {
               <Star className="h-16 w-16 mx-auto mb-6 text-muted-foreground" />
               <h3 className="text-xl font-medium mb-3">리뷰가 없습니다</h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                {searchQuery || filterDifficulty !== 'all'
-                  ? '검색 조건에 맞는 리뷰가 없습니다. 필터를 변경해보세요.'
-                  : '목표를 완료하고 첫 번째 리뷰를 작성해보세요!'}
+                목표를 완료하고 첫 번째 리뷰를 작성해보세요!
               </p>
             </CardContent>
           </Card>

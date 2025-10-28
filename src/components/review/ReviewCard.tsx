@@ -86,23 +86,16 @@ const ReviewCard = ({
   const toggleLikeMutation = useMutation({
     mutationFn: () => toggleReviewLike(review.id),
     onSuccess: () => {
-      // 성공 시 로컬 상태 업데이트
-      if (hasLiked) {
-        setLocalLikes(localLikes - 1);
-        setHasLiked(false);
-        toast.success('좋아요 취소');
-      } else {
-        setLocalLikes(localLikes + 1);
-        setHasLiked(true);
-        toast.success('좋아요!', { icon: '❤️' });
-      }
-
-      // 부모 컴포넌트 콜백 실행
+      // API 성공 시 부모 컴포넌트 콜백 실행 (필요한 경우)
       if (onLike) {
         onLike(review.id);
       }
     },
     onError: (error: unknown) => {
+      // 실패 시 이전 상태로 롤백
+      setLocalLikes(review.likes);
+      setHasLiked(review.liked);
+
       console.error('좋아요 토글 실패:', error);
       const errorMessage =
         error &&
@@ -121,6 +114,16 @@ const ReviewCard = ({
   });
 
   const handleLike = () => {
+    // 낙관적 업데이트: 즉시 UI 반영
+    if (hasLiked) {
+      setLocalLikes(localLikes - 1);
+      setHasLiked(false);
+    } else {
+      setLocalLikes(localLikes + 1);
+      setHasLiked(true);
+    }
+
+    // API 호출
     toggleLikeMutation.mutate();
   };
 
@@ -558,9 +561,9 @@ const ReviewCard = ({
             <Heart
               className={`h-6 w-6 ${hasLiked ? 'fill-red-500 text-red-500' : ''}`}
             />
-            {localLikes > 0 && (
-              <span className="text-base font-medium">{localLikes}</span>
-            )}
+            <span className="text-base font-medium min-w-[20px]">
+              {localLikes > 0 ? localLikes : '0'}
+            </span>
           </Button>
           {showComments && (
             <Button
@@ -569,9 +572,9 @@ const ReviewCard = ({
               className="gap-2 h-auto p-2"
             >
               <MessageCircle className="h-6 w-6" />
-              {commentCount > 0 && (
-                <span className="text-base font-medium">{commentCount}</span>
-              )}
+              <span className="text-base font-medium min-w-[20px]">
+                {commentCount > 0 ? commentCount : '0'}
+              </span>
             </Button>
           )}
         </div>

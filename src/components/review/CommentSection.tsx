@@ -154,7 +154,7 @@ const CommentSection = ({
 
   // 댓글 삭제 mutation
   const deleteCommentMutation = useMutation({
-    mutationFn: (commentId: number) => deleteReviewComment(commentId),
+    mutationFn: (commentId: number) => deleteReviewComment(commentId, reviewId),
     onSuccess: () => {
       // 성공 시 댓글 목록 다시 조회
       queryClient.invalidateQueries({ queryKey: ['reviewComments', reviewId] });
