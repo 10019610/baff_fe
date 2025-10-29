@@ -218,11 +218,13 @@ const GoalSetting = ({
                     key={goal.goalsId}
                     className={
                       goal.isExpired
-                        ? 'opacity-60 bg-muted/60 border-muted/50'
+                        ? 'bg-muted/60 border-muted/50'
                         : 'border-border'
                     }
                   >
-                    <CardHeader className="pb-4">
+                    <CardHeader
+                      className={`pb-4 ${goal.isExpired ? 'opacity-60' : ''}`}
+                    >
                       <div className="flex items-center justify-between">
                         <CardTitle
                           className={`text-lg ${goal.isExpired ? 'text-muted-foreground' : ''}`}
@@ -260,7 +262,9 @@ const GoalSetting = ({
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div
+                        className={`grid grid-cols-2 md:grid-cols-4 gap-4 text-sm ${goal.isExpired ? 'opacity-60' : ''}`}
+                      >
                         <div>
                           <p className="text-muted-foreground">시작 체중</p>
                           <p className="font-medium">{goal.startWeight}kg</p>
@@ -297,7 +301,9 @@ const GoalSetting = ({
                             dailyLossInfo.isGain
                           );
                           return (
-                            <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                            <div
+                              className={`p-3 bg-primary/5 rounded-lg border border-primary/20 ${goal.isExpired ? 'opacity-60' : ''}`}
+                            >
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   <Scale className="h-4 w-4 text-primary" />
@@ -339,7 +345,9 @@ const GoalSetting = ({
                           );
                         })()}
                       {!goal.isExpired && currentWeight && (
-                        <div className="space-y-2">
+                        <div
+                          className={`space-y-2 ${goal.isExpired ? 'opacity-60' : ''}`}
+                        >
                           <div className="flex justify-between text-sm">
                             <span>진행률</span>
                             <span
@@ -363,7 +371,7 @@ const GoalSetting = ({
                         </div>
                       )}
                       {progress === 100 && goal.isExpired && (
-                        <div className="space-y-3 !opacity-100">
+                        <div className="space-y-3">
                           <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200">
                             <p className="text-xs text-green-800 dark:text-green-200">
                               🎉 축하합니다! 목표를 성공적으로 달성했습니다.
@@ -380,11 +388,21 @@ const GoalSetting = ({
                         </div>
                       )}
                       {progress < 100 && goal.isExpired && (
-                        <div className="p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200">
-                          <p className="text-xs text-red-800">
-                            💪 목표 달성에 실패했지만, 새로운 목표로 다시
-                            도전해보세요!
-                          </p>
+                        <div className="space-y-3">
+                          <div className="p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200">
+                            <p className="text-xs text-red-800 dark:text-red-200">
+                              💪 목표 달성에 실패했지만, 새로운 목표로 다시
+                              도전해보세요!
+                            </p>
+                          </div>
+                          <Button
+                            onClick={() => handleNavigateToReview(goal.goalsId)}
+                            className="w-full gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md hover:shadow-lg transition-all"
+                            size="lg"
+                          >
+                            <PenSquare className="h-4 w-4" />
+                            리뷰 작성하기
+                          </Button>
                         </div>
                       )}
                     </CardContent>

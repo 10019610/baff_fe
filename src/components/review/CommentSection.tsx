@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   Reply,
   ChevronUp,
+  Loader2,
 } from 'lucide-react';
 import type { ReviewComment } from '../../types/review.type.ts';
 import { useAuth } from '../../context/AuthContext';
@@ -48,6 +49,9 @@ const CommentSection = ({
   const [replyingTo, setReplyingTo] = useState<string | null>(null); // 답글 대상 닉네임
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState<number | null>(null);
+  const [deletingCommentId, setDeletingCommentId] = useState<number | null>(
+    null
+  ); // 삭제 중인 댓글 ID
   const queryClient = useQueryClient();
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
@@ -155,12 +159,17 @@ const CommentSection = ({
   // 댓글 삭제 mutation
   const deleteCommentMutation = useMutation({
     mutationFn: (commentId: number) => deleteReviewComment(commentId, reviewId),
+    onMutate: (commentId) => {
+      // 삭제 시작 시 삭제 중인 댓글 ID 설정
+      setDeletingCommentId(commentId);
+    },
     onSuccess: () => {
       // 성공 시 댓글 목록 다시 조회
       queryClient.invalidateQueries({ queryKey: ['reviewComments', reviewId] });
       toast.success('댓글이 삭제되었습니다');
       setIsDeleteDialogOpen(false);
       setCommentToDelete(null);
+      setDeletingCommentId(null);
     },
     onError: (error: unknown) => {
       console.error('댓글 삭제 실패:', error);
@@ -177,6 +186,7 @@ const CommentSection = ({
           ? String(error.response.data.message)
           : '댓글 삭제에 실패했습니다';
       toast.error(errorMessage);
+      setDeletingCommentId(null);
     },
   });
 
@@ -337,9 +347,14 @@ const CommentSection = ({
                           onClick={() =>
                             handleDeleteCommentClick(comment.commentId)
                           }
+                          disabled={deletingCommentId === comment.commentId}
                           className="h-7 w-7 p-0 text-muted-foreground hover:text-red-600"
                         >
-                          <Trash2 className="h-3 w-3" />
+                          {deletingCommentId === comment.commentId ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-3 w-3" />
+                          )}
                         </Button>
                       )}
                   </div>

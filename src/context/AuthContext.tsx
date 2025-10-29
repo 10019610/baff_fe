@@ -23,8 +23,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({
-                                                                  children,
-                                                                }) => {
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -33,7 +33,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     // [수정] 쿠키에서 토큰 읽기
     const token = document.cookie
       .split('; ')
-      .find(row => row.startsWith('accessToken='))
+      .find((row) => row.startsWith('accessToken='))
       ?.split('=')[1];
     return token || null;
   }, []);
@@ -54,7 +54,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       try {
         console.log('AuthProvider: Attempting to fetch user...');
         const response = await api.get<User>('/user/me');
-        console.log('AuthProvider: Fetched user info successfully', response.data);
+        console.log(
+          'AuthProvider: Fetched user info successfully',
+          response.data
+        );
         setUser(response.data);
         setIsAuthenticated(true);
       } catch (error) {
@@ -65,7 +68,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         if (import.meta.env.VITE_APP_ENV === 'development') {
           document.cookie = 'accessToken=; path=/; max-age=0;';
         } else {
-          document.cookie = 'accessToken=; path=/; max-age=0; Secure; SameSite=None;';
+          document.cookie =
+            'accessToken=; path=/; max-age=0; Secure; SameSite=None;';
         }
       } finally {
         // 인증 절차가 성공하든 실패하든, 항상 마지막에 로딩 상태를 false로 변경합니다.
@@ -119,7 +123,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     };
   }, [setToken]);
 
-
   const login = React.useCallback((userData: User) => {
     setUser(userData);
     setIsAuthenticated(true);
@@ -128,9 +131,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const loginForGoogleApp = () => {
     console.log('in AuthContext, requesting login from RN app');
     if (window.ReactNativeWebView) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({
-        type: 'REQUEST_GOOGLE_LOGIN',
-      }));
+      window.ReactNativeWebView.postMessage(
+        JSON.stringify({
+          type: 'REQUEST_GOOGLE_LOGIN',
+        })
+      );
     } else {
       toast.error('예기치 못한 에러가 발생했습니다. 관리자에게 문의해주세요.');
     }
@@ -148,7 +153,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       console.error('Logout API call failed', error);
       // 에러가 발생하더라도 프론트엔드 상태는 초기화하고 리디렉션합니다.
     } finally {
-      toast.error('로그아웃 되었습니다.')
+      toast.error('로그아웃 되었습니다.');
       console.log('Logout: Finally block entered.');
       // [수정] 쿠키에서 토큰 삭제
       console.log('Logout: Attempting to remove accessToken from cookie');
@@ -170,8 +175,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   const value = React.useMemo(
-    () => ({ user, isAuthenticated, isLoading, login, logout, loginForGoogleApp, getToken, setToken }),
-    [user, isAuthenticated, isLoading, login, logout, loginForGoogleApp, getToken, setToken],
+    () => ({
+      user,
+      isAuthenticated,
+      isLoading,
+      login,
+      logout,
+      loginForGoogleApp,
+      getToken,
+      setToken,
+    }),
+    [
+      user,
+      isAuthenticated,
+      isLoading,
+      login,
+      logout,
+      loginForGoogleApp,
+      getToken,
+      setToken,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

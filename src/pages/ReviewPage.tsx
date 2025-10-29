@@ -1,4 +1,4 @@
-import { PenSquare, Star, Loader2 } from 'lucide-react';
+import { PenSquare, Star, Loader2, TrendingUp, User } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useEffect, useState, useRef } from 'react';
 import { Drawer, DrawerContent, DrawerTitle } from '../components/ui/drawer';
@@ -7,14 +7,12 @@ import ReviewForm from '../components/review/ReviewForm';
 import { useIsMobile } from '../components/ui/use-mobile';
 import { Skeleton } from '../components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '../components/ui/card';
-// import {
-//   Select,
-//   SelectValue,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-// } from '../components/ui/select';
-// import { Input } from '../components/ui/input';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '../components/ui/tabs';
 import ReviewCard from '../components/review/ReviewCard';
 import type { Review, ReviewListItem } from '../types/review.type';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -54,10 +52,9 @@ const ReviewPage = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [showReviewForm, setShowReviewForm] = useState(false);
-  // const [searchQuery] = useState('');
-  // const [filterDifficulty, setFilterDifficulty] = useState<
-  //   'all' | '쉬웠어요' | '적당했어요' | '힘들었어요'
-  // >('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'popular' | 'myReview'>(
+    'all'
+  );
 
   // 무한 스크롤을 위한 observer ref
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -81,8 +78,8 @@ const ReviewPage = () => {
     isLoading,
     isError,
   } = useInfiniteQuery({
-    queryKey: ['reviewList'],
-    queryFn: ({ pageParam = 0 }) => getReviewList(pageParam, 10),
+    queryKey: ['reviewList', activeTab],
+    queryFn: ({ pageParam = 0 }) => getReviewList(pageParam, 10, activeTab),
     getNextPageParam: (lastPage) => {
       // 마지막 페이지면 undefined 반환 (더 이상 불러올 페이지 없음)
       return lastPage.last ? undefined : lastPage.pageNumber + 1;
@@ -143,39 +140,39 @@ const ReviewPage = () => {
     }
   }, [isFromGoalOrBattle, isLoading]);
 
-  // 로딩 상태
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-start justify-between gap-4">
-          <Skeleton className="h-10 w-32 hidden md:block" />
-        </div>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <Skeleton className="h-10 flex-1" />
-              <Skeleton className="h-10 w-full md:w-[180px]" />
-              <Skeleton className="h-10 w-full md:w-[180px]" />
-            </div>
-          </CardContent>
-        </Card>
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Skeleton className="h-20 w-full" />
-                <Skeleton className="h-8 w-full" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  // 로딩 시에도 기본 UI는 보여주기
+  // if (isLoading) {
+  //   return (
+  //     <div className="space-y-6">
+  //       <div className="flex items-start justify-between gap-4">
+  //         <Skeleton className="h-10 w-32 hidden md:block" />
+  //       </div>
+  //       <Card>
+  //         <CardContent className="pt-6">
+  //           <div className="flex flex-col md:flex-row gap-4">
+  //             <Skeleton className="h-10 flex-1" />
+  //             <Skeleton className="h-10 w-full md:w-[180px]" />
+  //             <Skeleton className="h-10 w-full md:w-[180px]" />
+  //           </div>
+  //         </CardContent>
+  //       </Card>
+  //       <div className="space-y-4">
+  //         {[1, 2, 3].map((i) => (
+  //           <Card key={i}>
+  //             <CardHeader>
+  //               <Skeleton className="h-6 w-3/4" />
+  //               <Skeleton className="h-4 w-1/2" />
+  //             </CardHeader>
+  //             <CardContent className="space-y-3">
+  //               <Skeleton className="h-20 w-full" />
+  //               <Skeleton className="h-8 w-full" />
+  //             </CardContent>
+  //           </Card>
+  //         ))}
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   // 에러 상태
   if (isError) {
@@ -198,11 +195,11 @@ const ReviewPage = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 헤더 및 리뷰 작성 버튼 */}
       <div className="space-y-4">
         {/* 데스크톱: 카드 형태의 리뷰 작성 CTA */}
-        <Card className="hidden md:block bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-primary/20">
+        <Card className="hidden md:block bg-gradient-to-r from-primary/5 via-primary/10 to-primary/20 border-primary/20">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -231,7 +228,7 @@ const ReviewPage = () => {
         </Card>
 
         {/* 모바일: 고정된 형태의 버튼 */}
-        <Card className="md:hidden bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-primary/20">
+        <Card className="md:hidden bg-gradient-to-r from-primary/20 via-primary/30 to-primary/40 border-primary/20">
           <CardContent className="p-4">
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 bg-primary/10 rounded-full">
@@ -255,91 +252,97 @@ const ReviewPage = () => {
           </CardContent>
         </Card>
       </div>
-      {/* Search and Filters */}
-      {/* <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="리뷰 검색..."
-                // value={searchQuery}
-                // onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select
-            // value={sortBy}
-            // onValueChange={(value: any) => setSortBy(value)}
-            >
-              <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="정렬 기준" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="recent">최신순</SelectItem>
-                <SelectItem value="likes">좋아요순</SelectItem>
-                <SelectItem value="achievement">달성률순</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              value={filterDifficulty}
-              onValueChange={(
-                value: 'all' | '쉬웠어요' | '적당했어요' | '힘들었어요'
-              ) => setFilterDifficulty(value)}
-            >
-              <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="난이도 필터" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">전체</SelectItem>
-                <SelectItem value="쉬웠어요">쉬웠어요</SelectItem>
-                <SelectItem value="적당했어요">적당했어요</SelectItem>
-                <SelectItem value="힘들었어요">힘들었어요</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card> */}
 
-      {/* Reviews List */}
-      <div className="space-y-4">
-        {reviews.length === 0 && !isLoading ? (
-          <Card className="border-dashed">
-            <CardContent className="pt-12 pb-12 text-center">
-              <Star className="h-16 w-16 mx-auto mb-6 text-muted-foreground" />
-              <h3 className="text-xl font-medium mb-3">리뷰가 없습니다</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                목표를 완료하고 첫 번째 리뷰를 작성해보세요!
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            {reviews.map((review) => (
-              <ReviewCard
-                key={review.id}
-                review={review}
-                onLike={handleLikeReview}
-                showComments={true}
-              />
-            ))}
+      {/* Tabs */}
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) =>
+          setActiveTab(value as 'all' | 'popular' | 'myReview')
+        }
+      >
+        <TabsList className="grid w-full grid-cols-3 h-14 p-1.5 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border border-slate-200 dark:border-slate-700">
+          <TabsTrigger
+            value="all"
+            className="gap-2 h-full text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-slate-200 dark:data-[state=active]:border-slate-700 transition-all"
+          >
+            <Star className="h-5 w-5" />
+            전체
+          </TabsTrigger>
+          <TabsTrigger
+            value="popular"
+            className="gap-2 h-full text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-slate-200 dark:data-[state=active]:border-slate-700 transition-all"
+          >
+            <TrendingUp className="h-5 w-5" />
+            인기순
+          </TabsTrigger>
+          <TabsTrigger
+            value="myReview"
+            className="gap-2 h-full text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-slate-200 dark:data-[state=active]:border-slate-700 transition-all"
+          >
+            <User className="h-5 w-5" />
+            나의 리뷰
+          </TabsTrigger>
+        </TabsList>
 
-            {/* 무한 스크롤 트리거 */}
-            <div ref={observerTarget} className="py-4">
-              {isFetchingNextPage && (
-                <div className="flex justify-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <TabsContent value={activeTab} className="mt-3">
+          {/* Reviews List */}
+          <div className="space-y-4">
+            {isLoading ? (
+              // 로딩 중 스켈레톤
+              <>
+                {[1, 2, 3].map((i) => (
+                  <Card key={i}>
+                    <CardHeader>
+                      <Skeleton className="h-6 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <Skeleton className="h-20 w-full" />
+                      <Skeleton className="h-8 w-full" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </>
+            ) : reviews.length === 0 ? (
+              <Card className="border-dashed">
+                <CardContent className="pt-12 pb-12 text-center">
+                  <Star className="h-16 w-16 mx-auto mb-6 text-muted-foreground" />
+                  <h3 className="text-xl font-medium mb-3">리뷰가 없습니다</h3>
+                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                    목표를 완료하고 첫 번째 리뷰를 작성해보세요!
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                {reviews.map((review) => (
+                  <ReviewCard
+                    key={review.id}
+                    review={review}
+                    onLike={handleLikeReview}
+                    showComments={true}
+                  />
+                ))}
+
+                {/* 무한 스크롤 트리거 */}
+                <div ref={observerTarget} className="py-4">
+                  {isFetchingNextPage && (
+                    <div className="flex justify-center">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                  )}
+                  {!hasNextPage && reviews.length > 0 && (
+                    <p className="text-center text-sm text-muted-foreground">
+                      모든 리뷰를 불러왔습니다
+                    </p>
+                  )}
                 </div>
-              )}
-              {!hasNextPage && reviews.length > 0 && (
-                <p className="text-center text-sm text-muted-foreground">
-                  모든 리뷰를 불러왔습니다
-                </p>
-              )}
-            </div>
-          </>
-        )}
-      </div>
+              </>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
+
       {isMobile ? (
         <Drawer
           open={showReviewForm}

@@ -11,7 +11,6 @@ import {
   TrendingUp,
   Clock,
   Award,
-  EyeOff,
   ChevronDown,
   ChevronUp,
   AlertTriangle,
@@ -29,6 +28,7 @@ import {
   MoreVertical,
   ZoomIn,
   ChevronsDown,
+  EyeOff,
 } from 'lucide-react';
 import { DIET_METHODS } from '../../types/review.type';
 import type { Review } from '../../types/review.type';
@@ -203,7 +203,7 @@ const ReviewCard = ({
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
-      <CardHeader className="pb-3">
+      <CardHeader className="">
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10">
             <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
@@ -248,13 +248,6 @@ const ReviewCard = ({
                 >
                   <PenLine className="h-2.5 w-2.5" />
                   자유 후기
-                </Badge>
-              )}
-
-              {review.isPrivate && (
-                <Badge variant="secondary" className="gap-1 h-5 text-xs">
-                  <EyeOff className="h-2.5 w-2.5" />
-                  비공개
                 </Badge>
               )}
             </div>

@@ -47,10 +47,11 @@ export const createReview = async (data: CreateReviewRequest) => {
  */
 export const getReviewList = async (
   page: number = 0,
-  size: number = 10
+  size: number = 10,
+  category: 'all' | 'popular' | 'myReview' = 'all'
 ): Promise<ReviewListResponse> => {
   const response = await api.get('/review/getReviewList', {
-    params: { page, size },
+    params: { page, size, category },
   });
   return response.data;
 };

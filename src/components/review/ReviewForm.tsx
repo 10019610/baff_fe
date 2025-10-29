@@ -189,7 +189,18 @@ export default function ReviewForm({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // 파일 크기 체크 (예: 5MB 제한)
+    // 허용된 이미지 확장자 목록
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+
+    if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
+      toast.error(
+        'JPG, JPEG, PNG, GIF, WEBP 형식의 이미지만 업로드 가능합니다'
+      );
+      return;
+    }
+
+    // 파일 크기 체크 (5MB 제한)
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
       toast.error('이미지 크기는 5MB 이하여야 합니다');
@@ -740,6 +751,15 @@ export default function ReviewForm({
             <p className="text-sm text-muted-foreground">
               식단, 운동, 변화 등 관련 사진을 최대 2장까지 첨부할 수 있습니다
             </p>
+            <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20">
+              <AlertDescription className="text-xs text-blue-800 dark:text-blue-200">
+                <ul className="list-disc list-inside space-y-1">
+                  <li>허용 형식: JPG, JPEG, PNG, GIF, WEBP</li>
+                  <li>최대 용량: 5MB</li>
+                  <li>최대 2장까지 업로드 가능</li>
+                </ul>
+              </AlertDescription>
+            </Alert>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Photo 1 */}
               <div className="space-y-2">
@@ -756,18 +776,12 @@ export default function ReviewForm({
                       alt="업로드된 이미지 1"
                       className="w-full h-full object-cover"
                     />
-                    {uploadImagesMutation.isPending && photoFiles[0] ? (
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                        <Loader2 className="h-8 w-8 text-white animate-spin" />
-                      </div>
-                    ) : null}
                     <Button
                       type="button"
                       variant="destructive"
                       size="sm"
                       className="absolute top-2 right-2 z-10"
                       onClick={() => handlePhotoRemove(0)}
-                      disabled={uploadImagesMutation.isPending}
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -777,23 +791,16 @@ export default function ReviewForm({
                     htmlFor="photo-1"
                     className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary hover:bg-muted/50 transition-colors"
                   >
-                    {uploadImagesMutation.isPending ? (
-                      <Loader2 className="h-8 w-8 text-muted-foreground mb-2 animate-spin" />
-                    ) : (
-                      <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                    )}
+                    <Upload className="h-8 w-8 text-muted-foreground mb-2" />
                     <span className="text-sm text-muted-foreground">
-                      {uploadImagesMutation.isPending
-                        ? '업로드 중...'
-                        : '사진 업로드'}
+                      사진 업로드
                     </span>
                     <input
                       id="photo-1"
                       type="file"
-                      accept="image/*"
+                      accept=".jpg,.jpeg,.png,.gif,.webp"
                       className="hidden"
                       onChange={(e) => handlePhotoUpload('before', e)}
-                      disabled={uploadImagesMutation.isPending}
                     />
                   </Label>
                 )}
@@ -814,18 +821,12 @@ export default function ReviewForm({
                       alt="업로드된 이미지 2"
                       className="w-full h-full object-cover"
                     />
-                    {uploadImagesMutation.isPending && photoFiles[1] ? (
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                        <Loader2 className="h-8 w-8 text-white animate-spin" />
-                      </div>
-                    ) : null}
                     <Button
                       type="button"
                       variant="destructive"
                       size="sm"
                       className="absolute top-2 right-2 z-10"
                       onClick={() => handlePhotoRemove(1)}
-                      disabled={uploadImagesMutation.isPending}
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -835,23 +836,16 @@ export default function ReviewForm({
                     htmlFor="photo-2"
                     className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary hover:bg-muted/50 transition-colors"
                   >
-                    {uploadImagesMutation.isPending ? (
-                      <Loader2 className="h-8 w-8 text-muted-foreground mb-2 animate-spin" />
-                    ) : (
-                      <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                    )}
+                    <Upload className="h-8 w-8 text-muted-foreground mb-2" />
                     <span className="text-sm text-muted-foreground">
-                      {uploadImagesMutation.isPending
-                        ? '업로드 중...'
-                        : '사진 업로드'}
+                      사진 업로드
                     </span>
                     <input
                       id="photo-2"
                       type="file"
-                      accept="image/*"
+                      accept=".jpg,.jpeg,.png,.gif,.webp"
                       className="hidden"
                       onChange={(e) => handlePhotoUpload('after', e)}
-                      disabled={uploadImagesMutation.isPending}
                     />
                   </Label>
                 )}
