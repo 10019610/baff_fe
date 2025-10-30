@@ -208,7 +208,7 @@ const ReviewPage = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg">
-                    다이어트 성공 경험을 공유해보세요!
+                    다이어트 경험을 공유해보세요!
                   </h3>
                   <p className="text-sm text-muted-foreground">
                     당신의 노하우가 다른 사람들에게 큰 도움이 됩니다
@@ -235,9 +235,9 @@ const ReviewPage = () => {
                 <Star className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold">성공 경험을 공유해보세요!</h3>
+                <h3 className="font-semibold">다이어트 경험을 공유해보세요!</h3>
                 <p className="text-xs text-muted-foreground">
-                  다른 사람들에게 동기부여를 주세요
+                  다른 사람들에게 동기부여와 유용한 정보를 제공해주세요
                 </p>
               </div>
             </div>
