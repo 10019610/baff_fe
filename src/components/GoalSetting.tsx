@@ -114,9 +114,9 @@ const GoalSetting = ({
   };
   /* 진행률 계산 handler */
   const calculateProgress = (goal: Goal) => {
-    if (!currentWeight) return 0;
+    if (!goal.currentWeight) return 0;
     const totalChange = goal.targetWeight - goal.startWeight;
-    const currentChange = currentWeight - goal.startWeight;
+    const currentChange = goal.currentWeight - goal.startWeight;
 
     if (totalChange === 0) return 100;
 
@@ -215,7 +215,7 @@ const GoalSetting = ({
               {/* <h3 className="text-lg font-medium">설정된 목표</h3> */}
               {goalList.map((goal) => {
                 const progress = calculateProgress(goal);
-                console.log('progress', progress);
+                console.log('progress', progress, goal.goalsId);
                 const today = new Date();
                 const daysRemaining = handleGetDaysRemaining(
                   String(today),
@@ -239,10 +239,7 @@ const GoalSetting = ({
                         </CardTitle>
                         <div className="flex items-center gap-2">
                           {getStatusBadge(goal.isExpired, goal)}
-                          <div>
-                            {progress}
-                            ddddddddddddddddddddddd
-                          </div>
+                          <div>{progress}%</div>
 
                           <Button
                             variant="ghost"
