@@ -100,6 +100,13 @@ const GoalSetting = ({
             완료
           </Badge>
         );
+      } else {
+        return (
+          <Badge className="bg-green-500 text-white">
+            <CheckCircle className="h-3 w-3 mr-1" />
+            테스트
+          </Badge>
+        );
       }
     } else {
       return <Badge variant="secondary">진행중</Badge>;
@@ -107,9 +114,9 @@ const GoalSetting = ({
   };
   /* 진행률 계산 handler */
   const calculateProgress = (goal: Goal) => {
-    if (!currentWeight) return 0;
+    if (!goal.currentWeight) return 0;
     const totalChange = goal.targetWeight - goal.startWeight;
-    const currentChange = currentWeight - goal.startWeight;
+    const currentChange = goal.currentWeight - goal.startWeight;
 
     if (totalChange === 0) return 100;
 
