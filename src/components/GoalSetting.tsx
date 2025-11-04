@@ -215,7 +215,6 @@ const GoalSetting = ({
               {/* <h3 className="text-lg font-medium">설정된 목표</h3> */}
               {goalList.map((goal) => {
                 const progress = calculateProgress(goal);
-                console.log('progress', progress, goal.goalsId);
                 const today = new Date();
                 const daysRemaining = handleGetDaysRemaining(
                   String(today),
@@ -239,8 +238,6 @@ const GoalSetting = ({
                         </CardTitle>
                         <div className="flex items-center gap-2">
                           {getStatusBadge(goal.isExpired, goal)}
-                          <div>{progress}%</div>
-
                           <Button
                             variant="ghost"
                             size="sm"
