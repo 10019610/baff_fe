@@ -100,6 +100,13 @@ const GoalSetting = ({
             완료
           </Badge>
         );
+      } else {
+        return (
+          <Badge className="bg-green-500 text-white">
+            <CheckCircle className="h-3 w-3 mr-1" />
+            테스트
+          </Badge>
+        );
       }
     } else {
       return <Badge variant="secondary">진행중</Badge>;
@@ -208,6 +215,7 @@ const GoalSetting = ({
               {/* <h3 className="text-lg font-medium">설정된 목표</h3> */}
               {goalList.map((goal) => {
                 const progress = calculateProgress(goal);
+                console.log('progress', progress);
                 const today = new Date();
                 const daysRemaining = handleGetDaysRemaining(
                   String(today),
@@ -231,6 +239,11 @@ const GoalSetting = ({
                         </CardTitle>
                         <div className="flex items-center gap-2">
                           {getStatusBadge(goal.isExpired, goal)}
+                          <div>
+                            {progress}
+                            ddddddddddddddddddddddd
+                          </div>
+
                           <Button
                             variant="ghost"
                             size="sm"
