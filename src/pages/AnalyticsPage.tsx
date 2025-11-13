@@ -520,15 +520,11 @@ const AnalyticsPage = () => {
           <AlertDescription>
             <div className="flex items-center justify-between">
               <span>
-                현재 목표:{' '}
-                <strong>{goalList[goalList.length - 1].title}</strong>
-                <div>
-                  (목표 체중: {goalList[goalList.length - 1].targetWeight}kg)
-                </div>
+                현재 목표: <strong>{goalList[0].title}</strong>
+                <div>(목표 체중: {goalList[0].targetWeight}kg)</div>
               </span>
               <Badge variant="default" className="ml-20">
-                {calculateProgress(goalList[goalList.length - 1]).toFixed(0)}%
-                달성
+                {calculateProgress(goalList[0]).toFixed(0)}% 달성
               </Badge>
             </div>
           </AlertDescription>

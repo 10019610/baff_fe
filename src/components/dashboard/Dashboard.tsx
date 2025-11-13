@@ -25,7 +25,7 @@ import type { WeightEntry } from '../../types/WeightTracker.api.type';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import LoginModal from '../auth/LoginModal';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface WeightStats {
   currentWeight: number;
@@ -101,9 +101,9 @@ const Dashboard = ({
   const hasGoals = goals.length > 0;
   const [loginOpen, setLoginOpen] = useState(() => !isAuthenticated);
 
-  useEffect(() => {
-    setLoginOpen(!isAuthenticated);
-  }, [isAuthenticated]);
+  // useEffect(() => {
+  //   setLoginOpen(!isAuthenticated);
+  // }, [isAuthenticated]);
 
   const guestView = (
     <div className="space-y-8 max-w-4xl mx-auto">
