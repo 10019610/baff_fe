@@ -24,8 +24,6 @@ import type { GetGoalListResponse } from '../../types/Goals.api.type';
 import type { WeightEntry } from '../../types/WeightTracker.api.type';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import LoginModal from '../auth/LoginModal';
-import { useState } from 'react';
 
 interface WeightStats {
   currentWeight: number;
@@ -99,12 +97,6 @@ const Dashboard = ({
   const stats = getCurrentStats();
   const hasData = stats !== null;
   const hasGoals = goals.length > 0;
-  const [loginOpen, setLoginOpen] = useState(() => !isAuthenticated);
-
-  // useEffect(() => {
-  //   setLoginOpen(!isAuthenticated);
-  // }, [isAuthenticated]);
-
   const guestView = (
     <div className="space-y-8 max-w-4xl mx-auto">
       {/* Hero Section */}
@@ -224,9 +216,6 @@ const Dashboard = ({
   // 데이터가 있는 경우의 대시보드
   return (
     <>
-      {!isAuthenticated && (
-        <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
-      )}
       {!isAuthenticated || !hasData ? (
         guestView
       ) : (
