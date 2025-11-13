@@ -1,6 +1,6 @@
 import { PenSquare, Star, Loader2, TrendingUp, User } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { Drawer, DrawerContent, DrawerTitle } from '../components/ui/drawer';
 import { Dialog, DialogContent, DialogTitle } from '../components/ui/dialog';
 import ReviewForm from '../components/review/ReviewForm';
@@ -18,6 +18,8 @@ import type { Review, ReviewListItem } from '../types/review.type';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getReviewList } from '../services/api/review.api';
+import { useAuth } from '../context/AuthContext';
+import LoginModal from '../components/auth/LoginModal';
 
 // ReviewListItem을 Review 인터페이스로 변환하는 헬퍼 함수
 const convertToReview = (item: ReviewListItem): Review => ({
@@ -59,6 +61,15 @@ const ReviewPage = () => {
   // 무한 스크롤을 위한 observer ref
   const observerTarget = useRef<HTMLDivElement>(null);
 
+  // Pull-to-refresh를 위한 ref
+  const pullToRefreshRef = useRef<HTMLDivElement>(null);
+
+  // Pull-to-refresh 상태
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isPulling, setIsPulling] = useState(false);
+  const touchStartY = useRef<number | null>(null);
+  const pullThreshold = 80; // 새로고침 트리거 임계값 (px)
+
   // URL 파라미터에서 ID 가져오기
   const { id } = useParams();
 
@@ -77,6 +88,8 @@ const ReviewPage = () => {
     isFetchingNextPage,
     isLoading,
     isError,
+    refetch,
+    isRefetching,
   } = useInfiniteQuery({
     queryKey: ['reviewList', activeTab],
     queryFn: ({ pageParam = 0 }) => getReviewList(pageParam, 10, activeTab),
@@ -115,6 +128,88 @@ const ReviewPage = () => {
     };
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
+  // Pull-to-refresh 핸들러 (네이티브 이벤트용)
+  const handleTouchStartNative = useCallback(
+    (e: TouchEvent) => {
+      // 최상단에서만 작동
+      if (window.scrollY === 0 && !isRefetching) {
+        touchStartY.current = e.touches[0].clientY;
+        setIsPulling(true);
+      }
+    },
+    [isRefetching]
+  );
+
+  const handleTouchMoveNative = useCallback(
+    (e: TouchEvent) => {
+      if (touchStartY.current === null || window.scrollY > 0 || isRefetching) {
+        return;
+      }
+
+      const currentY = e.touches[0].clientY;
+      const distance = currentY - touchStartY.current;
+
+      // 아래로 당기는 경우만 처리
+      if (distance > 0) {
+        e.preventDefault(); // 스크롤 방지
+        // 부드러운 감쇠 효과를 위한 계산 (resistive pull)
+        const maxDistance = pullThreshold * 2;
+        const resistiveDistance =
+          distance < pullThreshold
+            ? distance
+            : pullThreshold + (distance - pullThreshold) * 0.3;
+        setPullDistance(Math.min(resistiveDistance, maxDistance));
+      } else {
+        // 위로 올리면 초기화
+        touchStartY.current = null;
+        setPullDistance(0);
+        setIsPulling(false);
+      }
+    },
+    [isRefetching]
+  );
+
+  const handleTouchEndNative = useCallback(() => {
+    if (touchStartY.current === null) return;
+
+    setPullDistance((currentDistance) => {
+      if (currentDistance >= pullThreshold) {
+        // 새로고침 실행
+        // refetch 중에는 pullDistance를 유지하여 인디케이터 표시
+        refetch();
+        return pullThreshold;
+      } else {
+        // 임계값 미만이면 원래 위치로 복귀
+        touchStartY.current = null;
+        setIsPulling(false);
+        return 0;
+      }
+    });
+  }, [refetch]);
+
+  // Pull-to-refresh 이벤트 리스너 등록
+  useEffect(() => {
+    const element = pullToRefreshRef.current;
+    if (!element) return;
+
+    // passive: false로 설정하여 preventDefault 사용 가능
+    element.addEventListener('touchstart', handleTouchStartNative, {
+      passive: false,
+    });
+    element.addEventListener('touchmove', handleTouchMoveNative, {
+      passive: false,
+    });
+    element.addEventListener('touchend', handleTouchEndNative, {
+      passive: true,
+    });
+
+    return () => {
+      element.removeEventListener('touchstart', handleTouchStartNative);
+      element.removeEventListener('touchmove', handleTouchMoveNative);
+      element.removeEventListener('touchend', handleTouchEndNative);
+    };
+  }, [handleTouchStartNative, handleTouchMoveNative, handleTouchEndNative]);
+
   const handleOpenReviewForm = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.currentTarget.blur(); // 버튼에서 포커스 제거
     setShowReviewForm(true);
@@ -139,6 +234,27 @@ const ReviewPage = () => {
       setShowReviewForm(true);
     }
   }, [isFromGoalOrBattle, isLoading]);
+
+  // refetch 시작 시 pullDistance 유지
+  useEffect(() => {
+    if (isRefetching && pullDistance < pullThreshold) {
+      setPullDistance(pullThreshold);
+    }
+  }, [isRefetching, pullDistance]);
+
+  // refetch 완료 시 pull 상태 초기화
+  useEffect(() => {
+    if (!isRefetching && (isPulling || pullDistance > 0)) {
+      // 부드러운 복귀를 위해 약간의 딜레이
+      const timer = setTimeout(() => {
+        setIsPulling(false);
+        setPullDistance(0);
+        touchStartY.current = null;
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isRefetching, isPulling, pullDistance]);
 
   // 로딩 시에도 기본 UI는 보여주기
   // if (isLoading) {
@@ -194,6 +310,13 @@ const ReviewPage = () => {
     );
   }
 
+  const { isAuthenticated } = useAuth();
+  const [loginOpen, setLoginOpen] = useState(false);
+
+  if (!isAuthenticated && loginOpen) {
+    return <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />;
+  }
+
   return (
     <div className="space-y-4">
       {/* 헤더 및 리뷰 작성 버튼 */}
@@ -216,7 +339,14 @@ const ReviewPage = () => {
                 </div>
               </div>
               <Button
-                onClick={handleOpenReviewForm}
+                onClick={(e) => {
+                  e.currentTarget.blur();
+                  if (isAuthenticated) {
+                    handleOpenReviewForm(e);
+                  } else {
+                    setLoginOpen(true);
+                  }
+                }}
                 size="lg"
                 className="gap-2 shadow-md hover:shadow-lg transition-shadow cursor-pointer"
               >
@@ -242,7 +372,14 @@ const ReviewPage = () => {
               </div>
             </div>
             <Button
-              onClick={handleOpenReviewForm}
+              onClick={(e) => {
+                e.currentTarget.blur();
+                if (isAuthenticated) {
+                  handleOpenReviewForm(e);
+                } else {
+                  setLoginOpen(true);
+                }
+              }}
               className="w-full gap-2"
               size="lg"
             >
@@ -276,6 +413,14 @@ const ReviewPage = () => {
             인기순
           </TabsTrigger>
           <TabsTrigger
+            onClick={(e) => {
+              if (!isAuthenticated) {
+                setLoginOpen(true);
+                return;
+              }
+              e.currentTarget.blur();
+              setActiveTab('myReview');
+            }}
             value="myReview"
             className="gap-2 h-full text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-slate-200 dark:data-[state=active]:border-slate-700 transition-all"
           >
@@ -285,9 +430,57 @@ const ReviewPage = () => {
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-3">
+          {/* Pull-to-refresh 인디케이터 공간 */}
+          <div
+            className="flex items-center justify-center overflow-hidden"
+            style={{
+              height:
+                isPulling || isRefetching
+                  ? `${Math.min(pullDistance || (isRefetching ? pullThreshold : 0), pullThreshold)}px`
+                  : '0px',
+              transition:
+                isPulling || isRefetching
+                  ? 'none'
+                  : 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+          >
+            {(isPulling || isRefetching) && (
+              <div
+                className="flex items-center gap-2"
+                style={{
+                  opacity: isRefetching
+                    ? 1
+                    : Math.min(Math.max((pullDistance || 0) / 30, 0), 1),
+                  transition: isRefetching ? 'opacity 0.2s ease-in' : 'none',
+                }}
+              >
+                {pullDistance >= pullThreshold || isRefetching ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      새로고침 중...
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Loader2
+                      className="h-4 w-4 text-muted-foreground transition-transform duration-75"
+                      style={{
+                        transform: `rotate(${((pullDistance || 0) / pullThreshold) * 360}deg)`,
+                      }}
+                    />
+                    {/* <span className="text-sm text-muted-foreground">
+                      {Math.round(((pullDistance || 0) / pullThreshold) * 100)}%
+                    </span> */}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Reviews List */}
-          <div className="space-y-4">
-            {isLoading ? (
+          <div ref={pullToRefreshRef} className="space-y-4">
+            {isLoading || isRefetching ? (
               // 로딩 중 스켈레톤
               <>
                 {[1, 2, 3].map((i) => (

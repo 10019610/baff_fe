@@ -29,6 +29,8 @@ import AnimatedContainer from './weightTracker/AnimatedContainer.tsx';
 import { useState } from 'react';
 import GoalsCreate from './GoalsCreate.tsx';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import LoginModal from './auth/LoginModal.tsx';
 
 interface GoalSettingProps {
   onClickRecord: () => void;
@@ -70,6 +72,7 @@ const GoalSetting = ({
   /* 목표 설정 생성 컴포넌트 상태 */
   const [showCreateGoal, setShowCreateGoal] = useState(false);
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   /**
    * UI
    */
@@ -168,6 +171,11 @@ const GoalSetting = ({
       }
     }
   };
+  const [loginOpen, setLoginOpen] = useState(false);
+
+  if (!isAuthenticated && loginOpen) {
+    return <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />;
+  }
 
   return (
     <div className="space-y-6">
@@ -187,7 +195,13 @@ const GoalSetting = ({
           <AnimatedContainer>
             <Card
               className="hover:shadow-lg transition-all duration-200 cursor-pointer group border-2 border-primary/40 bg-gradient-to-br from-primary/20 to-primary/30 hover:from-primary/25 hover:to-primary/35 hover:border-primary/50 hover:scale-[1.02]"
-              onClick={() => setShowCreateGoal(true)}
+              onClick={() => {
+                if (isAuthenticated) {
+                  setShowCreateGoal(true);
+                } else {
+                  setLoginOpen(true);
+                }
+              }}
             >
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
@@ -210,7 +224,7 @@ const GoalSetting = ({
             </Card>
           </AnimatedContainer>
           {/* Active Goals */}
-          {goalList.length > 0 && (
+          {goalList.length > 0 && isAuthenticated && (
             <div className="space-y-4 mt-4">
               {/* <h3 className="text-lg font-medium">설정된 목표</h3> */}
               {goalList.map((goal) => {
@@ -418,19 +432,20 @@ const GoalSetting = ({
               })}
             </div>
           )}
-          {goalList.length === 0 && (
-            <Card className="mt-4">
-              <CardContent className="pt-6 text-center">
-                <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-medium mb-2">
-                  아직 설정된 목표가 없습니다.
-                </h3>
-                <p className="text-muted-foreground">
-                  첫 번째 체중 목표를 설정하여 건강한 변화를 시작해보세요!
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          {goalList.length === 0 ||
+            (!isAuthenticated && (
+              <Card className="mt-4">
+                <CardContent className="pt-6 text-center">
+                  <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-medium mb-2">
+                    아직 설정된 목표가 없습니다.
+                  </h3>
+                  <p className="text-muted-foreground">
+                    첫 번째 체중 목표를 설정하여 건강한 변화를 시작해보세요!
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
         </div>
       )}
     </div>

@@ -31,6 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../ui/alert-dialog';
+import LoginModal from '../auth/LoginModal';
 
 interface CommentSectionProps {
   reviewId: string;
@@ -43,7 +44,9 @@ const CommentSection = ({
   onCommentCountChange,
   onClose,
 }: CommentSectionProps) => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+
+  const [loginOpen, setLoginOpen] = useState(false);
 
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null); // 답글 대상 닉네임
@@ -72,32 +75,6 @@ const CommentSection = ({
       onCommentCountChange(comments.length);
     }
   }, [comments.length, onCommentCountChange]);
-
-  // 디버깅: 사용자 ID와 댓글 작성자 ID 비교
-  React.useEffect(() => {
-    if (comments.length > 0 && user) {
-      console.log('Current user:', {
-        id: user.id,
-        userId: user.userId,
-        idType: typeof user.id,
-        userIdType: typeof user.userId,
-        'Number(user.id)': Number(user.id),
-      });
-      comments.forEach((comment) => {
-        console.log(
-          `Comment ${comment.commentId} - Author ID:`,
-          comment.userId,
-          typeof comment.userId,
-          'Match with user.userId:',
-          user.userId === comment.userId,
-          'Match with user.id (string):',
-          comment.userId.toString() === user.id,
-          'Match with Number(user.id):',
-          Number(user.id) === comment.userId
-        );
-      });
-    }
-  }, [comments, user]);
 
   // 댓글 작성 mutation
   const createCommentMutation = useMutation({
@@ -142,6 +119,10 @@ const CommentSection = ({
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAuthenticated) {
+      setLoginOpen(true);
+      return;
+    }
 
     if (!newComment.trim()) {
       toast.error('댓글 내용을 입력해주세요');
@@ -227,6 +208,9 @@ const CommentSection = ({
 
   return (
     <div className="space-y-4">
+      {!isAuthenticated && (
+        <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
+      )}
       <div className="flex items-center gap-2">
         <MessageCircle className="h-5 w-5 text-muted-foreground" />
         <h3 className="font-medium">댓글 {comments.length}</h3>

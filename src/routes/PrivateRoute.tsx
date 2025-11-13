@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import HeightInputModal from '../components/modals/HeightInputModal';
 import { useState, useEffect } from 'react';
@@ -31,9 +31,9 @@ const PrivateRoute = () => {
   }
 
   // 2. 로딩이 끝난 후, 확정된 isAuthenticated 값으로 판단합니다.
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  // if (!isAuthenticated) {
+  //   return <Navigate to="/login" replace />;
+  // }
 
   // 키 정보 저장 핸들러
   const handleHeightSaved = (height: number) => {
@@ -50,8 +50,7 @@ const PrivateRoute = () => {
       <Outlet />
       <HeightInputModal
         isOpen={showHeightModal}
-        onClose={() => {
-        }} // 필수 입력이므로 닫기 불가
+        onClose={() => {}} // 필수 입력이므로 닫기 불가
         onHeightSaved={handleHeightSaved}
       />
     </>

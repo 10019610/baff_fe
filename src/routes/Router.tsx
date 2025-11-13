@@ -53,6 +53,7 @@ const Router = () => {
             <Route path="withdrawal" element={<WithdrawalPage />} />
           </Route>
         </Route>
+
         <Route path="/legal">
           <Route path="privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="terms" element={<TermsPage />} />

@@ -1,15 +1,3 @@
-// import { Button } from '../ui/button';
-// import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-// import {
-//   DropdownMenu,
-//   DropdownMenuContent,
-//   DropdownMenuItem,
-//   DropdownMenuLabel,
-//   DropdownMenuSeparator,
-//   DropdownMenuTrigger,
-// } from '../ui/dropdown-menu';
-// import { Badge } from '../ui/badge';
-// import { LogOut, User, Settings, Crown } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.tsx';
 import {
   DropdownMenu,
@@ -21,10 +9,12 @@ import {
 } from '../ui/dropdown-menu.tsx';
 import { Button } from '../ui/button.tsx';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar.tsx';
-import { Crown, LogOut, Settings, ShieldUser, User } from 'lucide-react';
+import { Crown, LogOut, ShieldUser, User } from 'lucide-react';
 import { Badge } from '../ui/badge.tsx';
 import { api } from '../../services/api/Api.ts';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import LoginModal from '../auth/LoginModal.tsx';
 
 interface UserMenuProps {
   onProfileClick: (userId: string) => void;
@@ -35,21 +25,41 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
   /**
    * Hooks
    */
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  //
-  if (!user) return null;
+
+  const goToLogin = () => {
+    setLoginOpen(true);
+  };
+  const [loginOpen, setLoginOpen] = useState(false);
+
+  if (!isAuthenticated || !user) {
+    return (
+      <>
+        <Button
+          variant="ghost"
+          className="relative h-10 w-10 rounded-full p-0"
+          onClick={goToLogin}
+        >
+          <Avatar className="h-8 w-8 p-1 cursor-pointer">
+            <AvatarImage src="/user-not.png" alt="default-profile" />
+          </Avatar>
+        </Button>
+        <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
+      </>
+    );
+  }
   //
   const getProviderBadge = () => {
     if (user.provider === 'google') {
       return (
         <Badge className="bg-[#0F9D58] text-[#FFFFFF] font-bold">GOOGLE</Badge>
       );
-    } else if (user.provider  === 'kakao') {
+    } else if (user.provider === 'kakao') {
       return (
         <Badge className="bg-[#FEE102] text-[#3C1E1E] font-bold">KAKAO</Badge>
       );
-    } else if (user.provider  === 'toss') {
+    } else if (user.provider === 'toss') {
       return (
         <Badge className="bg-[#0064FF] text-[#FFFFFF] font-bold">TOSS</Badge>
       );
@@ -112,10 +122,10 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
           <User className="mr-2 h-4 w-4" />
           <span>프로필</span>
         </DropdownMenuItem>
-        <DropdownMenuItem className="cursor-pointer">
+        {/* <DropdownMenuItem className="cursor-pointer">
           <Settings className="mr-2 h-4 w-4" />
           <span>설정</span>
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
         {user.role === 'ADMIN' && (
           <DropdownMenuItem
             className="cursor-pointer"

@@ -54,6 +54,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Dialog, DialogContent } from '../ui/dialog';
+import LoginModal from '../auth/LoginModal.tsx';
 
 interface ReviewCardProps {
   review: Review;
@@ -68,7 +69,7 @@ const ReviewCard = ({
   showComments = true,
   onDelete,
 }: ReviewCardProps) => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCommentSection, setShowCommentSection] = useState(false);
@@ -81,7 +82,7 @@ const ReviewCard = ({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const imageContainerRef = useRef<HTMLDivElement>(null);
-
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
   // 좋아요 토글 mutation
   const toggleLikeMutation = useMutation({
     mutationFn: () => toggleReviewLike(review.id),
@@ -114,6 +115,10 @@ const ReviewCard = ({
   });
 
   const handleLike = () => {
+    if (!isAuthenticated) {
+      setLoginModalOpen(true);
+      return;
+    }
     // 낙관적 업데이트: 즉시 UI 반영
     if (hasLiked) {
       setLocalLikes(localLikes - 1);
@@ -691,6 +696,11 @@ const ReviewCard = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* 로그인 모달 */}
+      {loginModalOpen && (
+        <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} />
+      )}
     </Card>
   );
 };

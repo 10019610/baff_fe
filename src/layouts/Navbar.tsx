@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { Badge } from '../components/ui/badge.tsx';
 import { cn } from '../components/ui/utils.tsx';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import LoginModal from '../components/auth/LoginModal';
 
 interface NavMenuItem {
   id: string;
@@ -24,6 +26,7 @@ const Navbar = () => {
   // navigator
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   // navbar 메뉴 active 제어
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   // Navbar Item 정의 용도 데이터
@@ -80,9 +83,22 @@ const Navbar = () => {
   }, [location.pathname]);
 
   const handleNavMenuChange = (navMenu: NavMenuItem) => {
+    if (
+      !isAuthenticated &&
+      (navMenu.id == 'battle' || navMenu.id == 'analytics')
+    ) {
+      setLoginOpen(true);
+      return;
+    }
     setActiveMenu(navMenu.id);
     navigate(navMenu.url);
   };
+
+  const [loginOpen, setLoginOpen] = useState(false);
+
+  if (!isAuthenticated && loginOpen) {
+    return <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />;
+  }
 
   return (
     <div>
@@ -131,7 +147,9 @@ const Navbar = () => {
             return (
               <button
                 key={item.id}
-                onClick={() => handleNavMenuChange(item)}
+                onClick={() => {
+                  handleNavMenuChange(item);
+                }}
                 className={cn(
                   'flex flex-col items-center justify-center gap-1 relative transition-colors',
                   isActive

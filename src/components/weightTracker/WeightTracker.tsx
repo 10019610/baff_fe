@@ -20,6 +20,8 @@ import type {
   WeightEntry,
 } from '../../types/WeightTracker.api.type';
 import WeightCreate from './WeightCreate';
+import LoginModal from '../auth/LoginModal';
+import { useAuth } from '../../context/AuthContext';
 
 interface WeightTrackerProps {
   onClickRecord: () => void;
@@ -55,6 +57,8 @@ const WeightTracker = forwardRef<WeightTrackerRef, WeightTrackerProps>(
     },
     ref
   ) => {
+    const { isAuthenticated } = useAuth();
+    const [loginOpen, setLoginOpen] = useState(false);
     const [showWeightCreate, setShowWeightCreate] = useState(false);
 
     // 페이징 상태
@@ -208,9 +212,11 @@ const WeightTracker = forwardRef<WeightTrackerRef, WeightTrackerProps>(
         </div>
       );
     }
-
     return (
       <div>
+        {!isAuthenticated && (
+          <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
+        )}
         {/* 체중 기록하기 폼 */}
         {showWeightCreate ? (
           <WeightCreate
@@ -227,7 +233,13 @@ const WeightTracker = forwardRef<WeightTrackerRef, WeightTrackerProps>(
             <AnimatedContainer>
               <Card
                 className="hover:shadow-lg transition-all duration-200 cursor-pointer group border-2 border-primary/40 bg-gradient-to-br from-primary/20 to-primary/30 hover:from-primary/25 hover:to-primary/35 hover:border-primary/50 hover:scale-[1.02]"
-                onClick={() => setShowWeightCreate(true)}
+                onClick={() => {
+                  if (isAuthenticated) {
+                    setShowWeightCreate(true);
+                  } else {
+                    setLoginOpen(true);
+                  }
+                }}
               >
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-4">

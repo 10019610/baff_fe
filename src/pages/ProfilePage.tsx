@@ -82,7 +82,13 @@ const ProfilePage = () => {
       textColor: 'text-white',
     };
   };
-
+  const getActivityDays = () => {
+    const today = new Date();
+    const regDate = new Date(userInfo.regDateTime);
+    const diffTime = Math.abs(today.getTime() - regDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
   const providerInfo = getProviderInfo();
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -119,7 +125,7 @@ const ProfilePage = () => {
                 </div>
                 <div className="flex items-center justify-center sm:justify-start gap-2">
                   <Shield className="h-4 w-4 text-primary" />
-                  <span>활동 1일째</span>
+                  <span>활동 {getActivityDays()}일째</span>
                 </div>
               </div>
             </div>

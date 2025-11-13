@@ -660,7 +660,7 @@ export default function ReviewForm({
           <div className="space-y-4 p-4 bg-muted/30 rounded-lg border border-muted">
             <h3 className="font-medium text-sm flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-primary" />
-              다이어트 상세 경험
+              다이어트 상세 경험 (선택)
             </h3>
 
             <div className="space-y-2">
