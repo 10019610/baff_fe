@@ -384,7 +384,8 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
           : '유지';
 
     if (participant.goalType === 'MAINTAIN') {
-      return `${participant.startingWeight ?? '미설정'}kg 유지`;
+      const startWeight = participant.startingWeight ?? 0;
+      return `${startWeight > 0 ? startWeight.toFixed(1) : '미설정'}kg 유지`;
     }
 
     const startWeight = participant.startingWeight ?? 0;
@@ -393,7 +394,12 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
         ? startWeight - participant.targetValue
         : startWeight + participant.targetValue;
 
-    return `${participant.targetValue}kg ${typeText} (${participant.startingWeight ?? '미설정'}kg → ${targetWeight}kg)`;
+    const formattedStartWeight =
+      startWeight > 0 ? startWeight.toFixed(1) : '미설정';
+    const formattedTargetWeight = targetWeight.toFixed(1);
+    const formattedTargetValue = participant.targetValue.toFixed(1);
+
+    return `${formattedTargetValue}kg ${typeText} (${formattedStartWeight}kg → ${formattedTargetWeight}kg)`;
   };
 
   const getPersonalGoalIcon = (goalType?: GoalType | null) => {
@@ -853,16 +859,9 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
 
                       {personalGoal.type !== 'MAINTAIN' && (
                         <div className="space-y-2">
-                          {/* <Label htmlFor="targetAmount">
-                            목표{' '}
-                            {personalGoal.type === 'WEIGHT_LOSS'
-                              ? '감량'
-                              : '증량'}{' '}
-                            (kg)
-                          </Label> */}
                           <ValidatedInput
                             id="targetAmount"
-                            label={`목표 ${personalGoal.type === 'WEIGHT_LOSS' ? '감량' : '증량'} (kg)`}
+                            label={`${personalGoal.type === 'WEIGHT_LOSS' ? '감량' : '증량'} 목표량 (kg)`}
                             type="number"
                             value={personalGoal.targetValue || ''}
                             onChange={(value) => {
@@ -876,13 +875,6 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                             validationRules={{
                               required: false,
                               custom: (value: string | number) => {
-                                // if (
-                                //   // value === '' ||
-                                //   value === null ||
-                                //   value === undefined
-                                // ) {
-                                //   return null;
-                                // }
                                 const num = Number(value);
                                 if (isNaN(num)) {
                                   return '올바른 숫자를 입력해주세요';
@@ -899,14 +891,28 @@ const RoomLobby = ({ room, onBack, onBattleStarted }: RoomLobbyProps) => {
                                 return null;
                               },
                             }}
-                            placeholder="예: 65.5"
+                            placeholder={`예: ${personalGoal.type === 'WEIGHT_LOSS' ? '5.0' : '3.0'}`}
                             validateOnChange={false}
                             maxLength={5}
                             className="h-12"
                           />
                           <p className="text-xs text-muted-foreground flex items-center gap-1">
                             <FileWarning className="h-3 w-3 text-yellow-500" />
-                            본인 체중 이하로만 설정할 수 있습니다
+                            {personalGoal.targetValue > 0 &&
+                            getCurrentWeightInfo?.currentWeight
+                              ? (() => {
+                                  const currentWeight =
+                                    getCurrentWeightInfo.currentWeight;
+                                  const targetWeight =
+                                    personalGoal.type === 'WEIGHT_LOSS'
+                                      ? currentWeight - personalGoal.targetValue
+                                      : currentWeight +
+                                        personalGoal.targetValue;
+                                  return `${currentWeight.toFixed(1)}kg → ${targetWeight.toFixed(1)}kg 목표로 하시겠어요?`;
+                                })()
+                              : personalGoal.type === 'WEIGHT_LOSS'
+                                ? `현재 체중(${(getCurrentWeightInfo?.currentWeight || 0).toFixed(1)}kg)에서 감량할 양을 입력하세요`
+                                : `현재 체중(${(getCurrentWeightInfo?.currentWeight || 0).toFixed(1)}kg)에서 증량할 양을 입력하세요`}
                           </p>
                         </div>
                       )}
