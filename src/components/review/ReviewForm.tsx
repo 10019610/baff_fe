@@ -142,7 +142,10 @@ export default function ReviewForm({
   const uploadImagesMutation = useMutation({
     mutationFn: uploadReviewImages,
     onSuccess: (data) => {
-      setUploadedImageUrls(data);
+      // 작성 모드일 때만 전체 교체 (수정 모드는 handlePhotoUpload에서 처리)
+      if (!isEditMode) {
+        setUploadedImageUrls(data);
+      }
       toast.success('이미지가 업로드되었습니다');
     },
     onError: (error: unknown) => {
@@ -361,16 +364,29 @@ export default function ReviewForm({
 
     // 서버에 업로드
     try {
-      // 현재 저장된 파일들과 새 파일을 합쳐서 업로드
       const index = type === 'before' ? 0 : 1;
-      const newPhotoFiles = [...photoFiles];
-      newPhotoFiles[index] = file;
 
-      // null이 아닌 파일들만 필터링
-      const filesToUpload = newPhotoFiles.filter((f): f is File => f !== null);
+      // 수정 모드일 때는 새로 선택한 파일만 업로드
+      if (isEditMode) {
+        await uploadImagesMutation.mutateAsync([file], {
+          onSuccess: (data) => {
+            // 해당 인덱스에만 새 이미지 URL 설정
+            const newUploadedUrls = [...uploadedImageUrls];
+            newUploadedUrls[index] = data[0] || '';
+            setUploadedImageUrls(newUploadedUrls);
+          },
+        });
+      } else {
+        // 작성 모드일 때는 기존 로직 유지
+        const newPhotoFiles = [...photoFiles];
+        newPhotoFiles[index] = file;
+        const filesToUpload = newPhotoFiles.filter(
+          (f): f is File => f !== null
+        );
 
-      if (filesToUpload.length > 0) {
-        await uploadImagesMutation.mutateAsync(filesToUpload);
+        if (filesToUpload.length > 0) {
+          await uploadImagesMutation.mutateAsync(filesToUpload);
+        }
       }
     } catch (error) {
       console.error('이미지 업로드 중 오류:', error);
@@ -490,8 +506,16 @@ export default function ReviewForm({
       question_effective_method: wouldRetry.trim(),
       question_recommend_target: recommendTarget.trim(),
       content: content.trim(),
-      imageUrl1: uploadedImageUrls[0] || undefined,
-      imageUrl2: uploadedImageUrls[1] || undefined,
+      // 수정 모드일 때는 uploadedImageUrls에 값이 있으면 그것 사용, 없으면 기존 이미지 URL 사용
+      // uploadedImageUrls는 수정 모드 초기화 시 기존 이미지로 채워지고, 새로 업로드하면 해당 인덱스만 업데이트됨
+      imageUrl1:
+        isEditMode && initialData
+          ? uploadedImageUrls[0] || initialData.imageUrl1 || undefined
+          : uploadedImageUrls[0] || undefined,
+      imageUrl2:
+        isEditMode && initialData
+          ? uploadedImageUrls[1] || initialData.imageUrl2 || undefined
+          : uploadedImageUrls[1] || undefined,
       isWeightPrivate: isPrivate,
       reviewType,
       goalId: goalId || undefined,

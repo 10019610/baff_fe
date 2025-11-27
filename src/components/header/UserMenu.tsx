@@ -85,13 +85,21 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-10 w-10 cursor-pointer">
+        <Button
+          variant="ghost"
+          className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 h-auto py-2 px-2 sm:px-3 rounded-lg hover:bg-accent"
+        >
+          <Avatar className="h-10 w-10 cursor-pointer flex-shrink-0">
             <AvatarImage src={user.profileImage} alt={user.nickname} />
             <AvatarFallback className="bg-primary text-primary-foreground">
               {user.nickname}
             </AvatarFallback>
           </Avatar>
+          <div className="flex flex-col items-center sm:items-start">
+            <span className="text-xs sm:text-sm font-medium leading-tight">
+              {user.nickname}
+            </span>
+          </div>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-64" align="end" forceMount>
