@@ -10,7 +10,7 @@ import type { User } from '../types/User'; // User 타입 추가
 import { ArrowUp } from 'lucide-react';
 
 // 커스텀 로깅 함수
-const customLog = (message: string, ...args: any[]) => {
+const customLog = (message: string, ...args: unknown[]) => {
   const logMessage = `[Web Custom Log] ${message}`;
   if (window.ReactNativeWebView) {
     window.ReactNativeWebView.postMessage(

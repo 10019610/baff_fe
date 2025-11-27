@@ -13,7 +13,7 @@ import { useAuth } from '../context/AuthContext';
 const DashboardPage = () => {
   const { user } = useAuth();
 
-  /* 진행중인인 목표 리스트 조회 api */
+  /* 진행중인 목표 리스트 조회 api */
   const { data: goalList, refetch: refetchGoalList } = useQuery<
     GetGoalListResponse[]
   >({
@@ -25,6 +25,19 @@ const DashboardPage = () => {
       });
     },
   });
+
+  const { data: allGoalList, refetch: refetchAllGoalList } = useQuery<
+    GetGoalListResponse[]
+  >({
+    queryKey: ['allGoal'],
+    initialData: goalsInitializer.INITIAL_GET_GOAL_LIST,
+    queryFn: () => {
+      return api.get('/goals/getGoalsList').then((res) => {
+        return res.data;
+      });
+    },
+  });
+
   /* 체중 기록 목록 조회 api */
   const { data: weightData } = useQuery({
     queryKey: ['weightEntries', user?.id],
@@ -96,7 +109,9 @@ const DashboardPage = () => {
     <Dashboard
       entries={weightData?.entries || []}
       goals={goalList}
+      allGoals={allGoalList}
       refetchGoalList={refetchGoalList}
+      refetchAllGoalList={refetchAllGoalList}
       weightStats={{
         currentWeight: weightData?.currentWeight || 0,
         totalChange: weightData?.totalChange || 0,

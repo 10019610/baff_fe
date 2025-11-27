@@ -5,15 +5,18 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '../components/ui/avatar.tsx';
+import { Calendar, Camera, Edit2, Shield, LogIn } from 'lucide-react';
 import { Badge } from '../components/ui/badge.tsx';
-import { Calendar, Shield } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api/Api.ts';
 import { userInitializer } from '../types/User.initializer.ts';
 import { formatDate } from '../utils/DateUtil.ts';
 import { useAuth } from '../context/AuthContext.tsx';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import { EditAvatarModal } from '../components/modal/EditAvatarModal.tsx';
+import { EditNameModal } from '../components/modal/EditNameModal.tsx';
+import { Button } from '../components/ui/button.tsx';
 
 /**
  * 유저 프로필 페이지
@@ -25,11 +28,49 @@ import toast from 'react-hot-toast';
  */
 const ProfilePage = () => {
   /**
+   * state
+   */
+  const [showEditAvatarDialog, setShowEditAvatarDialog] =
+    useState<boolean>(false);
+  const [showEditNameDialog, setShowEditNameDialog] = useState<boolean>(false);
+  /**
    * Hooks
    */
   /* User Id */
   const { userId } = useParams();
-  const { user } = useAuth();
+  const { user, updateUserProfileImage } = useAuth();
+  const queryClient = useQueryClient();
+
+  const handleOpenEditAvatar = () => {
+    setShowEditAvatarDialog(true);
+  };
+
+  const handleCloseEditAvatar = () => {
+    setShowEditAvatarDialog(false);
+  };
+
+  const handleAvatarUpdateSuccess = async (newImageUrl: string) => {
+    updateUserProfileImage(newImageUrl);
+    // 프로필 페이지의 쿼리 키와 일치하도록 수정
+    await queryClient.invalidateQueries({
+      queryKey: ['userId', userId],
+    });
+  };
+
+  const handleOpenEditName = () => {
+    setShowEditNameDialog(true);
+  };
+
+  const handleCloseEditName = () => {
+    setShowEditNameDialog(false);
+  };
+
+  const handleNameUpdateSuccess = async () => {
+    // 닉네임 변경 후 프로필 페이지 쿼리 무효화
+    await queryClient.invalidateQueries({
+      queryKey: ['userId', userId],
+    });
+  };
 
   // 권한 검증: 현재 로그인한 사용자만 자신의 프로필에 접근 가능
   useEffect(() => {
@@ -89,49 +130,115 @@ const ProfilePage = () => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      return '좋은 아침이에요';
+    } else if (hour >= 12 && hour < 18) {
+      return '좋은 오후에요';
+    } else if (hour >= 18 && hour < 22) {
+      return '좋은 저녁이에요';
+    } else {
+      return '편안한 밤 되세요';
+    }
+  };
   const providerInfo = getProviderInfo();
+
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6 px-4">
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-6 pb-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            <div className="relative">
-              <Avatar className="h-24 w-25">
+            {/* 프로필 사진 */}
+            <div className="relative flex-shrink-0">
+              <Avatar className="h-28 w-28">
                 <AvatarImage
                   src={userInfo.userProfileUrl}
                   alt={userInfo.nickname}
                 />
                 <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-                  {userInfo.nickname}
+                  {userInfo.nickname?.[0] || 'U'}
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute -bottom-1 -right-1">
-                <Badge
-                  variant="outline"
-                  className={`${providerInfo.color} ${providerInfo.color} border-2 border-white`}
-                >
-                  {providerInfo.name}
-                </Badge>
-              </div>
+              <Button
+                size="icon"
+                onClick={handleOpenEditAvatar}
+                className="absolute -bottom-1 -right-1 size-8 rounded-full bg-[#F0C3CB] hover:bg-[#E8B3BD] shadow-lg"
+                aria-label="프로필 사진 변경"
+              >
+                <Camera className="size-4 text-white" />
+              </Button>
             </div>
+
             {/* 사용자 정보 */}
             <div className="flex-1 text-center sm:text-left">
-              <h1 className="text-2xl font-medium mb-2">{userInfo.nickname}</h1>
-              <p className="text-muted-foreground mb-4">{userInfo.email}</p>
-              <div className="flex flex-col sm:flex-row gap-4 text-sm">
-                <div className="flex items-center justify-center sm:justify-start gap-2">
-                  <Calendar className="h-4 w-4 text-primary" />
-                  <span>가입일: {formatDate(userInfo.regDateTime)}</span>
+              <div className="mb-4">
+                <p className="text-muted-foreground text-sm mb-1.5">
+                  {getGreeting()}, {userInfo.nickname}님
+                </p>
+                <div className="flex items-center justify-center sm:justify-start gap-2.5 mb-2">
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-[#9B5266] to-[#B06B7C] bg-clip-text text-transparent">
+                    {userInfo.nickname}
+                  </h1>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={handleOpenEditName}
+                    className="size-8 text-[#B06B7C] hover:text-[#9B5266] hover:bg-[#F0C3CB]/20 transition-all"
+                    aria-label="닉네임 수정"
+                  >
+                    <Edit2 className="size-4" />
+                  </Button>
                 </div>
-                <div className="flex items-center justify-center sm:justify-start gap-2">
+                <p className="text-muted-foreground text-sm font-medium">
+                  {userInfo.email}
+                </p>
+              </div>
+
+              {/* 정보 목록 */}
+              <div className="flex flex-wrap gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  <span className="text-muted-foreground">가입일:</span>
+                  <span className="font-medium">
+                    {formatDate(userInfo.regDateTime)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
                   <Shield className="h-4 w-4 text-primary" />
-                  <span>활동 {getActivityDays()}일째</span>
+                  <span className="text-muted-foreground">활동:</span>
+                  <span className="font-medium">{getActivityDays()}일째</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <LogIn className="h-4 w-4 text-primary" />
+                  <span className="text-muted-foreground">로그인:</span>
+                  <Badge
+                    variant="outline"
+                    className={`${providerInfo.color} ${providerInfo.textColor} border-0 text-xs`}
+                  >
+                    {providerInfo.name}
+                  </Badge>
                 </div>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
+      <EditAvatarModal
+        isOpen={showEditAvatarDialog}
+        currentAvatarUrl={userInfo?.userProfileUrl || ''}
+        onClose={handleCloseEditAvatar}
+        onSuccess={handleAvatarUpdateSuccess}
+      />
+
+      <EditNameModal
+        isOpen={showEditNameDialog}
+        currentNickname={userInfo?.nickname || user?.nickname || ''}
+        userId={user?.userId ? Number(user.userId) : undefined}
+        onClose={handleCloseEditName}
+        onSuccess={handleNameUpdateSuccess}
+      />
     </div>
   );
 };
