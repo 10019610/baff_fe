@@ -3,7 +3,9 @@ import type {
   CreateReviewRequest,
   ReviewListResponse,
   ReviewComment,
+  BattleDataForReview,
 } from '../../types/review.type';
+import type { GoalDetailForReview } from '../../types/Goals.type';
 
 /**
  * 이미지 업로드 (최대 2장)
@@ -137,4 +139,53 @@ export default {
   getReviewCommentList,
   deleteReviewComment,
   deleteReview,
+};
+
+export const getBattleDataForReview = async (
+  entryCode: string,
+  hostId: number
+): Promise<BattleDataForReview> => {
+  const response = await api.get(`/review/getBattleDataForReview`, {
+    params: {
+      entryCode,
+      hostId,
+    },
+  });
+  return response.data;
+};
+
+export const getGoalDataForReview = async (
+  goalId: number,
+  userId: number
+): Promise<GoalDetailForReview> => {
+  const response = await api.get(`/review/getGoalDataForReview`, {
+    params: {
+      goalId,
+      userId,
+    },
+  });
+  return response.data;
+};
+
+export const editReviewComment = async (
+  commentId: number,
+  content: string
+): Promise<void> => {
+  await api.post(`/review/editReviewComment`, {
+    commentId,
+    content,
+  });
+};
+
+/**
+ * 리뷰 수정
+ * @param reviewId 리뷰 ID
+ * @param data 리뷰 수정 데이터
+ * @returns void
+ */
+export const editReview = async (
+  reviewId: string | number,
+  data: CreateReviewRequest
+): Promise<void> => {
+  await api.post(`/review/editReview/${reviewId}`, data);
 };

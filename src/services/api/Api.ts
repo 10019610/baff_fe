@@ -24,10 +24,11 @@ const setupInterceptors = (instance: AxiosInstance) => {
       const accessToken = getCookie('accessToken');
 
       if (accessToken) {
-        console.log('API Request Interceptor: accessToken found, adding Authorization header.');
         config.headers.Authorization = `Bearer ${accessToken}`;
       } else {
-        console.log('API Request Interceptor: No accessToken found in cookies.');
+        console.log(
+          'API Request Interceptor: No accessToken found in cookies.'
+        );
       }
       config.withCredentials = true;
 
@@ -40,9 +41,12 @@ const setupInterceptors = (instance: AxiosInstance) => {
     (response) => response,
     async (error) => {
       if (error.response?.status === 401) {
-        console.error('API Response Interceptor: Authentication failed (401). Clearing token and redirecting to login.');
+        console.error(
+          'API Response Interceptor: Authentication failed (401). Clearing token and redirecting to login.'
+        );
         // 토큰 삭제 (쿠키에서 삭제)
-        document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie =
+          'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         // 로그인 페이지로 리다이렉트
         window.location.href = '/login';
       }

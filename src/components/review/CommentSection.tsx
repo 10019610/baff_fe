@@ -11,6 +11,9 @@ import {
   Reply,
   ChevronUp,
   Loader2,
+  Pencil,
+  Check,
+  X,
 } from 'lucide-react';
 import type { ReviewComment } from '../../types/review.type.ts';
 import { useAuth } from '../../context/AuthContext';
@@ -20,6 +23,7 @@ import {
   createComment,
   getReviewCommentList,
   deleteReviewComment,
+  editReviewComment,
 } from '../../services/api/review.api';
 import {
   AlertDialog,
@@ -32,6 +36,7 @@ import {
   AlertDialogTitle,
 } from '../ui/alert-dialog';
 import LoginModal from '../auth/LoginModal';
+import { formatTimeAgo } from '../../utils/DateUtil.ts';
 
 interface CommentSectionProps {
   reviewId: string;
@@ -55,8 +60,11 @@ const CommentSection = ({
   const [deletingCommentId, setDeletingCommentId] = useState<number | null>(
     null
   ); // 삭제 중인 댓글 ID
+  const [commentIdToEdit, setCommentIdToEdit] = useState<number | null>(null);
+  const [editContent, setEditContent] = useState<string>('');
   const queryClient = useQueryClient();
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const editTextareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   // 댓글 목록 조회
   const {
@@ -171,6 +179,56 @@ const CommentSection = ({
     },
   });
 
+  // 댓글 수정 mutation
+  const editCommentMutation = useMutation({
+    mutationFn: ({
+      commentId,
+      content,
+    }: {
+      commentId: number;
+      content: string;
+    }) => editReviewComment(commentId, content),
+    onMutate: async ({ commentId, content }) => {
+      // Optimistic update: 즉시 UI 업데이트
+      await queryClient.cancelQueries({
+        queryKey: ['reviewComments', reviewId],
+      });
+
+      const previousComments = queryClient.getQueryData<ReviewComment[]>([
+        'reviewComments',
+        reviewId,
+      ]);
+
+      queryClient.setQueryData<ReviewComment[]>(
+        ['reviewComments', reviewId],
+        (old = []) =>
+          old.map((comment) =>
+            comment.commentId === commentId ? { ...comment, content } : comment
+          )
+      );
+
+      return { previousComments };
+    },
+    onError: (_err, _variables, context) => {
+      // 에러 시 이전 상태로 롤백
+      if (context?.previousComments) {
+        queryClient.setQueryData(
+          ['reviewComments', reviewId],
+          context.previousComments
+        );
+      }
+      toast.error('댓글 수정에 실패했습니다');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['reviewComments', reviewId],
+      });
+      toast.success('댓글이 수정되었습니다');
+      setCommentIdToEdit(null);
+      setEditContent('');
+    },
+  });
+
   const handleDeleteCommentClick = (commentId: number) => {
     setCommentToDelete(commentId);
     setIsDeleteDialogOpen(true);
@@ -186,24 +244,43 @@ const CommentSection = ({
     setCommentToDelete(null);
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
+  const handleEditClick = (commentId: number) => {
+    const comment = comments.find((c) => c.commentId === commentId);
+    if (comment) {
+      setCommentIdToEdit(commentId);
+      setEditContent(comment.content);
+      // 수정 모드 진입 시 textarea에 포커스
+      setTimeout(() => {
+        editTextareaRef.current?.focus();
+      }, 0);
+    }
+  };
 
-    if (diffMins < 1) return '방금 전';
-    if (diffMins < 60) return `${diffMins}분 전`;
-    if (diffHours < 24) return `${diffHours}시간 전`;
-    if (diffDays < 7) return `${diffDays}일 전`;
+  const handleEditCancel = () => {
+    setCommentIdToEdit(null);
+    setEditContent('');
+  };
 
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+  const handleEditSave = (commentId: number) => {
+    if (!editContent.trim()) {
+      toast.error('댓글 내용을 입력해주세요');
+      return;
+    }
+
+    if (editContent.length > 500) {
+      toast.error('댓글은 500자 이내로 작성해주세요');
+      return;
+    }
+
+    if (
+      editContent.trim() ===
+      comments.find((c) => c.commentId === commentId)?.content
+    ) {
+      handleEditCancel();
+      return;
+    }
+
+    editCommentMutation.mutate({ commentId, content: editContent.trim() });
   };
 
   return (
@@ -310,7 +387,7 @@ const CommentSection = ({
                         {comment.userNickName}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {formatDate(comment.regDateTime)}
+                        {formatTimeAgo(comment.regDateTime)}
                       </span>
                       <Button
                         variant="ghost"
@@ -324,27 +401,94 @@ const CommentSection = ({
                     {user &&
                       (user.userId === comment.userId ||
                         comment.userId.toString() === user.id ||
-                        Number(user.id) === comment.userId) && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            handleDeleteCommentClick(comment.commentId)
-                          }
-                          disabled={deletingCommentId === comment.commentId}
-                          className="h-7 w-7 p-0 text-muted-foreground hover:text-red-600"
-                        >
-                          {deletingCommentId === comment.commentId ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-3 w-3" />
-                          )}
-                        </Button>
+                        Number(user.id) === comment.userId) &&
+                      commentIdToEdit !== comment.commentId && (
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditClick(comment.commentId)}
+                            className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
+                            aria-label="댓글 수정"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              handleDeleteCommentClick(comment.commentId)
+                            }
+                            disabled={deletingCommentId === comment.commentId}
+                            className="h-7 w-7 p-0 text-muted-foreground hover:text-red-600"
+                            aria-label="댓글 삭제"
+                          >
+                            {deletingCommentId === comment.commentId ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </div>
                       )}
                   </div>
-                  <p className="text-sm text-foreground whitespace-pre-wrap">
-                    {comment.content}
-                  </p>
+                  {commentIdToEdit === comment.commentId ? (
+                    <div className="space-y-2">
+                      <Textarea
+                        ref={editTextareaRef}
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        rows={3}
+                        maxLength={500}
+                        disabled={editCommentMutation.isPending}
+                        className="resize-none text-sm"
+                        placeholder="댓글을 수정하세요..."
+                      />
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-muted-foreground">
+                          {editContent.length}/500
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleEditCancel}
+                            disabled={editCommentMutation.isPending}
+                            className="h-7 text-xs"
+                          >
+                            <X className="h-3 w-3 mr-1" />
+                            취소
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleEditSave(comment.commentId)}
+                            disabled={
+                              !editContent.trim() ||
+                              editCommentMutation.isPending ||
+                              editContent.trim() === comment.content
+                            }
+                            className="h-7 text-xs gap-1"
+                          >
+                            {editCommentMutation.isPending ? (
+                              <>
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                수정 중...
+                              </>
+                            ) : (
+                              <>
+                                <Check className="h-3 w-3" />
+                                저장
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-foreground whitespace-pre-wrap">
+                      {comment.content}
+                    </p>
+                  )}
                 </div>
               </div>
             </Card>

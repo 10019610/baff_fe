@@ -5,6 +5,7 @@ export interface Review {
   battleId?: string;
   userId: string;
   userName: string;
+  userProfileImage: string;
   title: string;
   content: string;
   dietMethods: string[]; // 선택한 다이어트 방법들
@@ -26,6 +27,8 @@ export interface Review {
   recommendTarget?: string; // 이 방법을 누구에게 추천하시나요?
   reviewType: 'GOAL' | 'BATTLE' | 'MANUAL';
   commentCount?: number; // 댓글 개수
+  battleRoomEntryCode?: string; // 배틀룸 입장 코드
+  public?: boolean; // 목표/배틀 관련 데이터를 리뷰 게시글에 공개할지 여부
 }
 
 export interface Comment {
@@ -91,6 +94,7 @@ export interface CreateReviewRequest {
   reviewType: 'GOAL' | 'BATTLE' | 'MANUAL'; // 리뷰 타입
   goalId?: number; // 목표 ID (reviewType이 GOAL일 때)
   battleRoomEntryCode?: string; // 배틀룸 입장 코드 (reviewType이 BATTLE일 때, 6자리 문자열)
+  isPublic?: boolean; // 목표/배틀 관련 데이터를 리뷰 게시글에 공개할지 여부
 }
 
 // 리뷰 리스트 응답 DTO (백엔드 getReviewList와 매칭)
@@ -114,12 +118,15 @@ export interface ReviewListItem {
   regDateTime: string; // LocalDateTime은 ISO 8601 형식 문자열로 전송됨
   userId: number;
   userNickName: string; // 사용자 닉네임 추가
+  userProfileImage: string; // 사용자 프로필 이미지 추가
   reviewType: string;
   battleRoomId?: number;
+  battleRoomEntryCode?: string; // 배틀룸 입장 코드
   goalId?: number;
   likes: number;
   liked: boolean;
   commentCount?: number; // 댓글 개수 (백엔드에서 추가 필요)
+  public?: boolean; // 목표/배틀 관련 데이터를 리뷰 게시글에 공개할지 여부
 }
 
 // 페이지네이션 응답
@@ -131,4 +138,12 @@ export interface ReviewListResponse {
   totalPages: number;
   last: boolean;
   first: boolean;
+}
+
+export interface BattleDataForReview {
+  hostWeightChange: number;
+  opponentWeightChange: number;
+  durationDays: number;
+  hostTargetWeight: number;
+  hostGoalType: string;
 }

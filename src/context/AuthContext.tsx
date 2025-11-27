@@ -4,6 +4,7 @@ import React, {
   useState,
   useEffect,
   type ReactNode,
+  useCallback,
 } from 'react';
 import { api } from '../services/api/Api.ts';
 import type { User } from '../types/User.ts'; // User 타입 임포트
@@ -18,6 +19,7 @@ interface AuthContextType {
   logout: () => void;
   getToken: () => string | null;
   setToken: (token: string) => void;
+  updateUserProfileImage: (imageUrl: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -52,12 +54,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       // 토큰 존재 여부를 미리 체크하여 로딩 상태를 바꾸는 로직을 제거합니다.
       // 토큰이 없으면 api.get 요청이 실패할 것이고, catch 블록에서 처리됩니다.
       try {
-        console.log('AuthProvider: Attempting to fetch user...');
         const response = await api.get<User>('/user/me');
-        console.log(
-          'AuthProvider: Fetched user info successfully',
-          response.data
-        );
+
         setUser(response.data);
         setIsAuthenticated(true);
       } catch (error) {
@@ -174,6 +172,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, []);
 
+  const updateUserProfileImage = useCallback((imageUrl: string) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        profileImage: imageUrl,
+      };
+    });
+  }, []);
+
   const value = React.useMemo(
     () => ({
       user,
@@ -184,6 +192,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       loginForGoogleApp,
       getToken,
       setToken,
+      updateUserProfileImage,
     }),
     [
       user,
@@ -194,6 +203,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       loginForGoogleApp,
       getToken,
       setToken,
+      updateUserProfileImage,
     ]
   );
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -12,6 +12,7 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Badge } from '../ui/badge';
 import { Checkbox } from '../../components/ui/checkbox';
+import { Switch } from '../../components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import {
@@ -24,13 +25,20 @@ import {
   Frown,
   Camera,
   Loader2,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { DIET_METHODS, DIFFICULTY_LABELS } from '../../types/review.type';
+import {
+  DIET_METHODS,
+  DIFFICULTY_LABELS,
+  type Review,
+} from '../../types/review.type';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import {
   uploadReviewImages,
   createReview,
+  editReview,
 } from '../../services/api/review.api';
 import { getGoalDetailForReview } from '../../services/api/goals.api';
 import { getBattleDetailForReview } from '../../services/api/battleRoom.api';
@@ -43,6 +51,8 @@ interface ReviewFormProps {
   duration?: number;
   onCancel: () => void;
   onSuccess?: () => void; // 성공 콜백 추가
+  reviewId?: string; // 수정 모드일 때 리뷰 ID
+  initialData?: Review; // 수정 모드일 때 기존 리뷰 데이터
 }
 
 export default function ReviewForm({
@@ -53,7 +63,10 @@ export default function ReviewForm({
   duration: propDuration = 0,
   onCancel,
   onSuccess,
+  reviewId,
+  initialData,
 }: ReviewFormProps) {
+  const isEditMode = !!reviewId && !!initialData;
   const queryClient = useQueryClient();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -66,6 +79,7 @@ export default function ReviewForm({
   const [photoFiles, setPhotoFiles] = useState<(File | null)[]>([null, null]);
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
   const [isPrivate, setIsPrivate] = useState(false);
+  const [isPublic, setIsPublic] = useState(true); // 목표/배틀 관련 데이터 공개 여부 (기본값: true)
 
   // 추가 다이어트 관련 문항
   const [hardestPeriod, setHardestPeriod] = useState('');
@@ -80,7 +94,7 @@ export default function ReviewForm({
   const [manualEndWeight, setManualEndWeight] = useState('');
   const [manualDuration, setManualDuration] = useState('');
 
-  // goalId가 있을 때 목표 상세 정보 가져오기
+  // goalId가 있을 때 목표 상세 정보 가져오기 (수정 모드가 아닐 때만)
   const {
     data: goalDetail,
     isLoading: isLoadingGoalDetail,
@@ -88,11 +102,11 @@ export default function ReviewForm({
   } = useQuery({
     queryKey: ['goalDetailForReview', goalId],
     queryFn: () => getGoalDetailForReview(goalId!),
-    enabled: !!goalId, // goalId가 있을 때만 실행
+    enabled: !!goalId && !isEditMode, // goalId가 있고 수정 모드가 아닐 때만 실행
     retry: 1, // 실패 시 1번만 재시도
   });
 
-  // battleRoomEntryCode가 있을 때 배틀 상세 정보 가져오기
+  // battleRoomEntryCode가 있을 때 배틀 상세 정보 가져오기 (수정 모드가 아닐 때만)
   const {
     data: battleDetail,
     isLoading: isLoadingBattleDetail,
@@ -100,17 +114,29 @@ export default function ReviewForm({
   } = useQuery({
     queryKey: ['battleDetailForReview', battleRoomEntryCode],
     queryFn: () => getBattleDetailForReview(battleRoomEntryCode!),
-    enabled: !!battleRoomEntryCode, // battleRoomEntryCode가 있을 때만 실행
+    enabled: !!battleRoomEntryCode && !isEditMode, // battleRoomEntryCode가 있고 수정 모드가 아닐 때만 실행
     retry: 1, // 실패 시 1번만 재시도
   });
 
-  // 실제 사용할 값 결정 (goalDetail 또는 battleDetail이 있으면 우선 사용)
+  // 실제 사용할 값 결정 (수정 모드면 initialData 우선, 아니면 goalDetail 또는 battleDetail이 있으면 우선 사용)
   const startWeight =
-    goalDetail?.startWeight ?? battleDetail?.startWeight ?? propStartWeight;
+    isEditMode && initialData
+      ? initialData.startWeight
+      : (goalDetail?.startWeight ??
+        battleDetail?.startWeight ??
+        propStartWeight);
   const endWeight =
-    goalDetail?.currentWeight ?? battleDetail?.currentWeight ?? propEndWeight;
+    isEditMode && initialData
+      ? initialData.endWeight
+      : (goalDetail?.currentWeight ??
+        battleDetail?.currentWeight ??
+        propEndWeight);
   const duration =
-    goalDetail?.durationDays ?? battleDetail?.durationDays ?? propDuration;
+    isEditMode && initialData
+      ? initialData.duration
+      : (goalDetail?.durationDays ??
+        battleDetail?.durationDays ??
+        propDuration);
 
   // 이미지 업로드 mutation
   const uploadImagesMutation = useMutation({
@@ -137,6 +163,79 @@ export default function ReviewForm({
     },
   });
 
+  // 수정 모드일 때 기존 데이터로 폼 초기화
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      setTitle(initialData.title || '');
+      setContent(initialData.content || '');
+
+      // dietMethods 파싱 (쉼표로 구분된 문자열 또는 배열)
+      if (initialData.dietMethods) {
+        const methods: string[] = Array.isArray(initialData.dietMethods)
+          ? initialData.dietMethods
+          : String(initialData.dietMethods)
+              .split(',')
+              .map((m: string) => m.trim());
+
+        const methodValues: string[] = [];
+        let otherMethodValue = '';
+
+        methods.forEach((method: string) => {
+          const found = DIET_METHODS.find(
+            (m: { value: string; label: string }) => m.label === method
+          );
+          if (found) {
+            methodValues.push(found.value);
+          } else if (method && method !== '기타') {
+            // 기타 직접 입력인 경우
+            methodValues.push('other');
+            otherMethodValue = method;
+          }
+        });
+
+        setSelectedMethods(methodValues);
+        setOtherMethod(otherMethodValue);
+      }
+
+      // difficulty 변환
+      if (initialData.difficulty) {
+        if (initialData.difficulty === '쉬웠어요') {
+          setDifficulty('easy');
+        } else if (initialData.difficulty === '적당했어요') {
+          setDifficulty('moderate');
+        } else if (initialData.difficulty === '힘들었어요') {
+          setDifficulty('hard');
+        }
+      }
+
+      // 이미지 URL 설정
+      if (initialData.imageUrl1) {
+        setPhotos([initialData.imageUrl1, initialData.imageUrl2 || '']);
+        setUploadedImageUrls([
+          initialData.imageUrl1,
+          initialData.imageUrl2 || '',
+        ]);
+      }
+
+      setIsPrivate(initialData.isPrivate || false);
+      setIsPublic(initialData.public !== undefined ? initialData.public : true);
+
+      // 추가 문항
+      setHardestPeriod(initialData.hardestPeriod || '');
+      setOvercomingMethod(initialData.dietManagement || '');
+      setSupportHelp(initialData.exercise || '');
+      setWouldRetry(initialData.effectiveMethod || '');
+      setRecommendTarget(initialData.recommendTarget || '');
+
+      // 수동 입력 모드일 때
+      if (initialData.reviewType === 'MANUAL') {
+        setManualStartWeight(initialData.startWeight.toString());
+        setManualEndWeight(initialData.endWeight.toString());
+        setManualDuration(initialData.duration.toString());
+      }
+    }
+  }, [isEditMode, initialData]);
+
   // 리뷰 작성 mutation
   const createReviewMutation = useMutation({
     mutationFn: createReview,
@@ -161,6 +260,35 @@ export default function ReviewForm({
         'message' in error.response.data
           ? String(error.response.data.message)
           : '리뷰 작성에 실패했습니다';
+      toast.error(errorMessage);
+    },
+  });
+
+  // 리뷰 수정 mutation
+  const editReviewMutation = useMutation({
+    mutationFn: (data: Parameters<typeof createReview>[0]) =>
+      editReview(reviewId!, data),
+    onSuccess: () => {
+      toast.success('리뷰가 성공적으로 수정되었습니다! 🎉');
+      // 리뷰 리스트 캐시 무효화 (자동으로 다시 불러옴)
+      queryClient.invalidateQueries({ queryKey: ['reviewList'] });
+      onSuccess?.(); // 부모 컴포넌트 콜백 실행
+      onCancel(); // 모달 닫기
+    },
+    onError: (error: unknown) => {
+      console.error('리뷰 수정 실패:', error);
+      const errorMessage =
+        error &&
+        typeof error === 'object' &&
+        'response' in error &&
+        error.response &&
+        typeof error.response === 'object' &&
+        'data' in error.response &&
+        error.response.data &&
+        typeof error.response.data === 'object' &&
+        'message' in error.response.data
+          ? String(error.response.data.message)
+          : '리뷰 수정에 실패했습니다';
       toast.error(errorMessage);
     },
   });
@@ -276,6 +404,15 @@ export default function ReviewForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // form submit 시 file input으로 포커스가 가지 않도록 처리
+    const form = e.currentTarget as HTMLFormElement;
+    const firstInput = form.querySelector(
+      'input[type="text"], input[type="number"], textarea'
+    ) as HTMLElement;
+    if (firstInput) {
+      firstInput.focus();
+    }
+
     if (!title.trim()) {
       toast.error('리뷰 제목을 입력해주세요');
       return;
@@ -339,8 +476,8 @@ export default function ReviewForm({
       reviewType = 'BATTLE';
     }
 
-    // 리뷰 작성 API 호출
-    createReviewMutation.mutate({
+    // 리뷰 데이터 준비
+    const reviewData = {
       title: title.trim(),
       dietMethods: dietMethodsString,
       difficulty: difficultyText,
@@ -359,7 +496,15 @@ export default function ReviewForm({
       reviewType,
       goalId: goalId || undefined,
       battleRoomEntryCode: battleRoomEntryCode || undefined,
-    });
+      isPublic: !isManualMode ? isPublic : undefined, // 목표/배틀 모드일 때만 isPublic 전달
+    };
+
+    // 수정 모드일 때는 수정 API 호출, 아니면 작성 API 호출
+    if (isEditMode) {
+      editReviewMutation.mutate(reviewData);
+    } else {
+      createReviewMutation.mutate(reviewData);
+    }
   };
 
   //   const getDifficultyIcon = (diff: 'easy' | 'moderate' | 'hard') => {
@@ -408,14 +553,49 @@ export default function ReviewForm({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Star className="h-5 w-5 text-primary" />
-          성공 경험 리뷰 작성
+          {isEditMode ? '리뷰 수정' : '성공 경험 리뷰 작성'}
         </CardTitle>
         <CardDescription>
-          당신의 성공 경험을 공유하고 다른 사람들에게 동기부여를 주세요
+          {isEditMode
+            ? '리뷰 내용을 수정할 수 있습니다'
+            : '당신의 성공 경험을 공유하고 다른 사람들에게 동기부여를 주세요'}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* 관련 데이터 공개 여부 - 목표/배틀 모드일 때만 표시 */}
+          {!isManualMode && (
+            <div className="p-4 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 space-y-1">
+                  <Label
+                    htmlFor="isPublic"
+                    className="cursor-pointer text-sm font-medium text-purple-900 dark:text-purple-100 flex items-center gap-2"
+                  >
+                    {isPublic ? (
+                      <Eye className="h-4 w-4" />
+                    ) : (
+                      <EyeOff className="h-4 w-4" />
+                    )}
+                    {goalId
+                      ? '목표 결과를 리뷰 게시글에 공개하기'
+                      : '배틀 결과를 리뷰 게시글에 공개하기'}
+                  </Label>
+                  <p className="text-xs text-purple-700 dark:text-purple-300 pl-6">
+                    {goalId
+                      ? '활성화하면 목표 달성 결과(기간, 변화량, 목표량 등)가 리뷰 게시글에 표시됩니다.'
+                      : '활성화하면 배틀 결과(기간, 나의 변화량, 목표량, 상대 변화량 등)가 리뷰 게시글에 표시됩니다.'}
+                  </p>
+                </div>
+                <Switch
+                  id="isPublic"
+                  checked={isPublic}
+                  onCheckedChange={(checked) => setIsPublic(checked)}
+                />
+              </div>
+            </div>
+          )}
+
           {/* 성과 요약 - 수동 입력 모드일 때는 숨김 */}
           {!isManualMode && (
             <Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20">
@@ -426,8 +606,8 @@ export default function ReviewForm({
                   {isWeightLoss
                     ? `${weightChange.toFixed(1)}kg 감량`
                     : `${Math.abs(weightChange).toFixed(1)}kg 증량`}
-                </strong>{' '}
-                성공! 축하드립니다! 🎉
+                  하셨습니다! 🎉
+                </strong>
               </AlertDescription>
             </Alert>
           )}
@@ -800,6 +980,7 @@ export default function ReviewForm({
                       type="file"
                       accept=".jpg,.jpeg,.png,.gif,.webp"
                       className="hidden"
+                      tabIndex={-1}
                       onChange={(e) => handlePhotoUpload('before', e)}
                     />
                   </Label>
@@ -845,6 +1026,7 @@ export default function ReviewForm({
                       type="file"
                       accept=".jpg,.jpeg,.png,.gif,.webp"
                       className="hidden"
+                      tabIndex={-1}
                       onChange={(e) => handlePhotoUpload('after', e)}
                     />
                   </Label>
@@ -878,9 +1060,22 @@ export default function ReviewForm({
             <Button
               type="submit"
               className="flex-1"
-              disabled={createReviewMutation.isPending}
+              disabled={
+                isEditMode
+                  ? editReviewMutation.isPending
+                  : createReviewMutation.isPending
+              }
             >
-              {createReviewMutation.isPending ? (
+              {isEditMode ? (
+                editReviewMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    수정 중...
+                  </>
+                ) : (
+                  '리뷰 수정 완료'
+                )
+              ) : createReviewMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   작성 중...

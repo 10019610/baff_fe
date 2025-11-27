@@ -29,13 +29,20 @@ import {
   ZoomIn,
   ChevronsDown,
   EyeOff,
+  Minus,
+  Pencil,
 } from 'lucide-react';
 import { DIET_METHODS } from '../../types/review.type';
-import type { Review } from '../../types/review.type';
+import type { BattleDataForReview, Review } from '../../types/review.type';
 import toast from 'react-hot-toast';
 import CommentSection from './CommentSection.tsx';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toggleReviewLike, deleteReview } from '../../services/api/review.api';
+import {
+  toggleReviewLike,
+  deleteReview,
+  getBattleDataForReview,
+  getGoalDataForReview,
+} from '../../services/api/review.api';
 import { useAuth } from '../../context/AuthContext';
 import {
   AlertDialog,
@@ -53,8 +60,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import { Dialog, DialogContent } from '../ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '../ui/dialog';
+import { Drawer, DrawerContent, DrawerTitle } from '../ui/drawer';
 import LoginModal from '../auth/LoginModal.tsx';
+import type { GoalDetailForReview } from '../../types/Goals.type';
+import ReviewForm from './ReviewForm.tsx';
+import { useIsMobile } from '../ui/use-mobile';
 
 interface ReviewCardProps {
   review: Review;
@@ -71,6 +82,7 @@ const ReviewCard = ({
 }: ReviewCardProps) => {
   const { user, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCommentSection, setShowCommentSection] = useState(false);
   const [localLikes, setLocalLikes] = useState(review.likes);
@@ -83,6 +95,13 @@ const ReviewCard = ({
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [battleDataFetched, setBattleDataFetched] = useState(false);
+  const [goalDataFetched, setGoalDataFetched] = useState(false);
+  const [goalDataForReview, setGoalDataForReview] =
+    useState<GoalDetailForReview | null>(null);
+  const [battleDataForReview, setBattleDataForReview] =
+    useState<BattleDataForReview | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   // 좋아요 토글 mutation
   const toggleLikeMutation = useMutation({
     mutationFn: () => toggleReviewLike(review.id),
@@ -161,6 +180,40 @@ const ReviewCard = ({
     },
   });
 
+  const getBattleDataForReviewMutation = useMutation({
+    mutationFn: () => {
+      if (!review.battleRoomEntryCode) {
+        throw new Error('battleRoomEntryCode가 없습니다.');
+      }
+      return getBattleDataForReview(
+        review.battleRoomEntryCode,
+        Number(review.userId)
+      );
+    },
+    onSuccess: (data) => {
+      console.log('배틀 데이터 조회 성공:', data);
+      setBattleDataFetched(true);
+      setBattleDataForReview(data);
+    },
+    onError: (error) => {
+      console.error('배틀 데이터 조회 실패:', error);
+    },
+  });
+
+  const getGoalDataForReviewMutation = useMutation({
+    mutationFn: () => {
+      return getGoalDataForReview(Number(review.goalId), Number(review.userId));
+    },
+    onSuccess: (data) => {
+      console.log('목표 데이터 조회 성공:', data);
+      setGoalDataFetched(true);
+      setGoalDataForReview(data);
+    },
+    onError: (error) => {
+      console.error('목표 데이터 조회 실패:', error);
+    },
+  });
+
   const handleDeleteClick = () => {
     setIsDeleteDialogOpen(true);
   };
@@ -212,7 +265,11 @@ const ReviewCard = ({
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10">
             <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-              {review.userName[0]}
+              <img
+                src={review.userProfileImage}
+                alt={review.userName}
+                className="h-10 w-10 rounded-full"
+              />
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
@@ -234,7 +291,7 @@ const ReviewCard = ({
                   className="gap-1 h-5 text-xs bg-blue-500 hover:bg-blue-600"
                 >
                   <Flag className="h-2.5 w-2.5" />
-                  목표 달성
+                  목표 후기
                 </Badge>
               )}
               {review.reviewType === 'BATTLE' && (
@@ -243,7 +300,7 @@ const ReviewCard = ({
                   className="gap-1 h-5 text-xs bg-purple-500 hover:bg-purple-600"
                 >
                   <Swords className="h-2.5 w-2.5" />
-                  배틀 완료
+                  대결 후기
                 </Badge>
               )}
               {review.reviewType === 'MANUAL' && (
@@ -267,6 +324,13 @@ const ReviewCard = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => setIsEditMode(true)}
+                >
+                  <Pencil className="h-4 w-4 mr-2" />
+                  수정하기
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive cursor-pointer"
                   onClick={handleDeleteClick}
@@ -368,7 +432,45 @@ const ReviewCard = ({
             variant="ghost"
             size="sm"
             className="gap-2"
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={() => {
+              const newExpanded = !isExpanded;
+              setIsExpanded(newExpanded);
+              // 더보기 버튼을 눌렀을 때 (확장될 때) 배틀 데이터 API 호출
+              if (
+                newExpanded &&
+                review.public &&
+                review.reviewType === 'BATTLE' &&
+                review.battleRoomEntryCode &&
+                !battleDataFetched &&
+                !getBattleDataForReviewMutation.isPending
+              ) {
+                getBattleDataForReviewMutation.mutate();
+              } else if (newExpanded && review.reviewType === 'BATTLE') {
+                console.log('배틀 데이터 API 호출 조건 불만족:', {
+                  reviewType: review.reviewType,
+                  battleRoomEntryCode: review.battleRoomEntryCode,
+                  battleDataFetched,
+                  isPending: getBattleDataForReviewMutation.isPending,
+                  public: review.public,
+                });
+              }
+              if (
+                newExpanded &&
+                review.public &&
+                review.reviewType === 'GOAL' &&
+                !getGoalDataForReviewMutation.isPending
+              ) {
+                getGoalDataForReviewMutation.mutate();
+              } else if (newExpanded && review.reviewType === 'GOAL') {
+                console.log('목표 데이터 API 호출 조건 불만족:', {
+                  reviewType: review.reviewType,
+                  goalId: review.goalId,
+                  goalDataFetched,
+                  isPending: getGoalDataForReviewMutation.isPending,
+                  public: review.public,
+                });
+              }
+            }}
           >
             {isExpanded ? (
               <>
@@ -387,6 +489,158 @@ const ReviewCard = ({
         {/* 확장된 내용 - Q&A, 사진, 내용 */}
         {isExpanded && (
           <div className="space-y-4">
+            {/* 목표/배틀 상세 정보 */}
+            {/* 목표 결과 */}
+            {goalDataForReview &&
+              review.reviewType === 'GOAL' &&
+              review.public && (
+                <div className="p-3 sm:p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Flag className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <h4 className="font-semibold text-blue-700 dark:text-blue-300">
+                      목표 종료 결과
+                    </h4>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-2">
+                    <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-2.5 sm:p-3 space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="h-3.5 w-3.5 text-gray-600" />
+                        <span className="text-xs text-muted-foreground">
+                          기간
+                        </span>
+                      </div>
+                      <p className="font-medium text-sm sm:text-base">
+                        {goalDataForReview.durationDays}일
+                      </p>
+                    </div>
+                    <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-2.5 sm:p-3 space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <TrendingDown className="h-3.5 w-3.5 text-blue-600" />
+                        <span className="text-xs text-muted-foreground">
+                          변화량
+                        </span>
+                      </div>
+                      <p className="font-medium text-sm sm:text-base">
+                        {goalDataForReview.currentWeight !== null
+                          ? (
+                              goalDataForReview.startWeight -
+                              goalDataForReview.currentWeight
+                            ).toFixed(1)
+                          : (
+                              goalDataForReview.startWeight -
+                              goalDataForReview.targetWeight
+                            ).toFixed(1)}
+                        kg
+                      </p>
+                    </div>
+                    <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-2.5 sm:p-3 space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <TrendingDown className="h-3.5 w-3.5 text-gray-600" />
+                        <span className="text-xs text-muted-foreground">
+                          시작 체중
+                        </span>
+                      </div>
+                      <p className="font-medium text-sm sm:text-base">
+                        {goalDataForReview.startWeight.toFixed(1)}kg
+                      </p>
+                    </div>
+                    <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-2.5 sm:p-3 space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <Target className="h-3.5 w-3.5 text-green-600" />
+                        <span className="text-xs text-muted-foreground">
+                          목표 체중
+                        </span>
+                      </div>
+                      <p className="font-medium text-green-600 text-sm sm:text-base">
+                        {goalDataForReview.targetWeight.toFixed(1)}kg
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            {/* 배틀 결과 */}
+            {battleDataForReview &&
+              review.reviewType === 'BATTLE' &&
+              review.public &&
+              (battleDataForReview.hostGoalType === 'WEIGHT_LOSS' ||
+                battleDataForReview.hostGoalType === 'WEIGHT_GAIN' ||
+                battleDataForReview.hostGoalType === 'MAINTAIN') && (
+                <div className="p-3 sm:p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Swords className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                    <h4 className="font-semibold text-purple-700 dark:text-purple-300">
+                      대결 종료 결과
+                    </h4>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-2">
+                    <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-2.5 sm:p-3 space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="h-3.5 w-3.5 text-gray-600" />
+                        <span className="text-xs text-muted-foreground">
+                          기간
+                        </span>
+                      </div>
+                      <p className="font-medium text-sm sm:text-base">
+                        {battleDataForReview.durationDays}일
+                      </p>
+                    </div>
+                    <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-2.5 sm:p-3 space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        {battleDataForReview.hostGoalType === 'WEIGHT_LOSS' ? (
+                          <TrendingDown className="h-3.5 w-3.5 text-blue-600" />
+                        ) : battleDataForReview.hostGoalType ===
+                          'WEIGHT_GAIN' ? (
+                          <TrendingUp className="h-3.5 w-3.5 text-blue-600" />
+                        ) : (
+                          <Minus className="h-3.5 w-3.5 text-blue-600" />
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                          {battleDataForReview.hostGoalType === 'WEIGHT_LOSS'
+                            ? '나의 감량'
+                            : battleDataForReview.hostGoalType === 'WEIGHT_GAIN'
+                              ? '나의 증량'
+                              : '나의 변화'}
+                        </span>
+                      </div>
+                      <p className="font-medium text-sm sm:text-base">
+                        {battleDataForReview.hostWeightChange.toFixed(1)}kg
+                      </p>
+                    </div>
+                    <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-2.5 sm:p-3 space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <Target className="h-3.5 w-3.5 text-green-600" />
+                        <span className="text-xs text-muted-foreground">
+                          {battleDataForReview.hostGoalType === 'WEIGHT_LOSS'
+                            ? '목표 감량'
+                            : battleDataForReview.hostGoalType === 'WEIGHT_GAIN'
+                              ? '목표 증량'
+                              : '목표 유지'}
+                        </span>
+                      </div>
+                      <p className="font-medium text-green-600 text-sm sm:text-base">
+                        {battleDataForReview.hostTargetWeight.toFixed(1)}kg
+                      </p>
+                    </div>
+                    <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-2.5 sm:p-3 space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <Award className="h-3.5 w-3.5 text-orange-600" />
+                        <span className="text-xs text-muted-foreground">
+                          {battleDataForReview.hostGoalType === 'WEIGHT_LOSS'
+                            ? '상대 감량'
+                            : battleDataForReview.hostGoalType === 'WEIGHT_GAIN'
+                              ? '상대 증량'
+                              : '상대 변화'}
+                        </span>
+                      </div>
+                      <p className="font-medium text-orange-600 text-sm sm:text-base">
+                        {battleDataForReview.opponentWeightChange.toFixed(1)}
+                        kg
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             {/* 다이어트 상세 경험 Q&A */}
             {(review.hardestPeriod ||
               review.dietManagement ||
@@ -700,6 +954,50 @@ const ReviewCard = ({
       {/* 로그인 모달 */}
       {loginModalOpen && (
         <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} />
+      )}
+
+      {/* 리뷰 수정 폼 */}
+      {isMobile ? (
+        <Drawer
+          open={isEditMode}
+          onOpenChange={setIsEditMode}
+          modal={true}
+          shouldScaleBackground={false}
+        >
+          <DrawerContent className="max-h-[90vh]">
+            <DrawerTitle className="sr-only">리뷰 수정</DrawerTitle>
+            <div className="overflow-y-auto px-4 pb-4">
+              <ReviewForm
+                reviewId={review.id}
+                initialData={review}
+                goalId={review.goalId ? Number(review.goalId) : undefined}
+                battleRoomEntryCode={review.battleRoomEntryCode}
+                onCancel={() => setIsEditMode(false)}
+                onSuccess={() => {
+                  setIsEditMode(false);
+                  queryClient.invalidateQueries({ queryKey: ['reviewList'] });
+                }}
+              />
+            </div>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        <Dialog open={isEditMode} onOpenChange={setIsEditMode}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogTitle className="sr-only">리뷰 수정</DialogTitle>
+            <ReviewForm
+              reviewId={review.id}
+              initialData={review}
+              goalId={review.goalId ? Number(review.goalId) : undefined}
+              battleRoomEntryCode={review.battleRoomEntryCode}
+              onCancel={() => setIsEditMode(false)}
+              onSuccess={() => {
+                setIsEditMode(false);
+                queryClient.invalidateQueries({ queryKey: ['reviewList'] });
+              }}
+            />
+          </DialogContent>
+        </Dialog>
       )}
     </Card>
   );

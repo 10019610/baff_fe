@@ -26,6 +26,7 @@ const convertToReview = (item: ReviewListItem): Review => ({
   id: item.reviewId.toString(), // 실제 리뷰 ID 사용
   userId: item.userId.toString(),
   userName: item.userNickName, // 백엔드에서 받아온 닉네임 사용
+  userProfileImage: item.userProfileImage,
   title: item.title,
   content: item.content,
   dietMethods: item.dietMethods.split(',').map((m) => m.trim()),
@@ -45,9 +46,11 @@ const convertToReview = (item: ReviewListItem): Review => ({
   reviewType: item.reviewType as 'GOAL' | 'BATTLE' | 'MANUAL',
   goalId: item.goalId?.toString(),
   battleId: item.battleRoomId?.toString(),
+  battleRoomEntryCode: item.battleRoomEntryCode, // 배틀룸 입장 코드 추가
   imageUrl1: item.imageUrl1,
   imageUrl2: item.imageUrl2,
   commentCount: item.commentCount, // 댓글 개수 추가
+  public: item.public, // 목표/배틀 관련 데이터를 리뷰 게시글에 공개할지 여부
 });
 
 const ReviewPage = () => {
@@ -226,6 +229,24 @@ const ReviewPage = () => {
     navigate('/review', { replace: true });
     // 페이지 최상단으로 스크롤
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 취소 버튼 클릭 시 URL에서 ID 제거
+  const handleCancel = () => {
+    setShowReviewForm(false);
+    // URL에 ID가 있으면 제거
+    if (isFromGoalOrBattle) {
+      navigate('/review', { replace: true });
+    }
+  };
+
+  // Dialog/Drawer 닫힘 시 URL 정리
+  const handleOpenChange = (open: boolean) => {
+    setShowReviewForm(open);
+    // 폼이 닫힐 때 URL에 ID가 있으면 제거
+    if (!open && isFromGoalOrBattle) {
+      navigate('/review', { replace: true });
+    }
   };
 
   // URL에 ID가 있으면 자동으로 리뷰 작성 폼 열기
@@ -539,7 +560,7 @@ const ReviewPage = () => {
       {isMobile ? (
         <Drawer
           open={showReviewForm}
-          onOpenChange={setShowReviewForm}
+          onOpenChange={handleOpenChange}
           modal={true}
           shouldScaleBackground={false}
         >
@@ -552,14 +573,14 @@ const ReviewPage = () => {
                 startWeight={0}
                 endWeight={0}
                 duration={0}
-                onCancel={() => setShowReviewForm(false)}
+                onCancel={handleCancel}
                 onSuccess={handleReviewSuccess}
               />
             </div>
           </DrawerContent>
         </Drawer>
       ) : (
-        <Dialog open={showReviewForm} onOpenChange={setShowReviewForm}>
+        <Dialog open={showReviewForm} onOpenChange={handleOpenChange}>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogTitle className="sr-only">리뷰 작성</DialogTitle>
             <ReviewForm
@@ -568,7 +589,7 @@ const ReviewPage = () => {
               startWeight={0}
               endWeight={0}
               duration={0}
-              onCancel={() => setShowReviewForm(false)}
+              onCancel={handleCancel}
               onSuccess={handleReviewSuccess}
             />
           </DialogContent>

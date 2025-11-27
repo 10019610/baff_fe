@@ -30,4 +30,5 @@ export interface GoalDetailForReview {
   startWeight: number;
   targetWeight: number;
   currentWeight: number | null;
+  title: string;
 }
