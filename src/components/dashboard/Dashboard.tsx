@@ -35,14 +35,18 @@ interface DashboardProps {
   onNavigate?: (menuId: string) => void;
   entries: WeightEntry[];
   goals: GetGoalListResponse[];
+  allGoals: GetGoalListResponse[];
   refetchGoalList: () => void;
+  refetchAllGoalList: () => void;
   weightStats: WeightStats;
 }
 
 const Dashboard = ({
   entries,
   goals,
+  allGoals,
   refetchGoalList: _refetchGoalList, // eslint-disable-line @typescript-eslint/no-unused-vars
+  refetchAllGoalList: _refetchAllGoalList, // eslint-disable-line @typescript-eslint/no-unused-vars
   weightStats,
 }: DashboardProps) => {
   const { user, isAuthenticated } = useAuth();
@@ -93,10 +97,11 @@ const Dashboard = ({
       progress,
     };
   };
-
+  console.log(allGoals);
   const stats = getCurrentStats();
   const hasData = stats !== null;
   const hasGoals = goals.length > 0;
+
   const guestView = (
     <div className="space-y-8 max-w-4xl mx-auto">
       {/* Hero Section */}
@@ -525,19 +530,19 @@ const Dashboard = ({
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center">
                     <p className="text-2xl font-semibold text-green-600">
-                      {goals.filter((g) => g.isExpired === true).length}
+                      {allGoals.filter((g) => g.isExpired === true).length}
                     </p>
                     <p className="text-sm text-muted-foreground">종료</p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-semibold text-blue-600">
-                      {goals.filter((g) => g.isExpired === false).length}
+                      {allGoals.filter((g) => g.isExpired === false).length}
                     </p>
                     <p className="text-sm text-muted-foreground">진행중</p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-semibold text-orange-600">
-                      {goals.length}
+                      {allGoals.length}
                     </p>
                     <p className="text-sm text-muted-foreground">총 목표</p>
                   </div>
