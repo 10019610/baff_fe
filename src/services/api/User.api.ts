@@ -29,3 +29,13 @@ export const editProfileImage = async (imageUrl: string) => {
   });
   return response.data;
 };
+
+export const getUserFlagForPopUp = async () => {
+  const response = await api.get('/user/getUserFlagForPopUp');
+  return response.data;
+};
+
+export const insertUserFlag = async (flagKey: string) => {
+  const response = await api.post('/user/insertUserFlag', { flagKey });
+  return response.data;
+};

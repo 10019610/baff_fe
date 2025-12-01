@@ -8,6 +8,9 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext'; // useAuth 추가
 import type { User } from '../types/User'; // User 타입 추가
 import { ArrowUp } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { getUserFlagForPopUp } from '../services/api/User.api.ts';
+import type { UserFlag } from '../types/User.api.type.ts';
 
 // 커스텀 로깅 함수
 const customLog = (message: string, ...args: unknown[]) => {
@@ -27,7 +30,7 @@ const customLog = (message: string, ...args: unknown[]) => {
 const Layout = () => {
   const location = useLocation();
   const navigate = useNavigate(); // useNavigate 훅 사용
-  const { login } = useAuth(); // useAuth 훅 사용
+  const { login, isAuthenticated } = useAuth(); // useAuth 훅 사용
   const { isHeightModalOpen } = useHeightModal();
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -162,6 +165,12 @@ const Layout = () => {
     ease: 'anticipate' as const,
     duration: 0.4,
   };
+
+  const { data } = useQuery<UserFlag[]>({
+    queryKey: ['userFlag'],
+    queryFn: () => getUserFlagForPopUp(),
+    enabled: isAuthenticated, // 인증된 경우에만 쿼리 실행
+  });
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

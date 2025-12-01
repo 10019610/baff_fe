@@ -26,3 +26,9 @@ export interface GetUserInfoResponse {
   // role: string;
   // status: string;
 }
+
+export interface UserFlag {
+  userId: number;
+  flagKey: string;
+  regDateTime: string;
+}

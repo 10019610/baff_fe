@@ -95,8 +95,8 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
               {user.nickname}
             </AvatarFallback>
           </Avatar>
-          <div className="flex flex-col items-center sm:items-start">
-            <span className="text-xs sm:text-sm font-medium leading-tight">
+          <div className="flex flex-col items-center sm:items-start min-w-0 max-w-[80px] sm:max-w-[120px]">
+            <span className="text-xs sm:text-sm font-medium leading-tight truncate w-full">
               {user.nickname}
             </span>
           </div>
@@ -117,7 +117,8 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
             <div className="flex items-center gap-2 pt-1">
               <Crown className="h-3 w-3 text-yellow-500" />
               <span className="text-xs text-muted-foreground">
-                회원 가입일: {new Date().toLocaleDateString('ko-KR')}
+                회원 가입일:{' '}
+                {new Date(user.regDateTime).toLocaleDateString('ko-KR')}
               </span>
             </div>
           </div>
