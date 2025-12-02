@@ -11,6 +11,7 @@ import { ArrowUp } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getUserFlagForPopUp } from '../services/api/User.api.ts';
 import type { UserFlag } from '../types/User.api.type.ts';
+import { EditProfileNotificationModal } from '../components/modal/EditProfileNotificationModal.tsx';
 
 // 커스텀 로깅 함수
 const customLog = (message: string, ...args: unknown[]) => {
@@ -30,9 +31,10 @@ const customLog = (message: string, ...args: unknown[]) => {
 const Layout = () => {
   const location = useLocation();
   const navigate = useNavigate(); // useNavigate 훅 사용
-  const { login, isAuthenticated } = useAuth(); // useAuth 훅 사용
+  const { login, isAuthenticated, user } = useAuth(); // useAuth 훅 사용
   const { isHeightModalOpen } = useHeightModal();
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
     customLog('[웹] Layout useEffect 시작'); // <-- 이 로그 추가
@@ -172,6 +174,26 @@ const Layout = () => {
     enabled: isAuthenticated, // 인증된 경우에만 쿼리 실행
   });
 
+  // 프로필 수정 모달 표시 조건 확인
+  useEffect(() => {
+    // data가 아직 로딩 중이면 기다림
+    if (!isAuthenticated || data === undefined) {
+      return;
+    }
+
+    // flagKey가 '202512_EDIT_PROFILE'인지 확인
+    const hasFlag = data.some((flag) => {
+      return flag.flagKey === '202512_EDIT_PROFILE';
+    });
+
+    // 플래그가 없고, user.id가 76 미만일 때만 모달 표시
+    if (!hasFlag && user?.id && Number(user.id) < 76) {
+      setShowProfileModal(true);
+    } else {
+      setShowProfileModal(false);
+    }
+  }, [isAuthenticated, data, user]);
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
@@ -191,6 +213,12 @@ const Layout = () => {
               transition={pageTransition}
             >
               <Outlet />
+              {/* 프로필 수정 안내 모달 */}
+              <EditProfileNotificationModal
+                isOpen={showProfileModal}
+                onClose={() => setShowProfileModal(false)}
+                userId={user?.userId || data?.[0]?.userId}
+              />
             </motion.div>
           </div>
         </div>

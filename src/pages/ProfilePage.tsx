@@ -152,7 +152,7 @@ const ProfilePage = () => {
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             {/* 프로필 사진 */}
             <div className="relative flex-shrink-0">
-              <Avatar className="h-28 w-28">
+              <Avatar className="h-28 w-28 border border-gray">
                 <AvatarImage
                   src={userInfo.userProfileUrl}
                   alt={userInfo.nickname}
@@ -164,7 +164,7 @@ const ProfilePage = () => {
               <Button
                 size="icon"
                 onClick={handleOpenEditAvatar}
-                className="absolute -bottom-1 -right-1 size-8 rounded-full bg-[#F0C3CB] hover:bg-[#E8B3BD] shadow-lg"
+                className="absolute -bottom-1 -right-1 size-8 rounded-full bg-[#F0C3CB] hover:bg-[#E8B3BD] shadow-lg border border-gray"
                 aria-label="프로필 사진 변경"
               >
                 <Camera className="size-4 text-white" />
