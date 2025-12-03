@@ -89,14 +89,14 @@ export default function UserMenu({ onProfileClick }: UserMenuProps) {
           variant="ghost"
           className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 h-auto py-2 px-2 sm:px-3 rounded-lg hover:bg-accent"
         >
-          <Avatar className="h-10 w-10 cursor-pointer flex-shrink-0">
+          <Avatar className="h-10 w-10 cursor-pointer flex-shrink-0 border border-gray-100">
             <AvatarImage src={user.profileImage} alt={user.nickname} />
             <AvatarFallback className="bg-primary text-primary-foreground">
               {user.nickname}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col items-center sm:items-start min-w-0 max-w-[80px] sm:max-w-[120px]">
-            <span className="text-xs sm:text-sm font-medium leading-tight truncate w-full">
+            <span className="text-xs sm:text-sm font-medium leading-tight truncate w-full text-gray-700">
               {user.nickname}
             </span>
           </div>

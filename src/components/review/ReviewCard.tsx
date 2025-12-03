@@ -66,6 +66,7 @@ import LoginModal from '../auth/LoginModal.tsx';
 import type { GoalDetailForReview } from '../../types/Goals.type';
 import ReviewForm from './ReviewForm.tsx';
 import { useIsMobile } from '../ui/use-mobile';
+import { formatTimeAgo } from '../../util/DateUtil';
 
 interface ReviewCardProps {
   review: Review;
@@ -235,25 +236,6 @@ const ReviewCard = ({
   const weightChange = review.startWeight - review.endWeight;
   const isWeightLoss = weightChange > 0;
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffDays = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    if (diffDays === 0) return '오늘';
-    if (diffDays === 1) return '어제';
-    if (diffDays < 7) return `${diffDays}일 전`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)}주 전`;
-
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
   const selectedMethodsLabels = review.dietMethods.map((method) => {
     const found = DIET_METHODS.find((m) => m.value === method);
     return found?.label || method;
@@ -263,7 +245,7 @@ const ReviewCard = ({
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader className="">
         <div className="flex items-start gap-3">
-          <Avatar className="h-10 w-10">
+          <Avatar className="h-10 w-10 flex-shrink-0">
             <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
               <img
                 src={review.userProfileImage}
@@ -272,16 +254,16 @@ const ReviewCard = ({
               />
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-medium">{review.title}</h3>
-            </div>
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <h3 className="font-medium truncate max-w-[200px] md:max-w-none">
+              {review.title}
+            </h3>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1 flex-wrap">
               <span>{review.userName}</span>
               <span>•</span>
               <span className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                {formatDate(review.createdAt)}
+                {formatTimeAgo(review.createdAt)}
               </span>
 
               {/* 리뷰 타입 뱃지 */}

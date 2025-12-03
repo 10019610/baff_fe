@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { X, Edit2 } from 'lucide-react';
+import { X } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
 import { insertUserFlag } from '../../services/api/User.api';
@@ -37,6 +37,7 @@ export function EditProfileNotificationModal({
   const handleEditProfile = () => {
     onClose();
     if (userId) {
+      handleDontShowAgain();
       navigate(`/user/profile/${userId}`);
     }
   };
