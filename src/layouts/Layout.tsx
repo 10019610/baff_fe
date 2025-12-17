@@ -217,7 +217,7 @@ const Layout = () => {
               <EditProfileNotificationModal
                 isOpen={showProfileModal}
                 onClose={() => setShowProfileModal(false)}
-                userId={user?.userId || data?.[0]?.userId}
+                userId={Number(user?.id) || data?.[0]?.userId}
               />
             </motion.div>
           </div>

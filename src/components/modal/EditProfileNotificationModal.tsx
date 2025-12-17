@@ -35,10 +35,10 @@ export function EditProfileNotificationModal({
   };
 
   const handleEditProfile = () => {
-    onClose();
     if (userId) {
       handleDontShowAgain();
       navigate(`/user/profile/${userId}`);
+      onClose();
     }
   };
 
