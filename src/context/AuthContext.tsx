@@ -20,6 +20,7 @@ interface AuthContextType {
   getToken: () => string | null;
   setToken: (token: string) => void;
   updateUserProfileImage: (imageUrl: string) => void;
+  updateUserNickname: (nickname: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -182,6 +183,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     });
   }, []);
 
+  const updateUserNickname = useCallback((nickname: string) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        nickname: nickname,
+      };
+    });
+  }, []);
+
   const value = React.useMemo(
     () => ({
       user,
@@ -193,6 +204,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       getToken,
       setToken,
       updateUserProfileImage,
+      updateUserNickname,
     }),
     [
       user,
@@ -204,6 +216,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       getToken,
       setToken,
       updateUserProfileImage,
+      updateUserNickname,
     ]
   );
 

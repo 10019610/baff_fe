@@ -38,7 +38,7 @@ const ProfilePage = () => {
    */
   /* User Id */
   const { userId } = useParams();
-  const { user, updateUserProfileImage } = useAuth();
+  const { user, updateUserProfileImage, updateUserNickname } = useAuth();
   const queryClient = useQueryClient();
 
   const handleOpenEditAvatar = () => {
@@ -65,7 +65,9 @@ const ProfilePage = () => {
     setShowEditNameDialog(false);
   };
 
-  const handleNameUpdateSuccess = async () => {
+  const handleNameUpdateSuccess = async (newNickname: string) => {
+    // AuthContext의 user 정보 업데이트
+    updateUserNickname(newNickname);
     // 닉네임 변경 후 프로필 페이지 쿼리 무효화
     await queryClient.invalidateQueries({
       queryKey: ['userId', userId],
