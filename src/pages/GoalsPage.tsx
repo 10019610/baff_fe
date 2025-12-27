@@ -12,6 +12,7 @@ import GoalSetupGuide from '../components/GoalSetupGuide.tsx';
 import { api } from '../services/api/Api.ts';
 import toast from 'react-hot-toast';
 import GoalsDeleteDialog from '../components/modal/GoalsDeleteDialog.tsx';
+import { useAuth } from '../context/AuthContext';
 
 /**
  * 체중 목표 설정 페이지
@@ -29,14 +30,18 @@ const GoalsPage = () => {
     { value: '1week', label: '1주', hours: 168 },
     { value: '1month', label: '1달', hours: 720 },
   ];
+
+  /* 유저 정보 가져오기 */
+  const { user } = useAuth();
+
+  /* 예외처리: 첫 몸무게 입력 전에 목표를 만든 유저들 (userId: 78, 80, 81) */
+  const EXCEPTION_USER_IDS = [78, 80, 81];
   /**
    * States
    */
   /* 목표 설정 저장 파라미터 state */
   const [recordWeightParam, setRecordWeightParam] =
     useState<RecordGoalsRequest>(goalsInitializer.INITIAL_RECORD_WEIGHT_PARAM);
-  /* 체중 기록여부 state */
-  const [hasWeightEntry] = useState<boolean>(true);
   /* 페이지 로딩 제어 state */
   // const [isLoading, setIsLoading] = useState<boolean>(true);
   /* 목표삭제 팝업 오픈 제어 state */
@@ -151,9 +156,6 @@ const GoalsPage = () => {
     setIsDeleteModalOpen(false);
     toast.success('목표가 삭제되었습니다.');
   };
-  if (!hasWeightEntry) {
-    return <GoalSetupGuide />;
-  }
 
   useEffect(() => {
     if (isSuccess && getCurrentWeightInfo) {
@@ -163,29 +165,56 @@ const GoalsPage = () => {
       }));
     }
   }, [getCurrentWeightInfo, isSuccess]);
+
+  /**
+   * 첫 몸무게 입력 여부 확인
+   * - 현재 체중이 0 또는 undefined 이면 첫 몸무게를 입력하지 않은 것
+   * - 예외 유저(78,79, 80, 81)는 무시
+   */
+  const hasNoInitialWeight =
+    getCurrentWeightInfo.currentWeight === 0 ||
+    getCurrentWeightInfo.currentWeight === undefined;
+
+  const isExceptionUser =
+    user?.id !== undefined && EXCEPTION_USER_IDS.includes(Number(user.id));
+
+  /* 가이드 표시: 초기 체중이 없고 && 예외 유저가 아닌 경우 */
+  const shouldShowSetupGuide = hasNoInitialWeight && !isExceptionUser;
+
+  /* 목표 생성 버튼 비활성화: 초기 체중이 없고 && 예외 유저가 아닌 경우 */
+  const isGoalCreationDisabled = hasNoInitialWeight && !isExceptionUser;
+
   return (
     <div className="goals-page">
-      <GoalSetting
-        onClickRecord={handleRecordWeight}
-        onChangeParam={handleRecordGoalsParam}
-        param={recordWeightParam}
-        presetDuration={presetDuration}
-        currentWeight={getCurrentWeightInfo.currentWeight}
-        goalList={goalList}
-        handleGetDaysRemaining={handleGetDaysRemaining}
-        handleDeleteGoalModal={handleDeleteGoalModal}
-        isPending={isPendingForRecord}
-      />
-      {/* 목표 삭제 확인 다이얼로그 */}
-      {deleteGoalId && (
-        <GoalsDeleteDialog
-          deleteGoalId={deleteGoalId}
-          isDeleteModalOpen={isDeleteModalOpen}
-          onClickCloseDelete={cancelDeleteGoal}
-          goalList={goalList}
-          handleGoalDelete={handleGoalDelete}
-          isPending={isPendingForDelete}
-        />
+      {shouldShowSetupGuide ? (
+        <GoalSetupGuide />
+      ) : (
+        <>
+          <GoalSetting
+            onClickRecord={handleRecordWeight}
+            onChangeParam={handleRecordGoalsParam}
+            param={recordWeightParam}
+            presetDuration={presetDuration}
+            currentWeight={getCurrentWeightInfo.currentWeight}
+            goalList={goalList}
+            handleGetDaysRemaining={handleGetDaysRemaining}
+            handleDeleteGoalModal={handleDeleteGoalModal}
+            isPending={isPendingForRecord}
+            isGoalCreationDisabled={isGoalCreationDisabled}
+          />
+
+          {/* 목표 삭제 확인 다이얼로그 */}
+          {deleteGoalId && (
+            <GoalsDeleteDialog
+              deleteGoalId={deleteGoalId}
+              isDeleteModalOpen={isDeleteModalOpen}
+              onClickCloseDelete={cancelDeleteGoal}
+              goalList={goalList}
+              handleGoalDelete={handleGoalDelete}
+              isPending={isPendingForDelete}
+            />
+          )}
+        </>
       )}
     </div>
   );

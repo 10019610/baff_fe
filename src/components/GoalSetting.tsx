@@ -45,6 +45,7 @@ interface GoalSettingProps {
   handleGetDaysRemaining: (startDate: string, endDate: string) => number;
   handleDeleteGoalModal: (goalId: string) => void;
   isPending: boolean;
+  isGoalCreationDisabled?: boolean;
 }
 
 /**
@@ -65,6 +66,7 @@ const GoalSetting = ({
   handleGetDaysRemaining,
   handleDeleteGoalModal,
   isPending,
+  isGoalCreationDisabled = false,
 }: GoalSettingProps) => {
   /**
    * States
@@ -194,8 +196,13 @@ const GoalSetting = ({
           {/* 목표 설정 생성 버튼*/}
           <AnimatedContainer>
             <Card
-              className="hover:shadow-lg transition-all duration-200 cursor-pointer group border-2 border-primary/40 bg-gradient-to-br from-primary/20 to-primary/30 hover:from-primary/25 hover:to-primary/35 hover:border-primary/50 hover:scale-[1.02]"
+              className={`hover:shadow-lg transition-all duration-200 group border-2 border-primary/40 bg-gradient-to-br from-primary/20 to-primary/30 hover:from-primary/25 hover:to-primary/35 hover:border-primary/50 hover:scale-[1.02] ${
+                isGoalCreationDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+              }`}
               onClick={() => {
+                if (isGoalCreationDisabled) {
+                  return;
+                }
                 if (isAuthenticated) {
                   setShowCreateGoal(true);
                 } else {

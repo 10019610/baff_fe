@@ -23,10 +23,7 @@ const GoalSetupGuide = () => {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold mb-2">제목</h1>
-        <p className="text-muted-foreground">Description</p>
-      </div>
+
       {/* Warning Alert */}
       <Alert className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
         <AlertTriangle className="h-4 w-4 text-orange-600" />
@@ -47,6 +44,16 @@ const GoalSetupGuide = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center space-y-6">
+          {/* Action Button */}
+          <div className="pb-2">
+            <Link to="/weightTracker">
+              <Button size="lg" className="group">
+                <Scale className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
+                첫 체중 기록하러 가기
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+          </div>
           {/* step */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 bg-muted/50 rounded-lg">
@@ -80,16 +87,6 @@ const GoalSetupGuide = () => {
                 목표 달성까지 진행률 확인
               </p>
             </div>
-          </div>
-          {/* Action Button */}
-          <div className="pt-4">
-            <Link to="/weightTracker">
-              <Button size="lg" className="group">
-                <Scale className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
-                첫 체중 기록하러 가기
-                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
           </div>
         </CardContent>
       </Card>
