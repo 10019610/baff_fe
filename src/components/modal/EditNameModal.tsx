@@ -30,7 +30,7 @@ export function EditNameModal({
 
   const { mutate, isPending } = useMutation({
     mutationFn: editUserNickname,
-    onSuccess: async (data, variables) => {
+    onSuccess: async (variables) => {
       // 프로필 페이지의 쿼리 키와 일치하도록 수정
       if (userId) {
         await queryClient.invalidateQueries({
@@ -44,12 +44,12 @@ export function EditNameModal({
         await queryClient.invalidateQueries({ queryKey: ['userInfo'] });
         await queryClient.invalidateQueries({ queryKey: ['userId'] });
       }
-      
+
       // 부모 컴포넌트의 onSuccess 콜백 호출 (변경된 닉네임 전달)
       if (onSuccess) {
         await onSuccess(variables);
       }
-      
+
       onClose();
     },
     onError: () => {
