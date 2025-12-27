@@ -35,7 +35,7 @@ const GoalsPage = () => {
   const { user } = useAuth();
 
   /* 예외처리: 첫 몸무게 입력 전에 목표를 만든 유저들 (userId: 78, 80, 81) */
-  const EXCEPTION_USER_IDS = [78, 80, 81];
+  const EXCEPTION_USER_IDS = [78, 80, 81, 79];
   /**
    * States
    */
