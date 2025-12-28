@@ -14,7 +14,7 @@ import { api } from '../services/api/Api.ts';
 import { userInitializer } from '../types/User.initializer.ts';
 import type { GetUserListResponse } from '../types/User.api.type.ts';
 import type { GetAdminInquiryListResponse } from '../types/Inquiry.api.type.ts';
-import Test1 from '../components/common/Test1.tsx';
+// import Test1 from '../components/common/Test1.tsx';
 
 /**
  * 어드민 페이지
@@ -78,10 +78,10 @@ const AdminPage = () => {
             <Users className="h-4 w-4" />
             회원관리
           </TabsTrigger>
-          <TabsTrigger value="test" className="flex items-center gap-2">
+          {/* <TabsTrigger value="test" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             테스트1
-          </TabsTrigger>
+          </TabsTrigger> */}
           <TabsTrigger value="inquiry" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
             문의관리
@@ -90,9 +90,9 @@ const AdminPage = () => {
         <TabsContent value="users" className="mt-6">
           <AdminUserManagement userList={userList} />
         </TabsContent>
-        <TabsContent value="test" className="mt-6">
+        {/* <TabsContent value="test" className="mt-6">
           <Test1 />
-        </TabsContent>
+        </TabsContent> */}
         <TabsContent value="inquiry" className="mt-6">
           <AdminInquiryManagement inquiryList={inquiryList} />
         </TabsContent>
