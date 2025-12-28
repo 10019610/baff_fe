@@ -56,6 +56,28 @@ export interface GetInquiryListRequest {
 }
 
 /**
+ * 관리자용 문의 목록 조회 요청 타입
+ */
+export interface GetAdminInquiryListRequest {
+  inquiryType?: InquiryType;
+  inquiryStatus?: InquiryStatus;
+}
+
+/**
+ * 관리자용 문의 목록 조회 응답 타입
+ */
+export interface GetAdminInquiryListResponse {
+  inquiryId: number;
+  userId: number;
+  nickname: string;
+  title: string;
+  content: string;
+  inquiryType: InquiryType;
+  inquiryStatus: InquiryStatus;
+  regDateTime: string;
+}
+
+/**
  * 문의 상세 조회 응답 타입
  */
 // export interface GetInquiryDetailResponse extends InquiryResponseDto {
