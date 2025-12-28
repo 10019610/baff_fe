@@ -187,7 +187,7 @@ const Layout = () => {
     });
 
     // 플래그가 없고, user.id가 76 미만일 때만 모달 표시
-    if (!hasFlag && user?.id && Number(user.id) < 76) {
+    if (!hasFlag && user?.id && Number(user.id) < 95) {
       setShowProfileModal(true);
     } else {
       setShowProfileModal(false);
