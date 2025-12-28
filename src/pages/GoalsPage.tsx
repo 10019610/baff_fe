@@ -76,10 +76,9 @@ const GoalsPage = () => {
   // 임시
   // const currentWeight = 60;
 
-  const { data: getCurrentWeightInfo, isSuccess } =
+  const { data: getCurrentWeightInfo = { currentWeight: 0 }, isSuccess } =
     useQuery<GetCurrentWeightInfoResponse>({
       queryKey: ['currentWeight'],
-      initialData: { currentWeight: 0 },
       queryFn: () => {
         return api.get('/weight/getCurrentWeight').then((res) => {
           // setRecordWeightParam((prevState) => ({
@@ -158,7 +157,7 @@ const GoalsPage = () => {
   };
 
   useEffect(() => {
-    if (isSuccess && getCurrentWeightInfo) {
+    if (isSuccess && getCurrentWeightInfo?.currentWeight) {
       setRecordWeightParam((prevState) => ({
         ...prevState,
         startWeight: getCurrentWeightInfo.currentWeight,
@@ -172,9 +171,10 @@ const GoalsPage = () => {
    * - 예외 유저(78,79, 80, 81)는 무시
    */
   const hasNoInitialWeight =
-    getCurrentWeightInfo.currentWeight === 0 ||
-    getCurrentWeightInfo.currentWeight === undefined;
+    !getCurrentWeightInfo?.currentWeight ||
+    getCurrentWeightInfo.currentWeight === 0;
 
+  console.log(getCurrentWeightInfo);
   const isExceptionUser =
     user?.id !== undefined && EXCEPTION_USER_IDS.includes(Number(user.id));
 
@@ -195,7 +195,7 @@ const GoalsPage = () => {
             onChangeParam={handleRecordGoalsParam}
             param={recordWeightParam}
             presetDuration={presetDuration}
-            currentWeight={getCurrentWeightInfo.currentWeight}
+            currentWeight={getCurrentWeightInfo?.currentWeight || 0}
             goalList={goalList}
             handleGetDaysRemaining={handleGetDaysRemaining}
             handleDeleteGoalModal={handleDeleteGoalModal}
