@@ -31,6 +31,7 @@ import GoalsCreate from './GoalsCreate.tsx';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LoginModal from './auth/LoginModal.tsx';
+import toast from 'react-hot-toast';
 
 interface GoalSettingProps {
   onClickRecord: () => void;
@@ -197,10 +198,18 @@ const GoalSetting = ({
           <AnimatedContainer>
             <Card
               className={`hover:shadow-lg transition-all duration-200 group border-2 border-primary/40 bg-gradient-to-br from-primary/20 to-primary/30 hover:from-primary/25 hover:to-primary/35 hover:border-primary/50 hover:scale-[1.02] ${
-                isGoalCreationDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                isGoalCreationDisabled
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'cursor-pointer'
               }`}
               onClick={() => {
                 if (isGoalCreationDisabled) {
+                  toast.error('현재 체중을 먼저 입력해주세요.');
+                  return;
+                }
+                // currentWeight가 0이거나 undefined인 경우 추가 체크
+                if (!currentWeight || currentWeight === 0) {
+                  toast.error('현재 체중을 먼저 입력해주세요.');
                   return;
                 }
                 if (isAuthenticated) {

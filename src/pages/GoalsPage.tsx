@@ -35,7 +35,7 @@ const GoalsPage = () => {
   const { user } = useAuth();
 
   /* 예외처리: 첫 몸무게 입력 전에 목표를 만든 유저들 (userId: 78, 80, 81) */
-  const EXCEPTION_USER_IDS = [78, 80, 81, 79];
+  const EXCEPTION_USER_IDS = [78, 80, 81];
   /**
    * States
    */
@@ -58,8 +58,11 @@ const GoalsPage = () => {
         api.post('/goals/recordGoals', param),
       onSuccess: () => {
         refetchGoalList();
-        // 폼 초기화
-        setRecordWeightParam(goalsInitializer.INITIAL_RECORD_WEIGHT_PARAM);
+        // 폼 초기화 (startWeight는 현재 체중으로 유지)
+        setRecordWeightParam({
+          ...goalsInitializer.INITIAL_RECORD_WEIGHT_PARAM,
+          startWeight: getCurrentWeightInfo?.currentWeight || 0,
+        });
         toast.success('목표가 성공적으로 설정되었습니다!');
       },
     });
@@ -116,6 +119,19 @@ const GoalsPage = () => {
     // 목표기간
     if (recordWeightParam.presetDuration === 0) {
       toast.error('모든 값을 입력해주세요.');
+      return;
+    }
+    // 시작 체중 (currentWeight가 0이면 목표 생성 불가)
+    if (!recordWeightParam.startWeight || recordWeightParam.startWeight === 0) {
+      toast.error('현재 체중을 먼저 입력해주세요.');
+      return;
+    }
+    // 목표 체중
+    if (
+      !recordWeightParam.targetWeight ||
+      recordWeightParam.targetWeight === 0
+    ) {
+      toast.error('목표 체중을 입력해주세요.');
       return;
     }
 

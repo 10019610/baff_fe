@@ -173,6 +173,8 @@ export function EditAvatarModal({
 
   useEffect(() => {
     if (isOpen) {
+      // currentAvatarUrl이 있으면 그대로 사용, 없으면 빈 문자열
+      // 하지만 제출 시에는 빈 문자열을 막음
       setSelectedAvatar(currentAvatarUrl || '');
       setAvatarError('');
       setUploadedAvatarUrl('');
@@ -232,7 +234,10 @@ export function EditAvatarModal({
       setAvatarError(message);
       toast.error(message);
       resetObjectUrl();
-      setSelectedAvatar(currentAvatarUrl || '');
+      // 업로드 실패 시 기존 프로필 이미지로 복구 (빈 문자열이 아닌 기존 URL 유지)
+      if (currentAvatarUrl) {
+        setSelectedAvatar(currentAvatarUrl);
+      }
       setUploadedAvatarUrl('');
       event.target.value = '';
     }
@@ -253,7 +258,8 @@ export function EditAvatarModal({
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!effectiveAvatarUrl) {
+    // 빈 문자열이나 유효하지 않은 URL 체크 강화
+    if (!effectiveAvatarUrl || effectiveAvatarUrl.trim() === '') {
       setAvatarError('프로필 이미지를 선택해주세요.');
       return;
     }
