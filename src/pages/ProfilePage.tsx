@@ -1,11 +1,11 @@
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/card.tsx';
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from '../components/ui/avatar.tsx';
-import { Calendar, Camera, Edit2, Shield, LogIn } from 'lucide-react';
+import { Calendar, Camera, Edit2, Shield, LogIn, MessageSquare, Mail } from 'lucide-react';
 import { Badge } from '../components/ui/badge.tsx';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api/Api.ts';
@@ -40,6 +40,7 @@ const ProfilePage = () => {
   const { userId } = useParams();
   const { user, updateUserProfileImage, updateUserNickname } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const handleOpenEditAvatar = () => {
     setShowEditAvatarDialog(true);
@@ -227,6 +228,36 @@ const ProfilePage = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* 문의하기 섹션 */}
+      <Card className="border border-border hover:shadow-md transition-all duration-200">
+        <CardContent className="pt-6 pb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-4 flex-1">
+              <div className="p-3 bg-primary/10 rounded-lg shrink-0">
+                <MessageSquare className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-base mb-1">
+                  문의 및 피드백
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  궁금한 점이나 개선사항을 자유롭게 문의해주세요
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={() => navigate('/inquiry')}
+              className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 font-medium"
+              size="default"
+            >
+              <Mail className="h-4 w-4 mr-2" />
+              문의하기
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <EditAvatarModal
         isOpen={showEditAvatarDialog}
         currentAvatarUrl={userInfo?.userProfileUrl || ''}
