@@ -31,6 +31,11 @@ interface WeightStats {
   recordedDays: number;
 }
 
+interface WeightDataForDashboard {
+  weightChangeAverage: number;
+  weightRecordCount: number;
+}
+
 interface DashboardProps {
   onNavigate?: (menuId: string) => void;
   entries: WeightEntry[];
@@ -39,6 +44,7 @@ interface DashboardProps {
   refetchGoalList: () => void;
   refetchAllGoalList: () => void;
   weightStats: WeightStats;
+  weightDataForDashboard?: WeightDataForDashboard;
 }
 
 const Dashboard = ({
@@ -48,6 +54,7 @@ const Dashboard = ({
   refetchGoalList: _refetchGoalList, // eslint-disable-line @typescript-eslint/no-unused-vars
   refetchAllGoalList: _refetchAllGoalList, // eslint-disable-line @typescript-eslint/no-unused-vars
   weightStats,
+  weightDataForDashboard,
 }: DashboardProps) => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -105,7 +112,7 @@ const Dashboard = ({
   const guestView = (
     <div className="space-y-8 max-w-4xl mx-auto">
       {/* Hero Section */}
-      <div className="text-center space-y-4 py-8 px-4">
+      <div className="text-center space-y-4 py-2 px-4">
         <div className="flex justify-center mb-6">
           <div className="p-4 bg-primary/10 rounded-full">
             <Scale className="h-12 w-12 text-primary" />
@@ -119,6 +126,56 @@ const Dashboard = ({
           도전하세요.
         </p>
       </div>
+      {/* Community Stats - 어제 기록 통계 */}
+      {weightDataForDashboard && (
+        <div className="px-4 space-y-4">
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
+            <h2 className="text-lg sm:text-xl font-semibold text-muted-foreground">
+              어제 ChangeUp 회원들의 변화
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <Card className="border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
+              <CardContent className="pt-5 pb-5">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 dark:text-blue-400" />
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <p className="text-xs text-muted-foreground truncate">
+                      어제 기록한 회원
+                    </p>
+                    <p className="text-2xl sm:text-4xl font-bold text-blue-600 dark:text-blue-400">
+                      {weightDataForDashboard.weightRecordCount}명
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/20">
+              <CardContent className="pt-5 pb-5">
+                <div className="flex items-center gap-2">
+                  {weightDataForDashboard.weightChangeAverage >= 0 ? (
+                    <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-red-600 dark:text-red-400" />
+                  ) : (
+                    <TrendingDown className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 dark:text-green-400" />
+                  )}
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <p className="text-xs text-muted-foreground truncate">
+                      어제 평균 변화량
+                    </p>
+                    <p className="text-2xl sm:text-4xl font-bold text-red-600 dark:text-red-400">
+                      {weightDataForDashboard.weightChangeAverage >= 0
+                        ? '+'
+                        : ''}
+                      {weightDataForDashboard.weightChangeAverage.toFixed(1)}kg
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
 
       {/* Quick Start Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
@@ -264,90 +321,155 @@ const Dashboard = ({
             <div className="flex sm:hidden gap-2">
               <Button
                 variant="outline"
-                className="flex-1"
+                className="flex-1 h-12"
                 onClick={() => navigate('/weightTracker')}
               >
                 <Plus className="h-4 w-4 mr-1" />
                 체중 기록
               </Button>
-              <Button className="flex-1" onClick={() => navigate('/analytics')}>
+              <Button
+                className="flex-1 h-12"
+                onClick={() => navigate('/analytics')}
+              >
                 <BarChart3 className="h-4 w-4 mr-1" />
                 분석 보기
               </Button>
             </div>
+
+            {/* Community Stats - 어제 기록 통계 */}
+            {weightDataForDashboard && (
+              <div className="space-y-4 mt-8 sm:mt-0">
+                <div className="flex items-center justify-center gap-2">
+                  <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
+                  <h2 className="text-lg sm:text-xl font-semibold text-muted-foreground">
+                    어제 ChangeUp 회원들의 변화
+                  </h2>
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <Card className="border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
+                    <CardContent className="pt-5 pb-5">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 dark:text-blue-400" />
+                        <div className="flex-1 min-w-0 space-y-2">
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                            어제 기록한 회원
+                          </p>
+                          <p className="text-2xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
+                            {weightDataForDashboard.weightRecordCount}명
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/20">
+                    <CardContent className="pt-5 pb-5">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        {weightDataForDashboard.weightChangeAverage >= 0 ? (
+                          <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-red-600 dark:text-red-400" />
+                        ) : (
+                          <TrendingDown className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 dark:text-green-400" />
+                        )}
+                        <div className="flex-1 min-w-0 space-y-2">
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                            어제 평균 변화량
+                          </p>
+                          <p className="text-2xl sm:text-4xl font-bold text-red-600 dark:text-red-400">
+                            {weightDataForDashboard.weightChangeAverage >= 0
+                              ? '+'
+                              : ''}
+                            {weightDataForDashboard.weightChangeAverage.toFixed(
+                              1
+                            )}
+                            kg
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Key Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <Scale className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
-                  <div>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      현재 체중
-                    </p>
-                    <p className="text-lg sm:text-xl font-semibold">
-                      {stats?.currentWeight}kg
-                    </p>
+          <div className="space-y-4 mt-8">
+            <div className="flex items-center justify-center gap-2">
+              <Scale className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
+              <h2 className="text-lg sm:text-xl font-semibold text-muted-foreground">
+                나의 체중 현황
+              </h2>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Scale className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
+                    <div>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        현재 체중
+                      </p>
+                      <p className="text-lg sm:text-xl font-semibold">
+                        {stats?.currentWeight}kg
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  {stats.recentChange >= 0 ? (
-                    <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-red-500" />
-                  ) : (
-                    <TrendingDown className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
-                  )}
-                  <div>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      최근 변화
-                    </p>
-                    <p className="text-lg sm:text-xl font-semibold">
-                      {stats?.recentChange >= 0 ? '+' : ''}
-                      {stats?.recentChange.toFixed(1)}kg
-                    </p>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    {stats.recentChange >= 0 ? (
+                      <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-red-500" />
+                    ) : (
+                      <TrendingDown className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
+                    )}
+                    <div>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        최근 변화
+                      </p>
+                      <p className="text-lg sm:text-xl font-semibold">
+                        {stats?.recentChange >= 0 ? '+' : ''}
+                        {stats?.recentChange.toFixed(1)}kg
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <Target className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500" />
-                  <div>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      총 변화
-                    </p>
-                    <p className="text-lg sm:text-xl font-semibold">
-                      {stats?.totalChange >= 0 ? '+' : ''}
-                      {stats?.totalChange.toFixed(1)}kg
-                    </p>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Target className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500" />
+                    <div>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        총 변화
+                      </p>
+                      <p className="text-lg sm:text-xl font-semibold">
+                        {stats?.totalChange >= 0 ? '+' : ''}
+                        {stats?.totalChange.toFixed(1)}kg
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500" />
-                  <div>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      기록 일수
-                    </p>
-                    <p className="text-lg sm:text-xl font-semibold">
-                      {stats?.totalDays}일
-                    </p>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500" />
+                    <div>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        기록 일수
+                      </p>
+                      <p className="text-lg sm:text-xl font-semibold">
+                        {stats?.totalDays}일
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
           {/* Goals List */}

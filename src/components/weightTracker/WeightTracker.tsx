@@ -23,6 +23,11 @@ import WeightCreate from './WeightCreate';
 import LoginModal from '../auth/LoginModal';
 import { useAuth } from '../../context/AuthContext';
 
+interface WeightDataForDashboard {
+  weightChangeAverage: number;
+  weightRecordCount: number;
+}
+
 interface WeightTrackerProps {
   onClickRecord: () => void;
   onChangeParam: (
@@ -36,6 +41,7 @@ interface WeightTrackerProps {
   currentWeight?: number;
   totalChange?: number;
   recordedDays?: number;
+  weightDataForDashboard?: WeightDataForDashboard;
 }
 
 export interface WeightTrackerRef {
@@ -54,6 +60,7 @@ const WeightTracker = forwardRef<WeightTrackerRef, WeightTrackerProps>(
       currentWeight,
       totalChange,
       recordedDays,
+      weightDataForDashboard,
     },
     ref
   ) => {
@@ -226,6 +233,7 @@ const WeightTracker = forwardRef<WeightTrackerRef, WeightTrackerProps>(
             isSubmitting={isSubmitting}
             onClose={() => setShowWeightCreate(false)}
             onChangeParam={onChangeParam}
+            weightDataForDashboard={weightDataForDashboard}
           />
         ) : (
           <div className="space-y-6">

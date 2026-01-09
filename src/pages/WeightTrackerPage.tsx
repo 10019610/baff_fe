@@ -13,6 +13,7 @@ import { api } from '../services/api/Api';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import { getWeightDataForDashboard } from '../services/api/dashboard.api';
 
 /**
  * 체중 기록 페이지
@@ -166,6 +167,11 @@ const WeightTrackerPage = () => {
     enabled: !!user?.id,
   });
 
+  const { data: weightDataForDashboard } = useQuery({
+    queryKey: ['weightDataForDashboard'],
+    queryFn: getWeightDataForDashboard,
+  });
+
   const handleRecordWeight = () => {
     if (!recordWeightParam.weight || !recordWeightParam.recordDate) {
       toast.error('체중과 날짜를 모두 입력해주세요', {
@@ -231,6 +237,7 @@ const WeightTrackerPage = () => {
         currentWeight={weightEntries?.currentWeight}
         totalChange={weightEntries?.totalChange}
         recordedDays={weightEntries?.recordedDays}
+        weightDataForDashboard={weightDataForDashboard}
       />
     </div>
   );

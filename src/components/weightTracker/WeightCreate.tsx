@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../ui/alert-dialog';
-import { AlertTriangle, Calendar, Plus } from 'lucide-react';
+import { AlertTriangle, Calendar, Plus, BarChart3 } from 'lucide-react';
 import { validationRules } from '../../utils/validation';
 import ValidatedInput from './ValidatedInput';
 import { useEffect, useState } from 'react';
@@ -26,6 +26,11 @@ import type {
   RecordWeightRequest,
   WeightEntry,
 } from '../../types/WeightTracker.api.type';
+
+interface WeightDataForDashboard {
+  weightChangeAverage: number;
+  weightRecordCount: number;
+}
 
 interface WeightCreateProps {
   onClickRecord: () => void;
@@ -37,6 +42,7 @@ interface WeightCreateProps {
     key: keyof RecordWeightRequest,
     value: string | number
   ) => void;
+  weightDataForDashboard?: WeightDataForDashboard;
 }
 
 const WeightCreate = ({
@@ -46,6 +52,7 @@ const WeightCreate = ({
   isSubmitting,
   onClose,
   onChangeParam,
+  weightDataForDashboard,
 }: WeightCreateProps) => {
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
 
@@ -194,6 +201,34 @@ const WeightCreate = ({
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Community Info - 어제 기록 통계 */}
+            {weightDataForDashboard && (
+              <div className="mb-4 p-3 bg-muted/50 rounded-lg border border-muted">
+                <div className="flex items-start gap-2 text-xs sm:text-sm text-muted-foreground">
+                  <BarChart3 className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">
+                    어제{' '}
+                    <strong className="text-foreground">
+                      {weightDataForDashboard.weightRecordCount}명
+                    </strong>
+                    의 회원이 기록했고, 평균{' '}
+                    <strong
+                      className={
+                        weightDataForDashboard.weightChangeAverage >= 0
+                          ? 'text-red-600 dark:text-red-400'
+                          : 'text-green-600 dark:text-green-400'
+                      }
+                    >
+                      {weightDataForDashboard.weightChangeAverage >= 0
+                        ? '+'
+                        : ''}
+                      {weightDataForDashboard.weightChangeAverage.toFixed(1)}kg
+                    </strong>
+                    의 변화가 있었어요
+                  </span>
+                </div>
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <ValidatedInput

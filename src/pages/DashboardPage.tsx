@@ -9,6 +9,12 @@ import type {
 import { goalsInitializer } from '../types/Goal.initializer';
 import { api } from '../services/api/Api';
 import { useAuth } from '../context/AuthContext';
+import { getWeightDataForDashboard } from '../services/api/dashboard.api';
+
+interface WeightDataForDashboard {
+  weightChangeAverage: number;
+  weightRecordCount: number;
+}
 
 const DashboardPage = () => {
   const { user } = useAuth();
@@ -105,6 +111,11 @@ const DashboardPage = () => {
     enabled: !!user?.id,
   });
 
+  const { data: weightDataForDashboard } = useQuery<WeightDataForDashboard>({
+    queryKey: ['weightDataForDashboard'],
+    queryFn: getWeightDataForDashboard,
+  });
+
   return (
     <Dashboard
       entries={weightData?.entries || []}
@@ -117,6 +128,7 @@ const DashboardPage = () => {
         totalChange: weightData?.totalChange || 0,
         recordedDays: weightData?.recordedDays || 0,
       }}
+      weightDataForDashboard={weightDataForDashboard}
     />
   );
 };
