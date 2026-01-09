@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
@@ -65,6 +65,8 @@ const CommentSection = ({
   const queryClient = useQueryClient();
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const editTextareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const isInitialLoadRef = useRef(true); // 초기 로드 여부 추적
+  const prevReviewIdRef = useRef<string | null>(null); // 이전 reviewId 추적
 
   // 댓글 목록 조회
   const {
@@ -77,12 +79,36 @@ const CommentSection = ({
     enabled: !!reviewId,
   });
 
-  // 댓글 개수가 변경되면 부모 컴포넌트에 알림
+  // reviewId가 변경되면 초기 로드 플래그 리셋
   React.useEffect(() => {
+    if (prevReviewIdRef.current !== reviewId) {
+      prevReviewIdRef.current = reviewId;
+      isInitialLoadRef.current = true;
+    }
+  }, [reviewId]);
+
+  // 댓글 개수가 변경되면 부모 컴포넌트에 알림
+  // 초기 로드 중이거나 로딩 중일 때는 업데이트하지 않음 (댓글 개수가 0으로 바뀌는 것을 방지)
+  React.useEffect(() => {
+    if (isLoadingComments) {
+      return; // 로딩 중이면 업데이트하지 않음
+    }
+
+    // 초기 로드가 완료되면 플래그를 false로 설정
+    if (isInitialLoadRef.current) {
+      isInitialLoadRef.current = false;
+      // 초기 로드 완료 시에만 업데이트 (댓글 개수가 실제로 변경된 경우)
+      if (onCommentCountChange) {
+        onCommentCountChange(comments.length);
+      }
+      return;
+    }
+
+    // 이후 댓글 개수 변경 시에만 업데이트
     if (onCommentCountChange) {
       onCommentCountChange(comments.length);
     }
-  }, [comments.length, onCommentCountChange]);
+  }, [comments.length, onCommentCountChange, isLoadingComments]);
 
   // 댓글 작성 mutation
   const createCommentMutation = useMutation({
