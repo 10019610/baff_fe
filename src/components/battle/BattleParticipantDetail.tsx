@@ -232,6 +232,7 @@ const BattleParticipantDetail = ({
           <WeightTrendChart
             data={chartData}
             targetWeight={startWeight - targetWeightLoss}
+            hideFilter={true}
           />
         </CardContent>
       </Card>
