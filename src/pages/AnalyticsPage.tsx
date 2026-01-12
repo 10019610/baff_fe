@@ -510,25 +510,55 @@ const AnalyticsPage = () => {
   }
 
   // 세 번째 단계: 완전한 분석 페이지
+  // 만료되지 않은 목표 찾기
+  const activeGoal = goalList.find((goal: Goal) => !goal.isExpired);
+  const hasNoActiveGoals =
+    goalList.length === 0 || goalList.every((goal: Goal) => goal.isExpired);
+
   return (
     <div className="space-y-6">
       <AnalyticsHeader />
       {/* timeRange={timeRange} onTimeRangeChange={setTimeRange} 헤더에 기간을 넣을 경우 추가 */}
-      {goalList.length > 0 && (
+      {hasNoActiveGoals ? (
         <Alert className="border-primary/20 bg-primary/5">
           <Target className="h-4 w-4 text-primary" />
-          <AlertDescription>
-            <div className="flex items-center justify-between">
-              <span>
-                현재 목표: <strong>{goalList[0].title}</strong>
-                <div>(목표 체중: {goalList[0].targetWeight}kg)</div>
-              </span>
-              <Badge variant="default" className="ml-20">
-                {calculateProgress(goalList[0]).toFixed(0)}% 달성
-              </Badge>
-            </div>
+          <AlertDescription className="w-full !grid-cols-1 !flex !items-center !justify-between !gap-4">
+            <span className="flex-1 min-w-0">
+              {goalList.length === 0 ? (
+                '목표를 설정하여 더 정확한 분석을 받아보세요.'
+              ) : (
+                <>
+                  모든 목표가 만료되었습니다.
+                  <div className="mt-1">새로운 목표를 설정해주세요.</div>
+                </>
+              )}
+            </span>
+            <Button
+              size="sm"
+              onClick={() => handleNavigate('goals')}
+              className="flex-shrink-0"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              목표 설정하기
+              <ArrowRight className="h-4 w-4 ml-1" />
+            </Button>
           </AlertDescription>
         </Alert>
+      ) : (
+        activeGoal && (
+          <Alert className="border-primary/20 bg-primary/5">
+            <Target className="h-4 w-4 text-primary" />
+            <AlertDescription className="w-full !grid-cols-1 !flex !items-center !justify-between !gap-4">
+              <span className="flex-1 min-w-0">
+                현재 목표: <strong>{activeGoal.title}</strong>
+                <div>(목표 체중: {activeGoal.targetWeight}kg)</div>
+              </span>
+              <Badge variant="default" className="flex-shrink-0">
+                {calculateProgress(activeGoal).toFixed(0)}% 달성
+              </Badge>
+            </AlertDescription>
+          </Alert>
+        )
       )}
       {/* 핵심 지표 카드들 (건강 점수 제거) */}
       <AnalyticsMetrics
