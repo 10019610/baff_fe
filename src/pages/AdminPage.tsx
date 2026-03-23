@@ -1,61 +1,55 @@
 import { Badge } from '../components/ui/badge.tsx';
-import { Crown, MessageSquare, Users } from 'lucide-react';
+import {
+  Crown,
+  LayoutDashboard,
+  Users,
+  MessageSquare,
+  Swords,
+  Star,
+  Coins,
+  History,
+  Bell,
+} from 'lucide-react';
 import { useState } from 'react';
-import AdminUserManagement from '../components/AdminUserManagement.tsx';
-import AdminInquiryManagement from '../components/AdminInquiryManagement.tsx';
+import AdminOverview from '../components/admin/AdminOverview.tsx';
+import AdminUserManagement from '../components/admin/AdminUserManagement.tsx';
+import AdminUserDetail from '../components/admin/AdminUserDetail.tsx';
+import AdminInquiryManagement from '../components/admin/AdminInquiryManagement.tsx';
+import AdminBattleManagement from '../components/admin/AdminBattleManagement.tsx';
+import AdminReviewManagement from '../components/admin/AdminReviewManagement.tsx';
+import AdminRewardManagement from '../components/admin/AdminRewardManagement.tsx';
+import AdminHistoryManagement from '../components/admin/AdminHistoryManagement.tsx';
+import AdminNoticeManagement from '../components/admin/AdminNoticeManagement.tsx';
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from '../components/ui/tabs.tsx';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '../services/api/Api.ts';
-import { userInitializer } from '../types/User.initializer.ts';
-import type { GetUserListResponse } from '../types/User.api.type.ts';
-import type { GetAdminInquiryListResponse } from '../types/Inquiry.api.type.ts';
-// import Test1 from '../components/common/Test1.tsx';
 
 /**
  * 어드민 페이지
  *
- * @description
+ * @description 8탭 구조의 관리자 대시보드
  *
  * @author hjkim
- * @constructor
  */
+
+const TABS = [
+  { value: 'overview', icon: LayoutDashboard, label: '대시보드' },
+  { value: 'users', icon: Users, label: '사용자 관리' },
+  { value: 'inquiry', icon: MessageSquare, label: '문의 관리' },
+  { value: 'battle', icon: Swords, label: '배틀 관리' },
+  { value: 'review', icon: Star, label: '리뷰 관리' },
+  { value: 'reward', icon: Coins, label: '리워드/조각' },
+  { value: 'history', icon: History, label: '내역 관리' },
+  { value: 'notice', icon: Bell, label: '공지사항' },
+] as const;
+
 const AdminPage = () => {
-  /**
-   * States
-   */
-  /* 탭 제어 state */
-  const [activeTab, setActiveTab] = useState<string>('users');
+  const [activeTab, setActiveTab] = useState<string>('overview');
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
 
-  /**
-   * APIs
-   */
-  /* 가입 유저 리스트 조회 api */
-  const { data: userList } = useQuery<GetUserListResponse[]>({
-    queryKey: ['userList'],
-    initialData: userInitializer.INITIAL_GET_USER_LIST,
-    queryFn: () => {
-      return api.get('/user/getUserList').then((res) => {
-        console.log(res);
-        return res.data;
-      });
-    },
-  });
-
-  /* 문의 리스트 조회 api */
-  const { data: inquiryList } = useQuery<GetAdminInquiryListResponse[]>({
-    queryKey: ['adminInquiryList'],
-    initialData: [],
-    queryFn: () => {
-      return api.get('/inquiry/admin/getInquiryList').then((res) => {
-        return res.data;
-      });
-    },
-  });
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -72,29 +66,47 @@ const AdminPage = () => {
         </Badge>
       </div>
       {/* 탭 메뉴 */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="users" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            회원관리
-          </TabsTrigger>
-          {/* <TabsTrigger value="test" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            테스트1
-          </TabsTrigger> */}
-          <TabsTrigger value="inquiry" className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
-            문의관리
-          </TabsTrigger>
+      <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setSelectedUserId(null); }} className="w-full">
+        <TabsList className="grid w-full grid-cols-4 h-auto gap-1">
+          {TABS.map(({ value, icon: Icon, label }) => (
+            <TabsTrigger
+              key={value}
+              value={value}
+              className="flex items-center gap-1.5 text-xs px-2 py-2"
+            >
+              <Icon className="h-4 w-4 shrink-0" />
+              {label}
+            </TabsTrigger>
+          ))}
         </TabsList>
-        <TabsContent value="users" className="mt-6">
-          <AdminUserManagement userList={userList} />
+
+        <TabsContent value="overview" className="mt-6">
+          <AdminOverview />
         </TabsContent>
-        {/* <TabsContent value="test" className="mt-6">
-          <Test1 />
-        </TabsContent> */}
+        <TabsContent value="users" className="mt-6">
+          {selectedUserId ? (
+            <AdminUserDetail userId={selectedUserId} onBack={() => setSelectedUserId(null)} />
+          ) : (
+            <AdminUserManagement onSelectUser={(id) => setSelectedUserId(id)} />
+          )}
+        </TabsContent>
         <TabsContent value="inquiry" className="mt-6">
-          <AdminInquiryManagement inquiryList={inquiryList} />
+          <AdminInquiryManagement />
+        </TabsContent>
+        <TabsContent value="battle" className="mt-6">
+          <AdminBattleManagement />
+        </TabsContent>
+        <TabsContent value="review" className="mt-6">
+          <AdminReviewManagement />
+        </TabsContent>
+        <TabsContent value="reward" className="mt-6">
+          <AdminRewardManagement />
+        </TabsContent>
+        <TabsContent value="history" className="mt-6">
+          <AdminHistoryManagement />
+        </TabsContent>
+        <TabsContent value="notice" className="mt-6">
+          <AdminNoticeManagement />
         </TabsContent>
       </Tabs>
     </div>

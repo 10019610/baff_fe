@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout';
 import GoalsPage from '../pages/GoalsPage.tsx';
 import WeightTrackerPage from '../pages/WeightTrackerPage.tsx';
 import PrivateRoute from './PrivateRoute.tsx';
+import AdminRoute from './AdminRoute.tsx';
 import LoginPage from '../pages/LoginPage.tsx';
 import OAuthPage from '../pages/OAuthPage.tsx';
 import AdminPage from '../pages/AdminPage.tsx';
@@ -45,8 +46,10 @@ const Router = () => {
           <Route path="/inquiry" element={<InquiryPage />} />
           <Route path="/inquiry/create" element={<InquiryCreatePage />} />
           <Route path="/inquiry/:inquiryId" element={<InquiryDetailPage />} />
-          <Route path="/admin">
-            <Route path="dashboard" element={<AdminPage />} />
+          <Route element={<AdminRoute />}>
+            <Route path="/admin">
+              <Route path="dashboard" element={<AdminPage />} />
+            </Route>
           </Route>
           <Route path="/user">
             <Route path="profile/:userId" element={<ProfilePage />} />

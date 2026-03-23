@@ -13,6 +13,7 @@ import toast from 'react-hot-toast';
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   isLoading: boolean;
   login: (userData: User) => void;
   loginForGoogleApp: () => void;
@@ -193,10 +194,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     });
   }, []);
 
+  const isAdmin = user?.role === 'ADMIN';
+
   const value = React.useMemo(
     () => ({
       user,
       isAuthenticated,
+      isAdmin,
       isLoading,
       login,
       logout,
@@ -209,6 +213,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     [
       user,
       isAuthenticated,
+      isAdmin,
       isLoading,
       login,
       logout,
