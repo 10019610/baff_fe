@@ -197,3 +197,25 @@ export interface AdWatchHistoryItem {
   tossAdResponse: string;
   regDateTime: string;
 }
+
+export interface TossAdPositionConfig {
+  id: number;
+  position: string;
+  tossAdRatio: number;
+  tossAdGroupId: string | null;
+  isTossAdEnabled: boolean;
+  tossImageAdGroupId: string | null;
+  tossImageAdRatio: number;
+  isTossImageAdEnabled: boolean;
+  regDateTime: string;
+  modDateTime: string;
+}
+
+export interface UpdateTossAdConfigRequest {
+  tossAdRatio: number;
+  tossAdGroupId: string | null;
+  isTossAdEnabled: boolean;
+  tossImageAdGroupId?: string | null;
+  tossImageAdRatio?: number;
+  isTossImageAdEnabled?: boolean;
+}

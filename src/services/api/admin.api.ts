@@ -56,6 +56,13 @@ export const adminApi = {
   getAdWatchHistory: (params?: { page?: number; size?: number }) =>
     api.get(`${BASE}/ad-watch/history`, { params }),
 
+  // 토스광고 설정
+  getTossAdConfigs: () => api.get(`${BASE}/toss-ad/configs`),
+  updateTossAdConfig: (position: string, data: {
+    tossAdRatio: number; tossAdGroupId: string | null; isTossAdEnabled: boolean;
+    tossImageAdGroupId?: string | null; tossImageAdRatio?: number; isTossImageAdEnabled?: boolean;
+  }) => api.put(`${BASE}/toss-ad/configs/${position}`, data),
+
   // 공지사항
   getNotices: () => api.get(`${BASE}/notices`),
   createNotice: (title: string, content: string) => api.post(`${BASE}/notices`, { title, content }),
