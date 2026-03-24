@@ -9,6 +9,7 @@ import {
   Coins,
   History,
   Bell,
+  Tv,
 } from 'lucide-react';
 import { useState } from 'react';
 import AdminOverview from '../components/admin/AdminOverview.tsx';
@@ -20,6 +21,7 @@ import AdminReviewManagement from '../components/admin/AdminReviewManagement.tsx
 import AdminRewardManagement from '../components/admin/AdminRewardManagement.tsx';
 import AdminHistoryManagement from '../components/admin/AdminHistoryManagement.tsx';
 import AdminNoticeManagement from '../components/admin/AdminNoticeManagement.tsx';
+import AdminAdWatchManagement from '../components/admin/AdminAdWatchManagement.tsx';
 import {
   Tabs,
   TabsContent,
@@ -44,6 +46,7 @@ const TABS = [
   { value: 'reward', icon: Coins, label: '리워드/조각' },
   { value: 'history', icon: History, label: '내역 관리' },
   { value: 'notice', icon: Bell, label: '공지사항' },
+  { value: 'adWatch', icon: Tv, label: '광고 관리' },
 ] as const;
 
 const AdminPage = () => {
@@ -107,6 +110,9 @@ const AdminPage = () => {
         </TabsContent>
         <TabsContent value="notice" className="mt-6">
           <AdminNoticeManagement />
+        </TabsContent>
+        <TabsContent value="adWatch" className="mt-6">
+          <AdminAdWatchManagement />
         </TabsContent>
       </Tabs>
     </div>

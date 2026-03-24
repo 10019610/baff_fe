@@ -51,6 +51,11 @@ export const adminApi = {
   getAttendanceHistories: (params: { page?: number; size?: number }) =>
     api.get(`${BASE}/history/attendances`, { params }),
 
+  // 광고 시청 관리
+  getAdWatchSummary: () => api.get(`${BASE}/ad-watch/summary`),
+  getAdWatchHistory: (params?: { page?: number; size?: number }) =>
+    api.get(`${BASE}/ad-watch/history`, { params }),
+
   // 공지사항
   getNotices: () => api.get(`${BASE}/notices`),
   createNotice: (title: string, content: string) => api.post(`${BASE}/notices`, { title, content }),

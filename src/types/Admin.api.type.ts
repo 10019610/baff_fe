@@ -174,3 +174,26 @@ export interface PageResponse<T> {
   number: number;
   size: number;
 }
+
+export interface AdWatchSummary {
+  totalWatchCount: number;
+  todayWatchCount: number;
+  uniqueUsers: number;
+  todayUniqueUsers: number;
+  locationStats: AdWatchLocationStat[];
+}
+
+export interface AdWatchLocationStat {
+  location: string;
+  count: number;
+}
+
+export interface AdWatchHistoryItem {
+  id: number;
+  userId: number;
+  nickname: string;
+  watchLocation: string;
+  referenceId: number;
+  tossAdResponse: string;
+  regDateTime: string;
+}
