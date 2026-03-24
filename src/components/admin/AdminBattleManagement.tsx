@@ -208,7 +208,7 @@ const AdminBattleManagement = () => {
                       </TableCell>
                       <TableCell className="whitespace-nowrap">{battle.durationDays}일</TableCell>
                       <TableCell className="whitespace-nowrap">
-                        {battle.betAmount.toLocaleString()}원
+                        {(battle.betAmount ?? 0).toLocaleString()}원
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         {battle.startDate ? formatDate(battle.startDate) : '-'}

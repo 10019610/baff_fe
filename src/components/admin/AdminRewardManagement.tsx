@@ -32,7 +32,7 @@ const EmptyState = ({ icon: Icon, message, description }: { icon: typeof Coins; 
 );
 
 /** 금액 포맷팅 */
-const formatAmount = (amount: number) => amount.toLocaleString('ko-KR');
+const formatAmount = (amount: number | null | undefined) => (amount ?? 0).toLocaleString('ko-KR');
 
 // ─────────────────────────────────────────
 // 서브탭 1: 현황

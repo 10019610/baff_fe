@@ -295,7 +295,7 @@ const AdminUserDetail = ({ userId, onBack }: AdminUserDetailProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">{userDetail.pieceBalance.toLocaleString()}</p>
+          <p className="text-3xl font-bold">{(userDetail.pieceBalance ?? 0).toLocaleString()}</p>
           <p className="text-sm text-muted-foreground mt-1">현재 보유 조각</p>
         </CardContent>
       </Card>

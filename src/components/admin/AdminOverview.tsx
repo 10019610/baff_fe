@@ -406,7 +406,8 @@ const PeriodSelector = ({
 );
 
 /** 상대 시간 포맷 (예: "3분 전", "2시간 전", "어제") */
-function formatRelativeTime(timestamp: string): string {
+function formatRelativeTime(timestamp: string | null | undefined): string {
+  if (!timestamp) return '-';
   const now = new Date();
   const target = new Date(timestamp);
   const diffMs = now.getTime() - target.getTime();

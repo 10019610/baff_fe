@@ -72,7 +72,8 @@ export const remainingQuestionTime = (endDate: string): string => {
  * @param dateString - 변환할 날짜 문자열 (e.g., "2024-08-23T10:30:00")
  * @returns 'yyyy-MM-dd' 형식의 문자열 또는 유효하지 않은 경우 빈 문자열
  */
-export const formatDate = (dateString: string): string => {
+export const formatDate = (dateString: string | null | undefined): string => {
+  if (!dateString) return '-';
   const date = new Date(dateString);
   if (isNaN(date.getTime())) {
     return ''; // 유효하지 않은 날짜 문자열에 대한 처리
@@ -88,7 +89,8 @@ export const formatDate = (dateString: string): string => {
  * @param dateString - 변환할 날짜 문자열 (e.g., "2024-08-23T10:30:00")
  * @returns 'yyyy-MM-dd HH:mm:ss' 형식의 문자열 또는 유효하지 않은 경우 빈 문자열
  */
-export const formatDateTime = (dateString: string): string => {
+export const formatDateTime = (dateString: string | null | undefined): string => {
+  if (!dateString) return '-';
   const date = new Date(dateString);
   if (isNaN(date.getTime())) {
     return ''; // 유효하지 않은 날짜 문자열에 대한 처리
