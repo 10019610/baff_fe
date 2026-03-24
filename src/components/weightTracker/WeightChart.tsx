@@ -253,7 +253,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
               });
             },
             label: (context: TooltipItem<'line'>) => {
-              const weight = context.parsed.y;
+              const weight = context.parsed.y ?? 0;
               const index = context.dataIndex;
               const entry = sortedEntries[index];
 

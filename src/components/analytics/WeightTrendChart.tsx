@@ -350,7 +350,7 @@ const WeightTrendChart: React.FC<WeightTrendChartProps> = ({
             },
             label: (context: TooltipItem<'line'>) => {
               if (context.datasetIndex === 0) {
-                const weight = context.parsed.y;
+                const weight = context.parsed.y ?? 0;
                 const index = context.dataIndex;
                 const item = filteredData[index];
 
@@ -362,7 +362,7 @@ const WeightTrendChart: React.FC<WeightTrendChartProps> = ({
 
                 return `⚖️ 체중: ${weight.toFixed(1)}kg${changeText}`;
               } else {
-                return `🎯 목표: ${context.parsed.y.toFixed(1)}kg`;
+                return `🎯 목표: ${(context.parsed.y ?? 0).toFixed(1)}kg`;
               }
             },
           },

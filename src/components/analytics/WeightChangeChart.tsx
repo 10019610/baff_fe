@@ -159,7 +159,7 @@ const WeightChangeChart: React.FC<WeightChangeChartProps> = ({ data }) => {
             return `${item.fullDate}`;
           },
           label: (context: TooltipItem<'bar'>) => {
-            const change = context.parsed.y;
+            const change = context.parsed.y ?? 0;
             const index = context.dataIndex;
             const item = filteredData[index];
 

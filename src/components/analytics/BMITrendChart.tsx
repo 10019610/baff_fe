@@ -233,7 +233,7 @@ const BMITrendChart: React.FC<BMITrendChartProps> = ({ data }) => {
               return `${item.fullDate}`;
             },
             label: (context: TooltipItem<'line'>) => {
-              const bmi = context.parsed.y;
+              const bmi = context.parsed.y ?? 0;
               const index = context.dataIndex;
               const item = data[index];
 
