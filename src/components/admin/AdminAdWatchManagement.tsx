@@ -13,12 +13,10 @@ import toast from 'react-hot-toast';
 const PAGE_SIZE = 20;
 
 const LOCATION_LABELS: Record<string, string> = {
-  EXCHANGE: '환전',
-  ATTENDANCE_AD_BONUS: '출석 광고 보너스',
-  ATTENDANCE_STREAK_SAVE: '출석 스트릭 세이브',
-  WEIGHT_AD_BONUS: '체중 기록 광고 보너스',
-  REVIEW_AD_BONUS: '리뷰 광고 보너스',
-  AD_EVENT: '광고 이벤트',
+  WEIGHT_TAB_TOP: '체중 탭 상단',
+  ANALYSIS_TAB_TOP: '분석 탭 상단',
+  REVIEW_TAB_TOP: '후기 탭 상단',
+  WEIGHT_RECORD_REWARD: '체중기록 후 리워드',
 };
 
 type AdWatchSubTab = 'stats' | 'history' | 'tossAdConfig';
@@ -30,12 +28,10 @@ const SUB_TABS: { key: AdWatchSubTab; label: string; icon: React.ElementType }[]
 ];
 
 const POSITION_LABELS: Record<string, string> = {
-  EXCHANGE: '환전',
-  ATTENDANCE_AD_BONUS: '출석 광고 보너스',
-  ATTENDANCE_STREAK_SAVE: '출석 스트릭 세이브',
-  WEIGHT_AD_BONUS: '체중 기록 광고 보너스',
-  REVIEW_AD_BONUS: '리뷰 광고 보너스',
-  AD_EVENT: '광고 이벤트',
+  WEIGHT_TAB_TOP: '체중 탭 상단',
+  ANALYSIS_TAB_TOP: '분석 탭 상단',
+  REVIEW_TAB_TOP: '후기 탭 상단',
+  WEIGHT_RECORD_REWARD: '체중기록 후 리워드',
 };
 
 const ALL_POSITIONS = Object.keys(POSITION_LABELS);
@@ -276,10 +272,142 @@ interface PositionFormState {
   tossImageAdGroupId: string;
   tossImageAdRatio: number;
   isTossImageAdEnabled: boolean;
+  tossBannerAdGroupId: string;
+  tossBannerAdRatio: number;
+  isTossBannerAdEnabled: boolean;
 }
+
+type AdTypeTab = 'smallBanner' | 'reward';
+
+const AD_TYPE_TABS: { key: AdTypeTab; label: string }[] = [
+  { key: 'smallBanner', label: '작은배너 광고' },
+  { key: 'reward', label: '리워드 광고' },
+];
+
+const AD_TYPE_POSITIONS: Record<AdTypeTab, string[]> = {
+  smallBanner: ['WEIGHT_TAB_TOP', 'ANALYSIS_TAB_TOP', 'REVIEW_TAB_TOP'],
+  reward: ['WEIGHT_RECORD_REWARD'],
+};
+
+interface AdTypeFieldConfig {
+  enabledField: keyof PositionFormState;
+  ratioField: keyof PositionFormState;
+  groupIdField: keyof PositionFormState;
+  enabledLabel: string;
+  ratioLabel: string;
+  groupIdLabel: string;
+  groupIdPlaceholder: string;
+}
+
+const AD_TYPE_FIELDS: Record<AdTypeTab, AdTypeFieldConfig> = {
+  smallBanner: {
+    enabledField: 'isTossBannerAdEnabled',
+    ratioField: 'tossBannerAdRatio',
+    groupIdField: 'tossBannerAdGroupId',
+    enabledLabel: '작은배너 광고 활성화',
+    ratioLabel: '작은배너 광고 비율 (%)',
+    groupIdLabel: '작은배너 광고 그룹 ID',
+    groupIdPlaceholder: '작은배너 광고 그룹 ID를 입력하세요',
+  },
+  reward: {
+    enabledField: 'isTossAdEnabled',
+    ratioField: 'tossAdRatio',
+    groupIdField: 'tossAdGroupId',
+    enabledLabel: '리워드 광고 활성화',
+    ratioLabel: '리워드 광고 비율 (%)',
+    groupIdLabel: '리워드 광고 그룹 ID',
+    groupIdPlaceholder: '리워드 광고 그룹 ID를 입력하세요',
+  },
+};
+
+const PositionCard = ({
+  position,
+  state,
+  fields,
+  onFieldChange,
+  onSave,
+  isSaving,
+}: {
+  position: string;
+  state: PositionFormState;
+  fields: AdTypeFieldConfig;
+  onFieldChange: (position: string, field: keyof PositionFormState, value: string | number | boolean) => void;
+  onSave: (position: string) => void;
+  isSaving: boolean;
+}) => {
+  const isEnabled = state[fields.enabledField] as boolean;
+  const ratio = state[fields.ratioField] as number;
+  const groupId = state[fields.groupIdField] as string;
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base">{POSITION_LABELS[position]}</CardTitle>
+          <Badge className={isEnabled ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}>
+            {isEnabled ? '활성' : '비활성'}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-gray-700">{fields.enabledLabel}</label>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={isEnabled}
+            onClick={() => onFieldChange(position, fields.enabledField, !isEnabled)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              isEnabled ? 'bg-blue-600' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                isEnabled ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-gray-700">{fields.ratioLabel}</label>
+          <input
+            type="number"
+            min={0}
+            max={100}
+            value={ratio}
+            onChange={(e) => onFieldChange(position, fields.ratioField, Math.min(100, Math.max(0, Number(e.target.value))))}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-gray-700">{fields.groupIdLabel}</label>
+          <input
+            type="text"
+            value={groupId}
+            onChange={(e) => onFieldChange(position, fields.groupIdField, e.target.value)}
+            placeholder={fields.groupIdPlaceholder}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+
+        <Button
+          size="sm"
+          className="w-full"
+          onClick={() => onSave(position)}
+          disabled={isSaving}
+        >
+          {isSaving ? '저장 중...' : '저장'}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
 
 const TossAdConfigSubTab = () => {
   const queryClient = useQueryClient();
+  const [adTypeTab, setAdTypeTab] = useState<AdTypeTab>('reward');
 
   const { data: configs, isLoading, isError } = useQuery<TossAdPositionConfig[]>({
     queryKey: ['admin-toss-ad-configs'],
@@ -306,6 +434,9 @@ const TossAdConfigSubTab = () => {
         tossImageAdGroupId: existing?.tossImageAdGroupId ?? '',
         tossImageAdRatio: existing?.tossImageAdRatio ?? 0,
         isTossImageAdEnabled: existing?.isTossImageAdEnabled ?? false,
+        tossBannerAdGroupId: existing?.tossBannerAdGroupId ?? '',
+        tossBannerAdRatio: existing?.tossBannerAdRatio ?? 0,
+        isTossBannerAdEnabled: existing?.isTossBannerAdEnabled ?? false,
       };
     }
     setFormStates(newFormStates);
@@ -346,6 +477,9 @@ const TossAdConfigSubTab = () => {
         tossImageAdGroupId: state.tossImageAdGroupId || null,
         tossImageAdRatio: state.tossImageAdRatio,
         isTossImageAdEnabled: state.isTossImageAdEnabled,
+        tossBannerAdGroupId: state.tossBannerAdGroupId || null,
+        tossBannerAdRatio: state.tossBannerAdRatio,
+        isTossBannerAdEnabled: state.isTossBannerAdEnabled,
       },
     });
   };
@@ -362,131 +496,43 @@ const TossAdConfigSubTab = () => {
     );
   }
 
+  const fields = AD_TYPE_FIELDS[adTypeTab];
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {ALL_POSITIONS.map((position) => {
-        const state = formStates[position];
-        if (!state) return null;
+    <div className="space-y-4">
+      {/* 광고 타입 탭 */}
+      <div className="flex gap-2 border-b pb-3">
+        {AD_TYPE_TABS.map(({ key, label }) => (
+          <Button
+            key={key}
+            variant={adTypeTab === key ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setAdTypeTab(key)}
+          >
+            {label}
+          </Button>
+        ))}
+      </div>
 
-        return (
-          <Card key={position}>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">{POSITION_LABELS[position]}</CardTitle>
-                <Badge className={state.isTossAdEnabled ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}>
-                  {state.isTossAdEnabled ? '활성' : '비활성'}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* 활성/비활성 토글 */}
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700">토스광고 활성화</label>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={state.isTossAdEnabled}
-                  onClick={() => handleFieldChange(position, 'isTossAdEnabled', !state.isTossAdEnabled)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    state.isTossAdEnabled ? 'bg-blue-600' : 'bg-gray-300'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      state.isTossAdEnabled ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
+      {/* 위치별 카드 그리드 — 선택된 탭에 해당하는 위치만 표시 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {AD_TYPE_POSITIONS[adTypeTab].map((position) => {
+          const state = formStates[position];
+          if (!state) return null;
 
-              {/* 토스광고 비율 */}
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">토스광고 비율 (%)</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={state.tossAdRatio}
-                  onChange={(e) => handleFieldChange(position, 'tossAdRatio', Math.min(100, Math.max(0, Number(e.target.value))))}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* 토스광고 그룹 ID */}
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">토스광고 그룹 ID</label>
-                <input
-                  type="text"
-                  value={state.tossAdGroupId}
-                  onChange={(e) => handleFieldChange(position, 'tossAdGroupId', e.target.value)}
-                  placeholder="그룹 ID를 입력하세요"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* 이미지 배너 구분선 */}
-              <div className="border-t pt-3 mt-3">
-                <p className="text-xs font-semibold text-gray-500 mb-3">이미지 배너 광고</p>
-
-                {/* 이미지 배너 활성/비활성 */}
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-sm font-medium text-gray-700">이미지 배너 활성화</label>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={state.isTossImageAdEnabled}
-                    onClick={() => handleFieldChange(position, 'isTossImageAdEnabled', !state.isTossImageAdEnabled)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      state.isTossImageAdEnabled ? 'bg-blue-600' : 'bg-gray-300'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        state.isTossImageAdEnabled ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                {/* 이미지 배너 비율 */}
-                <div className="space-y-1 mb-3">
-                  <label className="text-sm font-medium text-gray-700">이미지 배너 비율 (%)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={state.tossImageAdRatio}
-                    onChange={(e) => handleFieldChange(position, 'tossImageAdRatio', Math.min(100, Math.max(0, Number(e.target.value))))}
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                {/* 이미지 배너 그룹 ID */}
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">이미지 배너 그룹 ID</label>
-                  <input
-                    type="text"
-                    value={state.tossImageAdGroupId}
-                    onChange={(e) => handleFieldChange(position, 'tossImageAdGroupId', e.target.value)}
-                    placeholder="이미지 배너 그룹 ID"
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              {/* 저장 버튼 */}
-              <Button
-                size="sm"
-                className="w-full"
-                onClick={() => handleSave(position)}
-                disabled={updateMutation.isPending}
-              >
-                {updateMutation.isPending ? '저장 중...' : '저장'}
-              </Button>
-            </CardContent>
-          </Card>
-        );
-      })}
+          return (
+            <PositionCard
+              key={position}
+              position={position}
+              state={state}
+              fields={fields}
+              onFieldChange={handleFieldChange}
+              onSave={handleSave}
+              isSaving={updateMutation.isPending}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 };

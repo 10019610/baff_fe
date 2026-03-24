@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Coins, TrendingUp, Settings, BarChart3, ArrowRightLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { adminApi } from '../../services/api/admin.api.ts';
 import type { AdminRewardSummary, AdminRewardConfig, AdminRewardExchange, PageResponse } from '../../types/Admin.api.type.ts';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { formatDate } from '../../utils/DateUtil.ts';
 
@@ -110,8 +110,24 @@ const PieceEconomySubTab = () => {
 // ─────────────────────────────────────────
 // 서브탭 3: 설정
 // ─────────────────────────────────────────
+const REWARD_TYPES = [
+  { value: 'WEIGHT_LOG', label: '체중 기록' },
+  { value: 'WEIGHT_AD_BONUS', label: '체중 광고 보너스' },
+  { value: 'REVIEW', label: '리뷰 작성' },
+  { value: 'ATTENDANCE', label: '출석' },
+  { value: 'ATTENDANCE_STREAK', label: '연속 출석 보너스' },
+  { value: 'ATTENDANCE_AD_BONUS', label: '출석 광고 보너스' },
+  { value: 'STREAK_WEIGHT', label: '체중 스트릭' },
+  { value: 'GOAL_ACHIEVED', label: '목표 달성' },
+  { value: 'BATTLE_COMPLETE', label: '배틀 완료' },
+];
+
 const RewardConfigSubTab = () => {
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(0);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({ rewardType: 'WEIGHT_LOG', amount: 1, dailyLimit: 1, description: '' });
+  const [isSaving, setIsSaving] = useState(false);
 
   const { data, isLoading, isError } = useQuery<PageResponse<AdminRewardConfig>>({
     queryKey: ['adminRewardConfigs', page],
@@ -122,6 +138,25 @@ const RewardConfigSubTab = () => {
   const configList = data?.content ?? [];
   const totalElements = data?.totalElements ?? 0;
   const totalPages = data?.totalPages ?? 0;
+
+  const handleCreate = async () => {
+    setIsSaving(true);
+    try {
+      await adminApi.createRewardConfig({
+        rewardType: formData.rewardType,
+        amount: formData.amount,
+        dailyLimit: formData.dailyLimit,
+        description: formData.description,
+      });
+      queryClient.invalidateQueries({ queryKey: ['adminRewardConfigs'] });
+      setShowForm(false);
+      setFormData({ rewardType: 'WEIGHT_LOG', amount: 1, dailyLimit: 1, description: '' });
+    } catch (e) {
+      alert('설정 추가 실패');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const tableHeader = [
     { id: 1, name: '리워드 타입' },
@@ -136,20 +171,82 @@ const RewardConfigSubTab = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Settings className="h-5 w-5" />
-          리워드 설정
-        </CardTitle>
-        <CardDescription>리워드 발급 규칙 설정 목록</CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              리워드 설정
+            </CardTitle>
+            <CardDescription>리워드 발급 규칙 설정 목록</CardDescription>
+          </div>
+          <Button size="sm" onClick={() => setShowForm(!showForm)}>
+            {showForm ? '취소' : '+ 설정 추가'}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="overflow-x-auto">
+        {/* 추가 폼 */}
+        {showForm && (
+          <div className="mb-6 p-4 border rounded-lg bg-gray-50 space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium text-gray-700">리워드 타입</label>
+                <select
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  value={formData.rewardType}
+                  onChange={(e) => setFormData({ ...formData, rewardType: e.target.value })}
+                >
+                  {REWARD_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">지급량 (gram)</label>
+                <input
+                  type="number"
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
+                  min={1}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">일일 제한 횟수</label>
+                <input
+                  type="number"
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  value={formData.dailyLimit}
+                  onChange={(e) => setFormData({ ...formData, dailyLimit: Number(e.target.value) })}
+                  min={1}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">설명</label>
+                <input
+                  type="text"
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="예: 체중 기록 시 1g 지급"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button size="sm" onClick={handleCreate} disabled={isSaving}>
+                {isSaving ? '저장 중...' : '저장'}
+              </Button>
+            </div>
+          </div>
+        )}
+
         {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">로딩 중...</div>
         ) : isError || configList.length === 0 ? (
           <EmptyState
             icon={Settings}
             message="설정된 리워드 규칙이 없습니다"
-            description="리워드 시스템이 활성화되면 설정 목록이 표시됩니다"
+            description="위의 '설정 추가' 버튼으로 리워드 규칙을 추가하세요"
           />
         ) : (
           <>

@@ -38,6 +38,10 @@ export const adminApi = {
   getRewardSummary: () => api.get(`${BASE}/rewards/summary`),
   getRewardConfigs: (params?: { page?: number; size?: number }) =>
     api.get(`${BASE}/rewards/configs`, { params }),
+  createRewardConfig: (data: { rewardType: string; amount: number; dailyLimit?: number; description?: string }) =>
+    api.post(`${BASE}/rewards/configs`, data),
+  updateRewardConfig: (id: number, data: { amount?: number; dailyLimit?: number; description?: string; enabled?: boolean }) =>
+    api.put(`${BASE}/rewards/configs/${id}`, data),
   getRewardExchanges: (params?: { page?: number; size?: number }) =>
     api.get(`${BASE}/rewards/exchanges`, { params }),
 
@@ -58,10 +62,8 @@ export const adminApi = {
 
   // 토스광고 설정
   getTossAdConfigs: () => api.get(`${BASE}/toss-ad/configs`),
-  updateTossAdConfig: (position: string, data: {
-    tossAdRatio: number; tossAdGroupId: string | null; isTossAdEnabled: boolean;
-    tossImageAdGroupId?: string | null; tossImageAdRatio?: number; isTossImageAdEnabled?: boolean;
-  }) => api.put(`${BASE}/toss-ad/configs/${position}`, data),
+  updateTossAdConfig: (position: string, data: import('../../types/Admin.api.type.ts').UpdateTossAdConfigRequest) =>
+    api.put(`${BASE}/toss-ad/configs/${position}`, data),
 
   // 공지사항
   getNotices: () => api.get(`${BASE}/notices`),

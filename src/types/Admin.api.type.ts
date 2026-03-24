@@ -207,15 +207,21 @@ export interface TossAdPositionConfig {
   tossImageAdGroupId: string | null;
   tossImageAdRatio: number;
   isTossImageAdEnabled: boolean;
+  tossBannerAdGroupId: string | null;
+  tossBannerAdRatio: number;
+  isTossBannerAdEnabled: boolean;
   regDateTime: string;
   modDateTime: string;
 }
 
 export interface UpdateTossAdConfigRequest {
-  tossAdRatio: number;
-  tossAdGroupId: string | null;
-  isTossAdEnabled: boolean;
+  tossAdRatio?: number;
+  tossAdGroupId?: string | null;
+  isTossAdEnabled?: boolean;
   tossImageAdGroupId?: string | null;
   tossImageAdRatio?: number;
   isTossImageAdEnabled?: boolean;
+  tossBannerAdGroupId?: string | null;
+  tossBannerAdRatio?: number;
+  isTossBannerAdEnabled?: boolean;
 }

@@ -43,7 +43,7 @@ const TABS = [
   { value: 'inquiry', icon: MessageSquare, label: '문의 관리' },
   { value: 'battle', icon: Swords, label: '배틀 관리' },
   { value: 'review', icon: Star, label: '리뷰 관리' },
-  { value: 'reward', icon: Coins, label: '리워드/조각' },
+  { value: 'reward', icon: Coins, label: '리워드' },
   { value: 'history', icon: History, label: '내역 관리' },
   { value: 'notice', icon: Bell, label: '공지사항' },
   { value: 'adWatch', icon: Tv, label: '광고 관리' },
