@@ -270,15 +270,15 @@ const RewardConfigSubTab = () => {
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
                       <Badge
-                        className={`cursor-pointer ${config.isActive ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-400 text-white hover:bg-gray-500'}`}
+                        className={`cursor-pointer ${config.active ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-400 text-white hover:bg-gray-500'}`}
                         onClick={async () => {
                           try {
-                            await adminApi.updateRewardConfig(config.configId, { enabled: !config.isActive });
+                            await adminApi.updateRewardConfig(config.configId, { enabled: !config.active });
                             await queryClient.refetchQueries({ queryKey: ['adminRewardConfigs'] });
                           } catch { alert('상태 변경 실패'); }
                         }}
                       >
-                        {config.isActive ? '활성' : '비활성'}
+                        {config.active ? '활성' : '비활성'}
                       </Badge>
                     </TableCell>
                     <TableCell className="whitespace-nowrap">{formatDate(config.regDateTime)}</TableCell>

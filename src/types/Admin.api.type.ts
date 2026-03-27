@@ -135,7 +135,7 @@ export interface AdminRewardConfig {
   actionType: string;
   pieceAmount: number;
   description: string;
-  isActive: boolean;
+  active: boolean;
   regDateTime: string;
   modDateTime: string;
 }
