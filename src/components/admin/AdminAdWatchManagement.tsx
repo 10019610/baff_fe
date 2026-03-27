@@ -292,7 +292,7 @@ const AD_TYPE_TABS: { key: AdTypeTab; label: string }[] = [
 
 const AD_TYPE_POSITIONS: Record<AdTypeTab, string[]> = {
   smallBanner: ['WEIGHT_TAB_TOP', 'ANALYSIS_TAB_TOP', 'REVIEW_TAB_TOP'],
-  reward: ['WEIGHT_RECORD_REWARD', 'WEIGHT_AD_BONUS', 'EXCHANGE', 'ATTENDANCE_AD_BONUS'],
+  reward: ['WEIGHT_AD_BONUS', 'EXCHANGE', 'ATTENDANCE_AD_BONUS'],
 };
 
 interface AdTypeFieldConfig {
