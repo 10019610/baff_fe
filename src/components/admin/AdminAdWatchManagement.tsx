@@ -32,6 +32,9 @@ const POSITION_LABELS: Record<string, string> = {
   ANALYSIS_TAB_TOP: '분석 탭 상단',
   REVIEW_TAB_TOP: '후기 탭 상단',
   WEIGHT_RECORD_REWARD: '체중기록 후 리워드',
+  WEIGHT_AD_BONUS: '체중기록 광고 보너스',
+  EXCHANGE: '환전',
+  ATTENDANCE_AD_BONUS: '출석 광고 보너스',
 };
 
 const ALL_POSITIONS = Object.keys(POSITION_LABELS);
@@ -275,6 +278,9 @@ interface PositionFormState {
   tossBannerAdGroupId: string;
   tossBannerAdRatio: number;
   isTossBannerAdEnabled: boolean;
+  tossInterstitialAdGroupId: string;
+  isTossInterstitialAdEnabled: boolean;
+  rewardedAdRatio: number;
 }
 
 type AdTypeTab = 'smallBanner' | 'reward';
@@ -286,7 +292,7 @@ const AD_TYPE_TABS: { key: AdTypeTab; label: string }[] = [
 
 const AD_TYPE_POSITIONS: Record<AdTypeTab, string[]> = {
   smallBanner: ['WEIGHT_TAB_TOP', 'ANALYSIS_TAB_TOP', 'REVIEW_TAB_TOP'],
-  reward: ['WEIGHT_RECORD_REWARD'],
+  reward: ['WEIGHT_RECORD_REWARD', 'WEIGHT_AD_BONUS', 'EXCHANGE', 'ATTENDANCE_AD_BONUS'],
 };
 
 interface AdTypeFieldConfig {
@@ -405,6 +411,102 @@ const PositionCard = ({
   );
 };
 
+/** 리워드/전면 광고 동시 설정 카드 (나만그래 패턴) */
+const RewardAdPositionCard = ({
+  position,
+  state,
+  onFieldChange,
+  onSave,
+  isSaving,
+}: {
+  position: string;
+  state: PositionFormState;
+  onFieldChange: (position: string, field: keyof PositionFormState, value: string | number | boolean) => void;
+  onSave: (position: string) => void;
+  isSaving: boolean;
+}) => {
+  const bothEnabled = state.isTossAdEnabled && state.isTossInterstitialAdEnabled;
+
+  const ToggleRow = ({ label, checked, field }: { label: string; checked: boolean; field: keyof PositionFormState }) => (
+    <div className="flex items-center justify-between">
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onFieldChange(position, field, !checked)}
+        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${checked ? 'bg-blue-600' : 'bg-gray-300'}`}
+      >
+        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`} />
+      </button>
+    </div>
+  );
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">{POSITION_LABELS[position] ?? position}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* 리워드 광고 */}
+        <div className="p-3 bg-blue-50 rounded-lg space-y-3">
+          <div className="text-sm font-semibold text-blue-700">리워드 광고</div>
+          <ToggleRow label="활성화" checked={state.isTossAdEnabled} field="isTossAdEnabled" />
+          <div className="space-y-1">
+            <label className="text-xs text-gray-500">AD Group ID</label>
+            <input
+              type="text"
+              value={state.tossAdGroupId}
+              onChange={(e) => onFieldChange(position, 'tossAdGroupId', e.target.value)}
+              placeholder="리워드 광고 그룹 ID"
+              className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            />
+          </div>
+        </div>
+
+        {/* 전면 광고 */}
+        <div className="p-3 bg-orange-50 rounded-lg space-y-3">
+          <div className="text-sm font-semibold text-orange-700">전면 광고</div>
+          <ToggleRow label="활성화" checked={state.isTossInterstitialAdEnabled} field="isTossInterstitialAdEnabled" />
+          <div className="space-y-1">
+            <label className="text-xs text-gray-500">AD Group ID</label>
+            <input
+              type="text"
+              value={state.tossInterstitialAdGroupId}
+              onChange={(e) => onFieldChange(position, 'tossInterstitialAdGroupId', e.target.value)}
+              placeholder="전면 광고 그룹 ID"
+              className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            />
+          </div>
+        </div>
+
+        {/* 비율 슬라이더 (둘 다 활성 시) */}
+        {bothEnabled && (
+          <div className="p-3 bg-gray-50 rounded-lg space-y-2">
+            <div className="text-sm font-semibold text-gray-700">광고 비율</div>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={state.rewardedAdRatio}
+              onChange={(e) => onFieldChange(position, 'rewardedAdRatio', Number(e.target.value))}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-gray-500">
+              <span className="text-blue-600 font-medium">리워드 {state.rewardedAdRatio}%</span>
+              <span className="text-orange-600 font-medium">전면 {100 - state.rewardedAdRatio}%</span>
+            </div>
+          </div>
+        )}
+
+        <Button size="sm" className="w-full" onClick={() => onSave(position)} disabled={isSaving}>
+          {isSaving ? '저장 중...' : '저장'}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
 const TossAdConfigSubTab = () => {
   const queryClient = useQueryClient();
   const [adTypeTab, setAdTypeTab] = useState<AdTypeTab>('reward');
@@ -437,6 +539,9 @@ const TossAdConfigSubTab = () => {
         tossBannerAdGroupId: existing?.tossBannerAdGroupId ?? '',
         tossBannerAdRatio: existing?.tossBannerAdRatio ?? 0,
         isTossBannerAdEnabled: existing?.isTossBannerAdEnabled ?? false,
+        tossInterstitialAdGroupId: existing?.tossInterstitialAdGroupId ?? '',
+        isTossInterstitialAdEnabled: existing?.isTossInterstitialAdEnabled ?? false,
+        rewardedAdRatio: existing?.rewardedAdRatio ?? 100,
       };
     }
     setFormStates(newFormStates);
@@ -480,6 +585,9 @@ const TossAdConfigSubTab = () => {
         tossBannerAdGroupId: state.tossBannerAdGroupId || null,
         tossBannerAdRatio: state.tossBannerAdRatio,
         isTossBannerAdEnabled: state.isTossBannerAdEnabled,
+        tossInterstitialAdGroupId: state.tossInterstitialAdGroupId || null,
+        isTossInterstitialAdEnabled: state.isTossInterstitialAdEnabled,
+        rewardedAdRatio: state.rewardedAdRatio,
       },
     });
   };
@@ -519,6 +627,19 @@ const TossAdConfigSubTab = () => {
         {AD_TYPE_POSITIONS[adTypeTab].map((position) => {
           const state = formStates[position];
           if (!state) return null;
+
+          if (adTypeTab === 'reward') {
+            return (
+              <RewardAdPositionCard
+                key={position}
+                position={position}
+                state={state}
+                onFieldChange={handleFieldChange}
+                onSave={handleSave}
+                isSaving={updateMutation.isPending}
+              />
+            );
+          }
 
           return (
             <PositionCard

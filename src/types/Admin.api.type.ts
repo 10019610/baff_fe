@@ -210,6 +210,9 @@ export interface TossAdPositionConfig {
   tossBannerAdGroupId: string | null;
   tossBannerAdRatio: number;
   isTossBannerAdEnabled: boolean;
+  tossInterstitialAdGroupId: string | null;
+  isTossInterstitialAdEnabled: boolean;
+  rewardedAdRatio: number;
   regDateTime: string;
   modDateTime: string;
 }
@@ -224,4 +227,7 @@ export interface UpdateTossAdConfigRequest {
   tossBannerAdGroupId?: string | null;
   tossBannerAdRatio?: number;
   isTossBannerAdEnabled?: boolean;
+  tossInterstitialAdGroupId?: string | null;
+  isTossInterstitialAdEnabled?: boolean;
+  rewardedAdRatio?: number;
 }
