@@ -281,6 +281,8 @@ interface PositionFormState {
   tossInterstitialAdGroupId: string;
   isTossInterstitialAdEnabled: boolean;
   rewardedAdRatio: number;
+  rewardedAdGrams: number;
+  interstitialAdGrams: number;
 }
 
 type AdTypeTab = 'smallBanner' | 'reward';
@@ -462,6 +464,16 @@ const RewardAdPositionCard = ({
               className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
             />
           </div>
+          <div className="space-y-1">
+            <label className="text-xs text-gray-500">지급 그램 (g)</label>
+            <input
+              type="number"
+              min={0}
+              value={state.rewardedAdGrams}
+              onChange={(e) => onFieldChange(position, 'rewardedAdGrams', Math.max(0, Number(e.target.value)))}
+              className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            />
+          </div>
         </div>
 
         {/* 전면 광고 */}
@@ -475,6 +487,16 @@ const RewardAdPositionCard = ({
               value={state.tossInterstitialAdGroupId}
               onChange={(e) => onFieldChange(position, 'tossInterstitialAdGroupId', e.target.value)}
               placeholder="전면 광고 그룹 ID"
+              className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-gray-500">지급 그램 (g)</label>
+            <input
+              type="number"
+              min={0}
+              value={state.interstitialAdGrams}
+              onChange={(e) => onFieldChange(position, 'interstitialAdGrams', Math.max(0, Number(e.target.value)))}
               className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
             />
           </div>
@@ -542,6 +564,8 @@ const TossAdConfigSubTab = () => {
         tossInterstitialAdGroupId: existing?.tossInterstitialAdGroupId ?? '',
         isTossInterstitialAdEnabled: existing?.isTossInterstitialAdEnabled ?? false,
         rewardedAdRatio: existing?.rewardedAdRatio ?? 100,
+        rewardedAdGrams: existing?.rewardedAdGrams ?? 1,
+        interstitialAdGrams: existing?.interstitialAdGrams ?? 1,
       };
     }
     setFormStates(newFormStates);
@@ -588,6 +612,8 @@ const TossAdConfigSubTab = () => {
         tossInterstitialAdGroupId: state.tossInterstitialAdGroupId || null,
         isTossInterstitialAdEnabled: state.isTossInterstitialAdEnabled,
         rewardedAdRatio: state.rewardedAdRatio,
+        rewardedAdGrams: state.rewardedAdGrams,
+        interstitialAdGrams: state.interstitialAdGrams,
       },
     });
   };

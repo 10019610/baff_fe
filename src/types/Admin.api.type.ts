@@ -213,6 +213,8 @@ export interface TossAdPositionConfig {
   tossInterstitialAdGroupId: string | null;
   isTossInterstitialAdEnabled: boolean;
   rewardedAdRatio: number;
+  rewardedAdGrams: number;
+  interstitialAdGrams: number;
   regDateTime: string;
   modDateTime: string;
 }
@@ -230,4 +232,6 @@ export interface UpdateTossAdConfigRequest {
   tossInterstitialAdGroupId?: string | null;
   isTossInterstitialAdEnabled?: boolean;
   rewardedAdRatio?: number;
+  rewardedAdGrams?: number;
+  interstitialAdGrams?: number;
 }
