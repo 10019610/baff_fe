@@ -147,6 +147,7 @@ const RewardConfigSubTab = () => {
         amount: formData.amount,
         dailyLimit: formData.dailyLimit,
         description: formData.description,
+        enabled: true,
       });
       queryClient.invalidateQueries({ queryKey: ['adminRewardConfigs'] });
       setShowForm(false);
@@ -268,7 +269,15 @@ const RewardConfigSubTab = () => {
                       <div className="min-w-[150px]">{config.description}</div>
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
-                      <Badge className={config.isActive ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}>
+                      <Badge
+                        className={`cursor-pointer ${config.isActive ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-400 text-white hover:bg-gray-500'}`}
+                        onClick={async () => {
+                          try {
+                            await adminApi.updateRewardConfig(config.configId, { enabled: !config.isActive });
+                            queryClient.invalidateQueries({ queryKey: ['adminRewardConfigs'] });
+                          } catch { alert('상태 변경 실패'); }
+                        }}
+                      >
                         {config.isActive ? '활성' : '비활성'}
                       </Badge>
                     </TableCell>

@@ -38,7 +38,7 @@ export const adminApi = {
   getRewardSummary: () => api.get(`${BASE}/rewards/summary`),
   getRewardConfigs: (params?: { page?: number; size?: number }) =>
     api.get(`${BASE}/rewards/configs`, { params }),
-  createRewardConfig: (data: { rewardType: string; amount: number; dailyLimit?: number; description?: string }) =>
+  createRewardConfig: (data: { rewardType: string; amount: number; dailyLimit?: number; description?: string; enabled?: boolean }) =>
     api.post(`${BASE}/rewards/configs`, data),
   updateRewardConfig: (id: number, data: { amount?: number; dailyLimit?: number; description?: string; enabled?: boolean }) =>
     api.put(`${BASE}/rewards/configs/${id}`, data),
