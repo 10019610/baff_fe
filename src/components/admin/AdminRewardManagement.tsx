@@ -274,7 +274,7 @@ const RewardConfigSubTab = () => {
                         onClick={async () => {
                           try {
                             await adminApi.updateRewardConfig(config.configId, { enabled: !config.isActive });
-                            queryClient.invalidateQueries({ queryKey: ['adminRewardConfigs'] });
+                            await queryClient.refetchQueries({ queryKey: ['adminRewardConfigs'] });
                           } catch { alert('상태 변경 실패'); }
                         }}
                       >
