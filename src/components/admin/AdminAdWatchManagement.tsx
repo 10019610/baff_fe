@@ -35,6 +35,7 @@ const POSITION_LABELS: Record<string, string> = {
   WEIGHT_AD_BONUS: '체중기록 광고 보너스',
   EXCHANGE: '환전',
   ATTENDANCE_AD_BONUS: '출석 광고 보너스',
+  BENEFIT_TOP: '혜택 상단',
 };
 
 const ALL_POSITIONS = Object.keys(POSITION_LABELS);
@@ -293,7 +294,7 @@ const AD_TYPE_TABS: { key: AdTypeTab; label: string }[] = [
 ];
 
 const AD_TYPE_POSITIONS: Record<AdTypeTab, string[]> = {
-  smallBanner: ['WEIGHT_TAB_TOP', 'ANALYSIS_TAB_TOP', 'REVIEW_TAB_TOP'],
+  smallBanner: ['WEIGHT_TAB_TOP', 'ANALYSIS_TAB_TOP', 'REVIEW_TAB_TOP', 'BENEFIT_TOP'],
   reward: ['WEIGHT_AD_BONUS', 'EXCHANGE', 'ATTENDANCE_AD_BONUS'],
 };
 

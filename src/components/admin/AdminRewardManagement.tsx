@@ -126,7 +126,7 @@ const RewardConfigSubTab = () => {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(0);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ rewardType: 'WEIGHT_LOG', amount: 1, dailyLimit: 1, description: '' });
+  const [formData, setFormData] = useState({ rewardType: 'WEIGHT_LOG', amount: 1, dailyLimit: 1, description: '', threshold: 0 });
   const [isSaving, setIsSaving] = useState(false);
 
   const { data, isLoading, isError } = useQuery<PageResponse<AdminRewardConfig>>({
@@ -148,10 +148,11 @@ const RewardConfigSubTab = () => {
         dailyLimit: formData.dailyLimit,
         description: formData.description,
         enabled: true,
+        ...(formData.rewardType === 'ATTENDANCE_STREAK' && formData.threshold > 0 ? { threshold: formData.threshold } : {}),
       });
       queryClient.invalidateQueries({ queryKey: ['adminRewardConfigs'] });
       setShowForm(false);
-      setFormData({ rewardType: 'WEIGHT_LOG', amount: 1, dailyLimit: 1, description: '' });
+      setFormData({ rewardType: 'WEIGHT_LOG', amount: 1, dailyLimit: 1, description: '', threshold: 0 });
     } catch (e) {
       alert('설정 추가 실패');
     } finally {
@@ -232,6 +233,20 @@ const RewardConfigSubTab = () => {
                   placeholder="예: 체중 기록 시 1g 지급"
                 />
               </div>
+              {formData.rewardType === 'ATTENDANCE_STREAK' && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">연속 출석 기준일 (threshold)</label>
+                  <input
+                    type="number"
+                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                    value={formData.threshold}
+                    onChange={(e) => setFormData({ ...formData, threshold: Number(e.target.value) })}
+                    min={1}
+                    placeholder="예: 7 (7일 연속 출석)"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">예: 7회 연속 → 1g, 14회 연속 → 2g</p>
+                </div>
+              )}
             </div>
             <div className="flex justify-end">
               <Button size="sm" onClick={handleCreate} disabled={isSaving}>
