@@ -114,12 +114,12 @@ const REWARD_TYPES = [
   { value: 'WEIGHT_LOG', label: '체중 기록' },
   { value: 'WEIGHT_AD_BONUS', label: '체중 광고 보너스' },
   { value: 'REVIEW', label: '리뷰 작성' },
-  { value: 'ATTENDANCE', label: '출석' },
+  { value: 'ATTENDANCE', label: '출석체크' },
   { value: 'ATTENDANCE_STREAK', label: '연속 출석 보너스' },
   { value: 'ATTENDANCE_AD_BONUS', label: '출석 광고 보너스' },
   { value: 'STREAK_WEIGHT', label: '체중 스트릭' },
   { value: 'GOAL_ACHIEVED', label: '목표 달성' },
-  { value: 'BATTLE_COMPLETE', label: '배틀 완료' },
+  { value: 'BATTLE_COMPLETE', label: '대결 완료' },
 ];
 
 const RewardConfigSubTab = () => {
