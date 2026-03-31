@@ -331,6 +331,81 @@ const AD_TYPE_FIELDS: Record<AdTypeTab, AdTypeFieldConfig> = {
   },
 };
 
+const IMAGE_AD_FIELDS: AdTypeFieldConfig = {
+  enabledField: 'isTossImageAdEnabled',
+  ratioField: 'tossImageAdRatio',
+  groupIdField: 'tossImageAdGroupId',
+  enabledLabel: '이미지 광고 활성화',
+  ratioLabel: '이미지 광고 비율 (%)',
+  groupIdLabel: '이미지 광고 그룹 ID',
+  groupIdPlaceholder: '이미지 광고 그룹 ID를 입력하세요',
+};
+
+/** 이미지 광고도 함께 설정할 수 있는 위치 목록 */
+const IMAGE_AD_POSITIONS = new Set(['BENEFIT']);
+
+const AdFieldSection = ({
+  position,
+  state,
+  fields,
+  onFieldChange,
+}: {
+  position: string;
+  state: PositionFormState;
+  fields: AdTypeFieldConfig;
+  onFieldChange: (position: string, field: keyof PositionFormState, value: string | number | boolean) => void;
+}) => {
+  const isEnabled = state[fields.enabledField] as boolean;
+  const ratio = state[fields.ratioField] as number;
+  const groupId = state[fields.groupIdField] as string;
+
+  return (
+    <>
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-medium text-gray-700">{fields.enabledLabel}</label>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={isEnabled}
+          onClick={() => onFieldChange(position, fields.enabledField, !isEnabled)}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            isEnabled ? 'bg-blue-600' : 'bg-gray-300'
+          }`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+              isEnabled ? 'translate-x-6' : 'translate-x-1'
+            }`}
+          />
+        </button>
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-sm font-medium text-gray-700">{fields.ratioLabel}</label>
+        <input
+          type="number"
+          min={0}
+          max={100}
+          value={ratio}
+          onChange={(e) => onFieldChange(position, fields.ratioField, Math.min(100, Math.max(0, Number(e.target.value))))}
+          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-sm font-medium text-gray-700">{fields.groupIdLabel}</label>
+        <input
+          type="text"
+          value={groupId}
+          onChange={(e) => onFieldChange(position, fields.groupIdField, e.target.value)}
+          placeholder={fields.groupIdPlaceholder}
+          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+    </>
+  );
+};
+
 const PositionCard = ({
   position,
   state,
@@ -347,61 +422,35 @@ const PositionCard = ({
   isSaving: boolean;
 }) => {
   const isEnabled = state[fields.enabledField] as boolean;
-  const ratio = state[fields.ratioField] as number;
-  const groupId = state[fields.groupIdField] as string;
+  const hasImageAd = IMAGE_AD_POSITIONS.has(position);
+  const isImageEnabled = hasImageAd ? (state[IMAGE_AD_FIELDS.enabledField] as boolean) : false;
 
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">{POSITION_LABELS[position]}</CardTitle>
-          <Badge className={isEnabled ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}>
-            {isEnabled ? '활성' : '비활성'}
-          </Badge>
+          <div className="flex gap-1">
+            <Badge className={isEnabled ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}>
+              {isEnabled ? '활성' : '비활성'}
+            </Badge>
+            {hasImageAd && (
+              <Badge className={isImageEnabled ? 'bg-purple-500 text-white' : 'bg-gray-400 text-white'}>
+                이미지 {isImageEnabled ? '활성' : '비활성'}
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-gray-700">{fields.enabledLabel}</label>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={isEnabled}
-            onClick={() => onFieldChange(position, fields.enabledField, !isEnabled)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              isEnabled ? 'bg-blue-600' : 'bg-gray-300'
-            }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                isEnabled ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            />
-          </button>
-        </div>
+        <AdFieldSection position={position} state={state} fields={fields} onFieldChange={onFieldChange} />
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">{fields.ratioLabel}</label>
-          <input
-            type="number"
-            min={0}
-            max={100}
-            value={ratio}
-            onChange={(e) => onFieldChange(position, fields.ratioField, Math.min(100, Math.max(0, Number(e.target.value))))}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">{fields.groupIdLabel}</label>
-          <input
-            type="text"
-            value={groupId}
-            onChange={(e) => onFieldChange(position, fields.groupIdField, e.target.value)}
-            placeholder={fields.groupIdPlaceholder}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
+        {hasImageAd && (
+          <>
+            <hr className="border-gray-200" />
+            <AdFieldSection position={position} state={state} fields={IMAGE_AD_FIELDS} onFieldChange={onFieldChange} />
+          </>
+        )}
 
         <Button
           size="sm"
