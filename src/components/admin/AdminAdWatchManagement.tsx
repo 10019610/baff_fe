@@ -38,6 +38,7 @@ const POSITION_LABELS: Record<string, string> = {
   ATTENDANCE_AD_BONUS: '출석 광고 보너스',
   BENEFIT_TOP: '혜택 상단',
   BENEFIT: '혜택 카드 사이',
+  FASTING_BOTTOM: '간헐적 단식 하단',
 };
 
 const ALL_POSITIONS = Object.keys(POSITION_LABELS);

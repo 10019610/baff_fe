@@ -10,6 +10,7 @@ import {
   History,
   Bell,
   Tv,
+  Brain,
 } from 'lucide-react';
 import { useState } from 'react';
 import AdminOverview from '../components/admin/AdminOverview.tsx';
@@ -22,6 +23,7 @@ import AdminRewardManagement from '../components/admin/AdminRewardManagement.tsx
 import AdminHistoryManagement from '../components/admin/AdminHistoryManagement.tsx';
 import AdminNoticeManagement from '../components/admin/AdminNoticeManagement.tsx';
 import AdminAdWatchManagement from '../components/admin/AdminAdWatchManagement.tsx';
+import AdminAiManagement from '../components/admin/AdminAiManagement.tsx';
 import {
   Tabs,
   TabsContent,
@@ -47,6 +49,7 @@ const TABS = [
   { value: 'history', icon: History, label: '내역 관리' },
   { value: 'notice', icon: Bell, label: '공지사항' },
   { value: 'adWatch', icon: Tv, label: '광고 관리' },
+  { value: 'ai', icon: Brain, label: 'AI 관리' },
 ] as const;
 
 const AdminPage = () => {
@@ -70,7 +73,7 @@ const AdminPage = () => {
       </div>
       {/* 탭 메뉴 */}
       <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setSelectedUserId(null); }} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 h-auto gap-1">
+        <TabsList className="grid w-full grid-cols-5 h-auto gap-1">
           {TABS.map(({ value, icon: Icon, label }) => (
             <TabsTrigger
               key={value}
@@ -113,6 +116,9 @@ const AdminPage = () => {
         </TabsContent>
         <TabsContent value="adWatch" className="mt-6">
           <AdminAdWatchManagement />
+        </TabsContent>
+        <TabsContent value="ai" className="mt-6">
+          <AdminAiManagement />
         </TabsContent>
       </Tabs>
     </div>

@@ -71,4 +71,9 @@ export const adminApi = {
   updateNotice: (id: number, data: { title?: string; content?: string; isActive?: boolean }) =>
     api.put(`${BASE}/notices/${id}`, data),
   deleteNotice: (id: number) => api.delete(`${BASE}/notices/${id}`),
+
+  // AI 기능 관리
+  getAiFeatureConfigs: () => api.get(`${BASE}/ai/configs`),
+  updateAiFeatureConfig: (id: number, data: { enabled?: boolean; description?: string }) =>
+    api.put(`${BASE}/ai/configs/${id}`, data),
 };
