@@ -27,8 +27,9 @@ const GoalsPage = () => {
    * Variables
    */
   const presetDuration: PresetDurationType[] = [
-    { value: '1week', label: '1주', hours: 168 },
-    { value: '1month', label: '1달', hours: 720 },
+    { value: '1week', label: '1주', days: 7 },
+    { value: '2weeks', label: '2주', days: 14 },
+    { value: '1month', label: '1달', days: 30 },
   ];
 
   /* 유저 정보 가져오기 */

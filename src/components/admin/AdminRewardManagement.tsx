@@ -120,13 +120,16 @@ const REWARD_TYPES = [
   { value: 'STREAK_WEIGHT', label: '체중 스트릭' },
   { value: 'GOAL_ACHIEVED', label: '목표 달성' },
   { value: 'BATTLE_COMPLETE', label: '대결 완료' },
+  { value: 'MISSION_ATTENDANCE_WEEKLY', label: '이번주 출석 미션' },
+  { value: 'MISSION_WEIGHT_WEEKLY', label: '이번주 체중기록 미션' },
+  { value: 'REVIEW_AD_BONUS', label: '리뷰 광고 보너스' },
 ];
 
 const RewardConfigSubTab = () => {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(0);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ rewardType: 'WEIGHT_LOG', amount: 1, dailyLimit: 1, description: '', threshold: 0 });
+  const [formData, setFormData] = useState({ rewardType: 'WEIGHT_LOG', amount: 1, dailyLimit: 1, description: '', threshold: 0, cooldownMinutes: 0 });
   const [isSaving, setIsSaving] = useState(false);
 
   const { data, isLoading, isError } = useQuery<PageResponse<AdminRewardConfig>>({
@@ -149,10 +152,11 @@ const RewardConfigSubTab = () => {
         description: formData.description,
         enabled: true,
         ...(formData.rewardType === 'ATTENDANCE_STREAK' && formData.threshold > 0 ? { threshold: formData.threshold } : {}),
+        ...(formData.cooldownMinutes > 0 ? { cooldownMinutes: formData.cooldownMinutes } : {}),
       });
       queryClient.invalidateQueries({ queryKey: ['adminRewardConfigs'] });
       setShowForm(false);
-      setFormData({ rewardType: 'WEIGHT_LOG', amount: 1, dailyLimit: 1, description: '', threshold: 0 });
+      setFormData({ rewardType: 'WEIGHT_LOG', amount: 1, dailyLimit: 1, description: '', threshold: 0, cooldownMinutes: 0 });
     } catch (e) {
       alert('설정 추가 실패');
     } finally {
@@ -245,6 +249,20 @@ const RewardConfigSubTab = () => {
                     placeholder="예: 7 (7일 연속 출석)"
                   />
                   <p className="text-xs text-gray-400 mt-1">예: 7회 연속 → 1g, 14회 연속 → 2g</p>
+                </div>
+              )}
+              {formData.rewardType === 'REVIEW' && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">쿨타임 (분)</label>
+                  <input
+                    type="number"
+                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                    value={formData.cooldownMinutes}
+                    onChange={(e) => setFormData({ ...formData, cooldownMinutes: Number(e.target.value) })}
+                    min={0}
+                    placeholder="예: 1440 (24시간)"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">0이면 쿨타임 없음. 1440 = 24시간</p>
                 </div>
               )}
             </div>

@@ -17,6 +17,7 @@ import {
 import LoadingSpinnerForButton from './LoadingSpinnerForButton';
 import type { RecordGoalsRequest } from '../types/Goals.api.type';
 import type { PresetDurationType } from '../types/Goals.type';
+import { useState } from 'react';
 
 interface GoalsCreateProps {
   currentWeight: number;
@@ -43,12 +44,47 @@ const GoalsCreate = ({
    * Variables
    */
   const hasWeightData = currentWeight !== null;
-
   const MotionButton = motion(Button);
+
+  /* 직접 설정 모드 */
+  const [isCustomDuration, setIsCustomDuration] = useState(false);
+  const [customEndDate, setCustomEndDate] = useState('');
+
+  /* 내일 날짜 (직접 설정 최소값) */
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minDate = tomorrow.toISOString().split('T')[0];
+
+  /* 기간 선택 handler */
+  const handleDurationChange = (value: string) => {
+    if (value === 'custom') {
+      setIsCustomDuration(true);
+      onChangeParam('presetDuration', 0);
+    } else {
+      setIsCustomDuration(false);
+      setCustomEndDate('');
+      onChangeParam('presetDuration', Number(value));
+    }
+  };
+
+  /* 직접 날짜 선택 handler */
+  const handleCustomDateChange = (dateStr: string) => {
+    setCustomEndDate(dateStr);
+    const end = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diffDays = Math.ceil(
+      (end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    if (diffDays > 0) {
+      onChangeParam('presetDuration', diffDays);
+    }
+  };
 
   /* 폼 유효성 검사 */
   const isFormValid = () => {
-    return param.title.trim() !== '' && param.targetWeight > 0;
+    if (isCustomDuration && !customEndDate) return false;
+    return param.title.trim() !== '' && param.targetWeight > 0 && param.presetDuration > 0;
   };
   return (
     <div>
@@ -82,8 +118,8 @@ const GoalsCreate = ({
               <div className="space-y-2">
                 <Label htmlFor="goalType">목표 기간</Label>
                 <Select
-                  value={String(param.presetDuration)}
-                  onValueChange={(e) => onChangeParam('presetDuration', e)}
+                  value={isCustomDuration ? 'custom' : String(param.presetDuration)}
+                  onValueChange={handleDurationChange}
                 >
                   <SelectTrigger className="w-full" size="xl">
                     <SelectValue />
@@ -92,13 +128,23 @@ const GoalsCreate = ({
                     {presetDuration.map((duration) => (
                       <SelectItem
                         key={duration.label}
-                        value={String(duration.hours)}
+                        value={String(duration.days)}
                       >
                         {duration.label}
                       </SelectItem>
                     ))}
+                    <SelectItem value="custom">직접 설정</SelectItem>
                   </SelectContent>
                 </Select>
+                {isCustomDuration && (
+                  <Input
+                    type="date"
+                    value={customEndDate}
+                    min={minDate}
+                    onChange={(e) => handleCustomDateChange(e.target.value)}
+                    className="h-12 mt-2"
+                  />
+                )}
               </div>
               <div className="space-y-2">
                 <ValidatedInput

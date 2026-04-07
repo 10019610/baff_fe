@@ -136,6 +136,7 @@ export interface AdminRewardConfig {
   pieceAmount: number;
   description: string;
   active: boolean;
+  cooldownMinutes: number | null;
   regDateTime: string;
   modDateTime: string;
 }

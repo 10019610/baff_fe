@@ -11,6 +11,7 @@ import {
   Bell,
   Tv,
   Brain,
+  Send,
 } from 'lucide-react';
 import { useState } from 'react';
 import AdminOverview from '../components/admin/AdminOverview.tsx';
@@ -24,6 +25,7 @@ import AdminHistoryManagement from '../components/admin/AdminHistoryManagement.t
 import AdminNoticeManagement from '../components/admin/AdminNoticeManagement.tsx';
 import AdminAdWatchManagement from '../components/admin/AdminAdWatchManagement.tsx';
 import AdminAiManagement from '../components/admin/AdminAiManagement.tsx';
+import AdminSmartPushManagement from '../components/admin/AdminSmartPushManagement.tsx';
 import {
   Tabs,
   TabsContent,
@@ -50,6 +52,7 @@ const TABS = [
   { value: 'notice', icon: Bell, label: '공지사항' },
   { value: 'adWatch', icon: Tv, label: '광고 관리' },
   { value: 'ai', icon: Brain, label: 'AI 관리' },
+  { value: 'smartPush', icon: Send, label: '스마트발송' },
 ] as const;
 
 const AdminPage = () => {
@@ -119,6 +122,9 @@ const AdminPage = () => {
         </TabsContent>
         <TabsContent value="ai" className="mt-6">
           <AdminAiManagement />
+        </TabsContent>
+        <TabsContent value="smartPush" className="mt-6">
+          <AdminSmartPushManagement />
         </TabsContent>
       </Tabs>
     </div>

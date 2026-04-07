@@ -38,9 +38,9 @@ export const adminApi = {
   getRewardSummary: () => api.get(`${BASE}/rewards/summary`),
   getRewardConfigs: (params?: { page?: number; size?: number }) =>
     api.get(`${BASE}/rewards/configs`, { params }),
-  createRewardConfig: (data: { rewardType: string; amount: number; dailyLimit?: number; description?: string; enabled?: boolean; threshold?: number }) =>
+  createRewardConfig: (data: { rewardType: string; amount: number; dailyLimit?: number; description?: string; enabled?: boolean; threshold?: number; cooldownMinutes?: number }) =>
     api.post(`${BASE}/rewards/configs`, data),
-  updateRewardConfig: (id: number, data: { amount?: number; dailyLimit?: number; description?: string; enabled?: boolean; threshold?: number }) =>
+  updateRewardConfig: (id: number, data: { amount?: number; dailyLimit?: number; description?: string; enabled?: boolean; threshold?: number; cooldownMinutes?: number }) =>
     api.put(`${BASE}/rewards/configs/${id}`, data),
   getRewardExchanges: (params?: { page?: number; size?: number }) =>
     api.get(`${BASE}/rewards/exchanges`, { params }),
@@ -76,4 +76,13 @@ export const adminApi = {
   getAiFeatureConfigs: () => api.get(`${BASE}/ai/configs`),
   updateAiFeatureConfig: (id: number, data: { enabled?: boolean; description?: string }) =>
     api.put(`${BASE}/ai/configs/${id}`, data),
+
+  // 스마트발송 관리
+  getSmartPushConfigs: () => api.get(`${BASE}/smart-push/configs`),
+  updateSmartPushConfig: (pushType: string, data: Record<string, unknown>) =>
+    api.put(`${BASE}/smart-push/configs/${pushType}`, data),
+  getSmartPushHistory: (params?: { page?: number; size?: number }) =>
+    api.get(`${BASE}/smart-push/history`, { params }),
+  triggerSmartPush: (pushType: string) =>
+    api.post(`${BASE}/smart-push/trigger/${pushType}`),
 };
