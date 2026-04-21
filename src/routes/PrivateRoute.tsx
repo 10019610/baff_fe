@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import HeightInputModal from '../components/modals/HeightInputModal';
 import { useState, useEffect } from 'react';
@@ -7,6 +7,7 @@ import PageLoader from '../components/ui/page-loader';
 
 const PrivateRoute = () => {
   const { isAuthenticated, isLoading, user, login } = useAuth();
+  const location = useLocation();
   const { setIsHeightModalOpen } = useHeightModal();
   const [showHeightModal, setShowHeightModal] = useState(false);
 
@@ -31,9 +32,15 @@ const PrivateRoute = () => {
   }
 
   // 2. 로딩이 끝난 후, 확정된 isAuthenticated 값으로 판단합니다.
-  // if (!isAuthenticated) {
-  //   return <Navigate to="/login" replace />;
-  // }
+  //    S4: 비로그인 시 /login으로 강제 이동 + returnTo 보존 (로그인 후 원래 URL 복귀)
+  if (!isAuthenticated) {
+    const returnTo = location.pathname + location.search;
+    const loginUrl =
+      returnTo && returnTo !== '/'
+        ? `/login?returnTo=${encodeURIComponent(returnTo)}`
+        : '/login';
+    return <Navigate to={loginUrl} replace />;
+  }
 
   // 키 정보 저장 핸들러
   const handleHeightSaved = (height: number) => {

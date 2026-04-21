@@ -13,13 +13,18 @@ const OAuthPage = () => {
       if (isAuthenticated) {
         // sessionStorage에서 초대 URL 확인
         const pendingInviteUrl = sessionStorage.getItem('pendingInviteUrl');
+        // S4: 로그인 후 복귀할 URL (returnTo)
+        const pendingReturnTo = sessionStorage.getItem('pendingReturnTo');
 
         if (pendingInviteUrl) {
           // 초대 URL이 있으면 해당 페이지로 이동
           sessionStorage.removeItem('pendingInviteUrl'); // 사용 후 삭제
           window.location.href = pendingInviteUrl;
+        } else if (pendingReturnTo) {
+          sessionStorage.removeItem('pendingReturnTo');
+          navigate(pendingReturnTo);
         } else {
-          // 초대 URL이 없으면 메인 페이지로 이동
+          // 기본 이동지: 메인
           navigate('/');
         }
       } else {

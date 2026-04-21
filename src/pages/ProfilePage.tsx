@@ -5,7 +5,15 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '../components/ui/avatar.tsx';
-import { Calendar, Camera, Edit2, Shield, LogIn, MessageSquare, Mail } from 'lucide-react';
+import {
+  Calendar,
+  Camera,
+  Edit2,
+  Shield,
+  LogIn,
+  MessageSquare,
+  Mail,
+} from 'lucide-react';
 import { Badge } from '../components/ui/badge.tsx';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api/Api.ts';
@@ -150,6 +158,27 @@ const ProfilePage = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 px-4">
+      {/* S3 Phase 3 — 토스 계정 연결 배너 */}
+      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-blue-900">
+              토스에서도 체인지업을 써보세요
+            </p>
+            <p className="mt-1 text-xs text-blue-700">
+              기존 계정의 그램·체중·대결 기록을 그대로 이어서 쓸 수 있어요
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => (window.location.href = '/account/link-toss')}
+            className="shrink-0 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+          >
+            연결하기
+          </button>
+        </div>
+      </div>
+
       <Card>
         <CardContent className="pt-6 pb-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
@@ -238,9 +267,7 @@ const ProfilePage = () => {
                 <MessageSquare className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-base mb-1">
-                  문의 및 피드백
-                </h3>
+                <h3 className="font-semibold text-base mb-1">문의 및 피드백</h3>
                 <p className="text-sm text-muted-foreground">
                   궁금한 점이나 개선사항을 자유롭게 문의해주세요
                 </p>

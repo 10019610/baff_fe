@@ -20,6 +20,7 @@ import InquiryPage from '../pages/InquiryPage.tsx';
 import InquiryCreatePage from '../pages/InquiryCreatePage.tsx';
 import InquiryDetailPage from '../pages/InquiryDetailPage.tsx';
 import ReviewPage from '../pages/ReviewPage.tsx';
+import AccountLinkStartPage from '../pages/AccountLinkStartPage.tsx';
 
 const Router = () => {
   return (
@@ -33,6 +34,9 @@ const Router = () => {
         />
         {/* 초대 링크 전용 페이지 (PrivateRoute 밖) */}
         <Route path="/invite" element={<InvitePage />} />
+
+        {/* 토스 계정 연결 시작 페이지 (비로그인 접근 가능 - S3 Phase 3) */}
+        <Route path="/account/link-toss" element={<AccountLinkStartPage />} />
 
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<DashboardPage />} />

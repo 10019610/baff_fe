@@ -47,10 +47,26 @@ const LoginPage = () => {
       setIsKakaoBrowser(true);
     }
   }, []);
+
+  // S4: 로그인 이후 복귀할 URL을 저장 (OAuth 리다이렉트 후에도 보존)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const returnTo = params.get('returnTo');
+    if (returnTo) {
+      sessionStorage.setItem('pendingReturnTo', returnTo);
+    }
+  }, []);
+
   useEffect(() => {
     // Only navigate once loading is complete AND user is authenticated
     if (!isLoading && isAuthenticated) {
-      navigate('/');
+      const pendingReturnTo = sessionStorage.getItem('pendingReturnTo');
+      if (pendingReturnTo) {
+        sessionStorage.removeItem('pendingReturnTo');
+        navigate(pendingReturnTo);
+      } else {
+        navigate('/');
+      }
     }
     // If loading is complete but not authenticated, stay on login page or show error
     // (This is implicitly handled by not navigating)
