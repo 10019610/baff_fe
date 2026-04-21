@@ -12,12 +12,12 @@ export interface IssueTokenResponse {
 export const accountLinkApi = {
   issueToken: async () => {
     const response = await api.post<IssueTokenResponse>(
-      '/api/account/link/issue-token'
+      '/account/link/issue-token'
     );
     return response.data;
   },
 
   dismissBanner: async () => {
-    await api.patch('/api/account/link/dismiss-banner');
+    await api.patch('/account/link/dismiss-banner');
   },
 };
