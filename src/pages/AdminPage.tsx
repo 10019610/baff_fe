@@ -12,6 +12,7 @@ import {
   Tv,
   Brain,
   Send,
+  ToggleRight,
 } from 'lucide-react';
 import { useState } from 'react';
 import AdminOverview from '../components/admin/AdminOverview.tsx';
@@ -26,6 +27,7 @@ import AdminNoticeManagement from '../components/admin/AdminNoticeManagement.tsx
 import AdminAdWatchManagement from '../components/admin/AdminAdWatchManagement.tsx';
 import AdminAiManagement from '../components/admin/AdminAiManagement.tsx';
 import AdminSmartPushManagement from '../components/admin/AdminSmartPushManagement.tsx';
+import AdminFeatureAccessManagement from '../components/admin/AdminFeatureAccessManagement.tsx';
 import {
   Tabs,
   TabsContent,
@@ -53,6 +55,7 @@ const TABS = [
   { value: 'adWatch', icon: Tv, label: '광고 관리' },
   { value: 'ai', icon: Brain, label: 'AI 관리' },
   { value: 'smartPush', icon: Send, label: '스마트발송' },
+  { value: 'featureAccess', icon: ToggleRight, label: '기능 접근' },
 ] as const;
 
 const AdminPage = () => {
@@ -75,7 +78,14 @@ const AdminPage = () => {
         </Badge>
       </div>
       {/* 탭 메뉴 */}
-      <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setSelectedUserId(null); }} className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => {
+          setActiveTab(v);
+          setSelectedUserId(null);
+        }}
+        className="w-full"
+      >
         <TabsList className="grid w-full grid-cols-5 h-auto gap-1">
           {TABS.map(({ value, icon: Icon, label }) => (
             <TabsTrigger
@@ -94,7 +104,10 @@ const AdminPage = () => {
         </TabsContent>
         <TabsContent value="users" className="mt-6">
           {selectedUserId ? (
-            <AdminUserDetail userId={selectedUserId} onBack={() => setSelectedUserId(null)} />
+            <AdminUserDetail
+              userId={selectedUserId}
+              onBack={() => setSelectedUserId(null)}
+            />
           ) : (
             <AdminUserManagement onSelectUser={(id) => setSelectedUserId(id)} />
           )}
@@ -125,6 +138,9 @@ const AdminPage = () => {
         </TabsContent>
         <TabsContent value="smartPush" className="mt-6">
           <AdminSmartPushManagement />
+        </TabsContent>
+        <TabsContent value="featureAccess" className="mt-6">
+          <AdminFeatureAccessManagement />
         </TabsContent>
       </Tabs>
     </div>
