@@ -1,10 +1,36 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card.tsx';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '../ui/card.tsx';
 import { Button } from '../ui/button.tsx';
 import { Badge } from '../ui/badge.tsx';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table.tsx';
-import { Coins, TrendingUp, Settings, BarChart3, ArrowRightLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../ui/table.tsx';
+import {
+  Coins,
+  TrendingUp,
+  Settings,
+  BarChart3,
+  ArrowRightLeft,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { adminApi } from '../../services/api/admin.api.ts';
-import type { AdminRewardSummary, AdminRewardConfig, AdminRewardExchange, PageResponse } from '../../types/Admin.api.type.ts';
+import type {
+  AdminRewardSummary,
+  AdminRewardConfig,
+  AdminRewardExchange,
+  PageResponse,
+} from '../../types/Admin.api.type.ts';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { formatDate } from '../../utils/DateUtil.ts';
@@ -23,7 +49,15 @@ const SUB_TABS = [
 type SubTabValue = (typeof SUB_TABS)[number]['value'];
 
 /** Empty State */
-const EmptyState = ({ icon: Icon, message, description }: { icon: typeof Coins; message: string; description: string }) => (
+const EmptyState = ({
+  icon: Icon,
+  message,
+  description,
+}: {
+  icon: typeof Coins;
+  message: string;
+  description: string;
+}) => (
   <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
     <Icon className="h-12 w-12 mb-4 opacity-50" />
     <p className="text-lg font-medium">{message}</p>
@@ -32,20 +66,27 @@ const EmptyState = ({ icon: Icon, message, description }: { icon: typeof Coins; 
 );
 
 /** 금액 포맷팅 */
-const formatAmount = (amount: number | null | undefined) => (amount ?? 0).toLocaleString('ko-KR');
+const formatAmount = (amount: number | null | undefined) =>
+  (amount ?? 0).toLocaleString('ko-KR');
 
 // ─────────────────────────────────────────
 // 서브탭 1: 현황
 // ─────────────────────────────────────────
 const RewardOverviewSubTab = () => {
-  const { data: summary, isLoading, isError } = useQuery<AdminRewardSummary>({
+  const {
+    data: summary,
+    isLoading,
+    isError,
+  } = useQuery<AdminRewardSummary>({
     queryKey: ['adminRewardSummary'],
     queryFn: () => adminApi.getRewardSummary().then((res) => res.data),
     retry: 1,
   });
 
   if (isLoading) {
-    return <div className="text-center py-8 text-muted-foreground">로딩 중...</div>;
+    return (
+      <div className="text-center py-8 text-muted-foreground">로딩 중...</div>
+    );
   }
 
   if (isError || !summary) {
@@ -59,14 +100,46 @@ const RewardOverviewSubTab = () => {
   }
 
   const kpiCards = [
-    { label: '총 발행 조각', value: `${formatAmount(summary.totalIssuedPieces)}개`, color: 'text-blue-600' },
-    { label: '총 소각 조각', value: `${formatAmount(summary.totalBurnedPieces)}개`, color: 'text-red-600' },
-    { label: '현재 유통량', value: `${formatAmount(summary.currentCirculating)}개`, color: 'text-green-600' },
-    { label: '총 환전 금액', value: `${formatAmount(summary.totalExchangeAmount)}원`, color: 'text-purple-600' },
-    { label: '오늘 발행', value: `${formatAmount(summary.todayIssuedPieces)}개`, color: 'text-blue-600' },
-    { label: '오늘 소각', value: `${formatAmount(summary.todayBurnedPieces)}개`, color: 'text-red-600' },
-    { label: '활성 리워드 유저', value: `${summary.activeRewardUsers}명`, color: 'text-green-600' },
-    { label: '대기중 환전', value: `${summary.pendingExchanges}건`, color: 'text-yellow-600' },
+    {
+      label: '총 발행 조각',
+      value: `${formatAmount(summary.totalIssuedPieces)}개`,
+      color: 'text-blue-600',
+    },
+    {
+      label: '총 소각 조각',
+      value: `${formatAmount(summary.totalBurnedPieces)}개`,
+      color: 'text-red-600',
+    },
+    {
+      label: '현재 유통량',
+      value: `${formatAmount(summary.currentCirculating)}개`,
+      color: 'text-green-600',
+    },
+    {
+      label: '총 환전 금액',
+      value: `${formatAmount(summary.totalExchangeAmount)}원`,
+      color: 'text-purple-600',
+    },
+    {
+      label: '오늘 발행',
+      value: `${formatAmount(summary.todayIssuedPieces)}개`,
+      color: 'text-blue-600',
+    },
+    {
+      label: '오늘 소각',
+      value: `${formatAmount(summary.todayBurnedPieces)}개`,
+      color: 'text-red-600',
+    },
+    {
+      label: '활성 리워드 유저',
+      value: `${summary.activeRewardUsers}명`,
+      color: 'text-green-600',
+    },
+    {
+      label: '대기중 환전',
+      value: `${summary.pendingExchanges}건`,
+      color: 'text-yellow-600',
+    },
   ];
 
   return (
@@ -123,18 +196,31 @@ const REWARD_TYPES = [
   { value: 'MISSION_ATTENDANCE_WEEKLY', label: '이번주 출석 미션' },
   { value: 'MISSION_WEIGHT_WEEKLY', label: '이번주 체중기록 미션' },
   { value: 'REVIEW_AD_BONUS', label: '리뷰 광고 보너스' },
+  { value: 'SIGNUP_BONUS', label: '가입 축하' },
 ];
 
 const RewardConfigSubTab = () => {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(0);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ rewardType: 'WEIGHT_LOG', amount: 1, dailyLimit: 1, description: '', threshold: 0, cooldownMinutes: 0 });
+  const [formData, setFormData] = useState({
+    rewardType: 'WEIGHT_LOG',
+    amount: 1,
+    dailyLimit: 1,
+    description: '',
+    threshold: 0,
+    cooldownMinutes: 0,
+  });
   const [isSaving, setIsSaving] = useState(false);
 
-  const { data, isLoading, isError } = useQuery<PageResponse<AdminRewardConfig>>({
+  const { data, isLoading, isError } = useQuery<
+    PageResponse<AdminRewardConfig>
+  >({
     queryKey: ['adminRewardConfigs', page],
-    queryFn: () => adminApi.getRewardConfigs({ page, size: PAGE_SIZE }).then((res) => res.data),
+    queryFn: () =>
+      adminApi
+        .getRewardConfigs({ page, size: PAGE_SIZE })
+        .then((res) => res.data),
     retry: 1,
   });
 
@@ -151,12 +237,24 @@ const RewardConfigSubTab = () => {
         dailyLimit: formData.dailyLimit,
         description: formData.description,
         enabled: true,
-        ...(formData.rewardType === 'ATTENDANCE_STREAK' && formData.threshold > 0 ? { threshold: formData.threshold } : {}),
-        ...(formData.cooldownMinutes > 0 ? { cooldownMinutes: formData.cooldownMinutes } : {}),
+        ...(formData.rewardType === 'ATTENDANCE_STREAK' &&
+        formData.threshold > 0
+          ? { threshold: formData.threshold }
+          : {}),
+        ...(formData.cooldownMinutes > 0
+          ? { cooldownMinutes: formData.cooldownMinutes }
+          : {}),
       });
       queryClient.invalidateQueries({ queryKey: ['adminRewardConfigs'] });
       setShowForm(false);
-      setFormData({ rewardType: 'WEIGHT_LOG', amount: 1, dailyLimit: 1, description: '', threshold: 0, cooldownMinutes: 0 });
+      setFormData({
+        rewardType: 'WEIGHT_LOG',
+        amount: 1,
+        dailyLimit: 1,
+        description: '',
+        threshold: 0,
+        cooldownMinutes: 0,
+      });
     } catch (e) {
       alert('설정 추가 실패');
     } finally {
@@ -196,73 +294,112 @@ const RewardConfigSubTab = () => {
           <div className="mb-6 p-4 border rounded-lg bg-gray-50 space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-sm font-medium text-gray-700">리워드 타입</label>
+                <label className="text-sm font-medium text-gray-700">
+                  리워드 타입
+                </label>
                 <select
                   className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   value={formData.rewardType}
-                  onChange={(e) => setFormData({ ...formData, rewardType: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, rewardType: e.target.value })
+                  }
                 >
                   {REWARD_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">지급량 (gram)</label>
+                <label className="text-sm font-medium text-gray-700">
+                  지급량 (gram)
+                </label>
                 <input
                   type="number"
                   className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, amount: Number(e.target.value) })
+                  }
                   min={1}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">일일 제한 횟수</label>
+                <label className="text-sm font-medium text-gray-700">
+                  일일 제한 횟수
+                </label>
                 <input
                   type="number"
                   className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   value={formData.dailyLimit}
-                  onChange={(e) => setFormData({ ...formData, dailyLimit: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      dailyLimit: Number(e.target.value),
+                    })
+                  }
                   min={1}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">설명</label>
+                <label className="text-sm font-medium text-gray-700">
+                  설명
+                </label>
                 <input
                   type="text"
                   className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   placeholder="예: 체중 기록 시 1g 지급"
                 />
               </div>
               {formData.rewardType === 'ATTENDANCE_STREAK' && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">연속 출석 기준일 (threshold)</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    연속 출석 기준일 (threshold)
+                  </label>
                   <input
                     type="number"
                     className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                     value={formData.threshold}
-                    onChange={(e) => setFormData({ ...formData, threshold: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        threshold: Number(e.target.value),
+                      })
+                    }
                     min={1}
                     placeholder="예: 7 (7일 연속 출석)"
                   />
-                  <p className="text-xs text-gray-400 mt-1">예: 7회 연속 → 1g, 14회 연속 → 2g</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    예: 7회 연속 → 1g, 14회 연속 → 2g
+                  </p>
                 </div>
               )}
               {formData.rewardType === 'REVIEW' && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">쿨타임 (분)</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    쿨타임 (분)
+                  </label>
                   <input
                     type="number"
                     className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                     value={formData.cooldownMinutes}
-                    onChange={(e) => setFormData({ ...formData, cooldownMinutes: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        cooldownMinutes: Number(e.target.value),
+                      })
+                    }
                     min={0}
                     placeholder="예: 1440 (24시간)"
                   />
-                  <p className="text-xs text-gray-400 mt-1">0이면 쿨타임 없음. 1440 = 24시간</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    0이면 쿨타임 없음. 1440 = 24시간
+                  </p>
                 </div>
               )}
             </div>
@@ -275,7 +412,9 @@ const RewardConfigSubTab = () => {
         )}
 
         {isLoading ? (
-          <div className="text-center py-8 text-muted-foreground">로딩 중...</div>
+          <div className="text-center py-8 text-muted-foreground">
+            로딩 중...
+          </div>
         ) : isError || configList.length === 0 ? (
           <EmptyState
             icon={Settings}
@@ -295,9 +434,15 @@ const RewardConfigSubTab = () => {
               <TableBody>
                 {configList.map((config) => (
                   <TableRow key={config.configId}>
-                    <TableCell className="whitespace-nowrap font-medium">{config.rewardType}</TableCell>
-                    <TableCell className="whitespace-nowrap">{config.actionType}</TableCell>
-                    <TableCell className="whitespace-nowrap">{formatAmount(config.pieceAmount)}개</TableCell>
+                    <TableCell className="whitespace-nowrap font-medium">
+                      {config.rewardType}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {config.actionType}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {formatAmount(config.pieceAmount)}개
+                    </TableCell>
                     <TableCell>
                       <div className="min-w-[150px]">{config.description}</div>
                     </TableCell>
@@ -306,16 +451,26 @@ const RewardConfigSubTab = () => {
                         className={`cursor-pointer ${config.active ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-400 text-white hover:bg-gray-500'}`}
                         onClick={async () => {
                           try {
-                            await adminApi.updateRewardConfig(config.configId, { enabled: !config.active });
-                            await queryClient.refetchQueries({ queryKey: ['adminRewardConfigs'] });
-                          } catch { alert('상태 변경 실패'); }
+                            await adminApi.updateRewardConfig(config.configId, {
+                              enabled: !config.active,
+                            });
+                            await queryClient.refetchQueries({
+                              queryKey: ['adminRewardConfigs'],
+                            });
+                          } catch {
+                            alert('상태 변경 실패');
+                          }
                         }}
                       >
                         {config.active ? '활성' : '비활성'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">{formatDate(config.regDateTime)}</TableCell>
-                    <TableCell className="whitespace-nowrap">{formatDate(config.modDateTime)}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {formatDate(config.regDateTime)}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {formatDate(config.modDateTime)}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -328,14 +483,26 @@ const RewardConfigSubTab = () => {
                   총 {totalElements}건 | {page + 1} / {totalPages} 페이지
                 </span>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page === 0}
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  >
                     <ChevronLeft className="h-4 w-4" />
                     이전
                   </Button>
                   <span className="text-sm text-muted-foreground">
                     {page + 1} / {totalPages}
                   </span>
-                  <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page >= totalPages - 1}
+                    onClick={() =>
+                      setPage((p) => Math.min(totalPages - 1, p + 1))
+                    }
+                  >
                     다음
                     <ChevronRight className="h-4 w-4" />
                   </Button>
@@ -379,9 +546,14 @@ const RewardStatsSubTab = () => {
 const ExchangeHistorySubTab = () => {
   const [page, setPage] = useState(0);
 
-  const { data, isLoading, isError } = useQuery<PageResponse<AdminRewardExchange>>({
+  const { data, isLoading, isError } = useQuery<
+    PageResponse<AdminRewardExchange>
+  >({
     queryKey: ['adminRewardExchanges', page],
-    queryFn: () => adminApi.getRewardExchanges({ page, size: PAGE_SIZE }).then((res) => res.data),
+    queryFn: () =>
+      adminApi
+        .getRewardExchanges({ page, size: PAGE_SIZE })
+        .then((res) => res.data),
     retry: 1,
   });
 
@@ -422,7 +594,9 @@ const ExchangeHistorySubTab = () => {
       </CardHeader>
       <CardContent className="overflow-x-auto">
         {isLoading ? (
-          <div className="text-center py-8 text-muted-foreground">로딩 중...</div>
+          <div className="text-center py-8 text-muted-foreground">
+            로딩 중...
+          </div>
         ) : isError || exchangeList.length === 0 ? (
           <EmptyState
             icon={ArrowRightLeft}
@@ -442,12 +616,24 @@ const ExchangeHistorySubTab = () => {
               <TableBody>
                 {exchangeList.map((exchange) => (
                   <TableRow key={exchange.exchangeId}>
-                    <TableCell className="whitespace-nowrap font-medium">#{exchange.exchangeId}</TableCell>
-                    <TableCell className="whitespace-nowrap">{exchange.nickname}</TableCell>
-                    <TableCell className="whitespace-nowrap">{formatAmount(exchange.pieceAmount)}개</TableCell>
-                    <TableCell className="whitespace-nowrap">{formatAmount(exchange.exchangeAmount)}원</TableCell>
-                    <TableCell className="whitespace-nowrap">{getStatusBadge(exchange.status)}</TableCell>
-                    <TableCell className="whitespace-nowrap">{formatDate(exchange.regDateTime)}</TableCell>
+                    <TableCell className="whitespace-nowrap font-medium">
+                      #{exchange.exchangeId}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {exchange.nickname}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {formatAmount(exchange.pieceAmount)}개
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {formatAmount(exchange.exchangeAmount)}원
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {getStatusBadge(exchange.status)}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {formatDate(exchange.regDateTime)}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -460,14 +646,26 @@ const ExchangeHistorySubTab = () => {
                   총 {totalElements}건 | {page + 1} / {totalPages} 페이지
                 </span>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page === 0}
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  >
                     <ChevronLeft className="h-4 w-4" />
                     이전
                   </Button>
                   <span className="text-sm text-muted-foreground">
                     {page + 1} / {totalPages}
                   </span>
-                  <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page >= totalPages - 1}
+                    onClick={() =>
+                      setPage((p) => Math.min(totalPages - 1, p + 1))
+                    }
+                  >
                     다음
                     <ChevronRight className="h-4 w-4" />
                   </Button>
