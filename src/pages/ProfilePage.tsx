@@ -46,7 +46,8 @@ const ProfilePage = () => {
    */
   /* User Id */
   const { userId } = useParams();
-  const { user, updateUserProfileImage, updateUserNickname } = useAuth();
+  const { user, isAdmin, updateUserProfileImage, updateUserNickname } =
+    useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -158,26 +159,28 @@ const ProfilePage = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 px-4">
-      {/* S3 Phase 3 — 토스 계정 연결 배너 */}
-      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-blue-900">
-              토스에서도 체인지업을 써보세요
-            </p>
-            <p className="mt-1 text-xs text-blue-700">
-              기존 계정의 그램·체중·대결 기록을 그대로 이어서 쓸 수 있어요
-            </p>
+      {/* S3 Phase 3 — 토스 계정 연결 배너 (정식 오픈 전까지 ADMIN 전용) */}
+      {isAdmin && (
+        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-blue-900">
+                토스에서도 체인지업을 써보세요
+              </p>
+              <p className="mt-1 text-xs text-blue-700">
+                기존 계정의 그램·체중·대결 기록을 그대로 이어서 쓸 수 있어요
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => (window.location.href = '/account/link-toss')}
+              className="shrink-0 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+            >
+              연결하기
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => (window.location.href = '/account/link-toss')}
-            className="shrink-0 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
-          >
-            연결하기
-          </button>
         </div>
-      </div>
+      )}
 
       <Card>
         <CardContent className="pt-6 pb-6">

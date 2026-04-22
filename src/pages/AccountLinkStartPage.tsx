@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { accountLinkApi } from '../services/api/AccountLink.api';
@@ -8,12 +8,13 @@ import { accountLinkApi } from '../services/api/AccountLink.api';
 // 비로그인 유저도 진입 가능. 로그인 상태에 따라 분기 UI 제공.
 // 로그인 유저: 바로 issue-token → 딥링크 open.
 // 비로그인 유저: "로그인하고 연결하기" → 로그인 후 returnTo로 복귀.
+// 정식 오픈 전까지 ADMIN 계정만 진입 허용 (2026-04-22 긴급 제한).
 
 const TOSS_DEEP_LINK_BASE = 'intoss://changeup';
 
 export default function AccountLinkStartPage() {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isAdmin, isLoading } = useAuth();
   const [isIssuing, setIsIssuing] = useState(false);
 
   const handleStart = async () => {
@@ -51,6 +52,11 @@ export default function AccountLinkStartPage() {
         <p className="text-sm text-gray-500">로딩 중…</p>
       </div>
     );
+  }
+
+  // 정식 오픈 전까지 ADMIN 계정만 진입 허용. 로그인 상태 확정 후 비-ADMIN은 홈으로 리다이렉트.
+  if (isAuthenticated && !isAdmin) {
+    return <Navigate to="/" replace />;
   }
 
   return (
