@@ -10,6 +10,7 @@ import type {
   WeightTrend,
   PlatformDistribution,
   RecentActivity,
+  GramEconomySnapshot,
 } from '../../types/Admin.api.type.ts';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -35,7 +36,15 @@ const periods = [
 
 type Period = (typeof periods)[number]['value'];
 
-const PIE_COLORS = ['#3b82f6', '#FEE102', '#0064FF', '#ef4444', '#8b5cf6', '#3DDC84', '#8E8E93'];
+const PIE_COLORS = [
+  '#3b82f6',
+  '#FEE102',
+  '#0064FF',
+  '#ef4444',
+  '#8b5cf6',
+  '#3DDC84',
+  '#8E8E93',
+];
 
 const ACTIVITY_ICON_MAP: Record<string, typeof Activity> = {
   SIGNUP: UserPlus,
@@ -74,7 +83,8 @@ const AdminOverview = () => {
     isError: errorUserGrowth,
   } = useQuery<UserGrowth[]>({
     queryKey: ['admin', 'userGrowth', userGrowthPeriod],
-    queryFn: () => adminApi.getUserGrowth(userGrowthPeriod).then((res) => res.data),
+    queryFn: () =>
+      adminApi.getUserGrowth(userGrowthPeriod).then((res) => res.data),
   });
 
   const {
@@ -83,7 +93,8 @@ const AdminOverview = () => {
     isError: errorWeightTrend,
   } = useQuery<WeightTrend[]>({
     queryKey: ['admin', 'weightTrend', weightTrendPeriod],
-    queryFn: () => adminApi.getWeightTrend(weightTrendPeriod).then((res) => res.data),
+    queryFn: () =>
+      adminApi.getWeightTrend(weightTrendPeriod).then((res) => res.data),
   });
 
   const {
@@ -93,6 +104,13 @@ const AdminOverview = () => {
   } = useQuery<PlatformDistribution[]>({
     queryKey: ['admin', 'platformDistribution'],
     queryFn: () => adminApi.getPlatformDistribution().then((res) => res.data),
+  });
+
+  // S6-16 — 그램경제 스냅샷
+  const { data: gramEconomy } = useQuery<GramEconomySnapshot>({
+    queryKey: ['admin', 'gramEconomy'],
+    queryFn: () => adminApi.getGramEconomySnapshot().then((res) => res.data),
+    staleTime: 60_000,
   });
 
   const {
@@ -139,7 +157,9 @@ const AdminOverview = () => {
   // ── 로딩 / 에러 ──
   if (loadingStats) {
     return (
-      <div className="flex items-center justify-center py-16 text-gray-500">로딩 중...</div>
+      <div className="flex items-center justify-center py-16 text-gray-500">
+        로딩 중...
+      </div>
     );
   }
 
@@ -163,7 +183,9 @@ const AdminOverview = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">{kpi.title}</p>
-                    <p className="text-2xl font-bold mt-1">{kpi.value.toLocaleString()}</p>
+                    <p className="text-2xl font-bold mt-1">
+                      {kpi.value.toLocaleString()}
+                    </p>
                   </div>
                   <div className={`p-3 rounded-full ${kpi.bg}`}>
                     <Icon className={`w-5 h-5 ${kpi.color}`} />
@@ -181,8 +203,13 @@ const AdminOverview = () => {
         <Card className="lg:col-span-2">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold">사용자 증가 추이</CardTitle>
-              <PeriodSelector value={userGrowthPeriod} onChange={setUserGrowthPeriod} />
+              <CardTitle className="text-base font-semibold">
+                사용자 증가 추이
+              </CardTitle>
+              <PeriodSelector
+                value={userGrowthPeriod}
+                onChange={setUserGrowthPeriod}
+              />
             </div>
           </CardHeader>
           <CardContent>
@@ -196,7 +223,10 @@ const AdminOverview = () => {
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={userGrowth} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <BarChart
+                  data={userGrowth}
+                  margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                   <XAxis
                     dataKey="label"
@@ -204,7 +234,11 @@ const AdminOverview = () => {
                     style={{ fontSize: '12px' }}
                     tickLine={false}
                   />
-                  <YAxis stroke="#6B7280" style={{ fontSize: '12px' }} tickLine={false} />
+                  <YAxis
+                    stroke="#6B7280"
+                    style={{ fontSize: '12px' }}
+                    tickLine={false}
+                  />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: '#FFF',
@@ -213,7 +247,12 @@ const AdminOverview = () => {
                       fontSize: '13px',
                     }}
                   />
-                  <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} name="신규 사용자" />
+                  <Bar
+                    dataKey="count"
+                    fill="#3b82f6"
+                    radius={[4, 4, 0, 0]}
+                    name="신규 사용자"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -223,7 +262,9 @@ const AdminOverview = () => {
         {/* 플랫폼 분포 PieChart (1/3) */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base font-semibold">플랫폼 분포</CardTitle>
+            <CardTitle className="text-base font-semibold">
+              플랫폼 분포
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {loadingPlatform ? (
@@ -249,7 +290,10 @@ const AdminOverview = () => {
                       paddingAngle={2}
                     >
                       {platformDist?.map((_, index) => (
-                        <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                        <Cell
+                          key={index}
+                          fill={PIE_COLORS[index % PIE_COLORS.length]}
+                        />
                       ))}
                     </Pie>
                     <Tooltip
@@ -264,10 +308,17 @@ const AdminOverview = () => {
                 </ResponsiveContainer>
                 <div className="flex flex-wrap gap-2 mt-2 justify-center">
                   {platformDist?.map((item, index) => (
-                    <Badge key={item.platform} variant="outline" className="gap-1.5">
+                    <Badge
+                      key={item.platform}
+                      variant="outline"
+                      className="gap-1.5"
+                    >
                       <span
                         className="inline-block w-2.5 h-2.5 rounded-full"
-                        style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }}
+                        style={{
+                          backgroundColor:
+                            PIE_COLORS[index % PIE_COLORS.length],
+                        }}
                       />
                       {item.platform} ({item.count})
                     </Badge>
@@ -285,8 +336,13 @@ const AdminOverview = () => {
         <Card className="lg:col-span-2">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold">체중 기록 추이</CardTitle>
-              <PeriodSelector value={weightTrendPeriod} onChange={setWeightTrendPeriod} />
+              <CardTitle className="text-base font-semibold">
+                체중 기록 추이
+              </CardTitle>
+              <PeriodSelector
+                value={weightTrendPeriod}
+                onChange={setWeightTrendPeriod}
+              />
             </div>
           </CardHeader>
           <CardContent>
@@ -300,7 +356,10 @@ const AdminOverview = () => {
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={weightTrend} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <LineChart
+                  data={weightTrend}
+                  margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                   <XAxis
                     dataKey="label"
@@ -308,7 +367,11 @@ const AdminOverview = () => {
                     style={{ fontSize: '12px' }}
                     tickLine={false}
                   />
-                  <YAxis stroke="#6B7280" style={{ fontSize: '12px' }} tickLine={false} />
+                  <YAxis
+                    stroke="#6B7280"
+                    style={{ fontSize: '12px' }}
+                    tickLine={false}
+                  />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: '#FFF',
@@ -361,7 +424,9 @@ const AdminOverview = () => {
                         <Icon className="w-3.5 h-3.5 text-gray-600" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-900 leading-snug">{activity.message}</p>
+                        <p className="text-sm text-gray-900 leading-snug">
+                          {activity.message}
+                        </p>
                         <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground">
                           <Clock className="w-3 h-3" />
                           <span>{formatRelativeTime(activity.timestamp)}</span>
@@ -375,9 +440,79 @@ const AdminOverview = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* S6-16 — 그램경제 스냅샷 */}
+      {gramEconomy && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-semibold">그램 경제</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              발행 · 유통 · 전환 지표 (실시간, 60초 캐시)
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <GramStatCell
+                label="총 발행"
+                value={gramEconomy.totalEarned}
+                suffix="g"
+                sub={`오늘 +${gramEconomy.todayIssued}g`}
+              />
+              <GramStatCell
+                label="유통 중"
+                value={gramEconomy.circulating}
+                suffix="g"
+                sub={`${gramEconomy.holdersCount}명 보유`}
+              />
+              <GramStatCell
+                label="평균 보유"
+                value={gramEconomy.avgBalance}
+                suffix="g"
+                sub="보유 유저 기준"
+              />
+              <GramStatCell
+                label="총 환전"
+                value={gramEconomy.totalExchanged}
+                suffix="g"
+                sub={`오늘 -${gramEconomy.todayExchanged}g`}
+              />
+            </div>
+            <div className="mt-4 flex items-center justify-between rounded-lg bg-muted p-3">
+              <span className="text-sm text-muted-foreground">
+                전환율 (환전/발행)
+              </span>
+              <span className="text-lg font-semibold">
+                {gramEconomy.exchangeRate.toFixed(2)}%
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
+
+/** 그램경제 스냅샷 셀 (S6-16) */
+const GramStatCell = ({
+  label,
+  value,
+  suffix,
+  sub,
+}: {
+  label: string;
+  value: number;
+  suffix: string;
+  sub?: string;
+}) => (
+  <div className="rounded-lg border p-3">
+    <div className="text-xs text-muted-foreground">{label}</div>
+    <div className="mt-1 text-xl font-semibold">
+      {value.toLocaleString()}
+      <span className="ml-0.5 text-sm text-muted-foreground">{suffix}</span>
+    </div>
+    {sub && <div className="mt-1 text-xs text-muted-foreground">{sub}</div>}
+  </div>
+);
 
 export default AdminOverview;
 

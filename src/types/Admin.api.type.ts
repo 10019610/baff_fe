@@ -7,6 +7,18 @@ export interface AdminStats {
   pendingInquiries: number;
 }
 
+/** S6-16 — 그램경제 스냅샷 (나만그래 pieceEconomyResponse 참조, 체인지업 MVP 단순화) */
+export interface GramEconomySnapshot {
+  totalEarned: number;
+  todayIssued: number;
+  circulating: number;
+  holdersCount: number;
+  avgBalance: number;
+  totalExchanged: number;
+  todayExchanged: number;
+  exchangeRate: number;
+}
+
 export interface UserGrowth {
   label: string;
   count: number;
