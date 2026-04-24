@@ -1,10 +1,36 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card.tsx';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '../ui/card.tsx';
 import { Button } from '../ui/button.tsx';
 import { Badge } from '../ui/badge.tsx';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table.tsx';
-import { Tv, Eye, Users, Activity, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../ui/table.tsx';
+import {
+  Tv,
+  Eye,
+  Users,
+  Activity,
+  ChevronLeft,
+  ChevronRight,
+  Settings,
+} from 'lucide-react';
 import { adminApi } from '../../services/api/admin.api.ts';
-import type { AdWatchSummary, AdWatchHistoryItem, PageResponse, TossAdPositionConfig } from '../../types/Admin.api.type.ts';
+import type {
+  AdWatchSummary,
+  AdWatchHistoryItem,
+  PageResponse,
+  TossAdPositionConfig,
+} from '../../types/Admin.api.type.ts';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { formatDate } from '../../utils/DateUtil.ts';
@@ -13,21 +39,31 @@ import toast from 'react-hot-toast';
 const PAGE_SIZE = 20;
 
 const LOCATION_LABELS: Record<string, string> = {
+  HOME_TOP: '홈(대시보드) 상단',
   WEIGHT_TAB_TOP: '체중 탭 상단',
   ANALYSIS_TAB_TOP: '분석 탭 상단',
   REVIEW_TAB_TOP: '후기 탭 상단',
   WEIGHT_RECORD_REWARD: '체중기록 후 리워드',
+  ATTENDANCE_RESULT: '출석 완료 페이지',
+  EXCHANGE_RESULT: '꺼내기(환전) 완료 페이지',
+  WEIGHT_RESULT: '체중기록 완료 페이지',
+  MISSION_RESULT: '미션 완료 페이지',
 };
 
 type AdWatchSubTab = 'stats' | 'history' | 'tossAdConfig';
 
-const SUB_TABS: { key: AdWatchSubTab; label: string; icon: React.ElementType }[] = [
+const SUB_TABS: {
+  key: AdWatchSubTab;
+  label: string;
+  icon: React.ElementType;
+}[] = [
   { key: 'stats', label: '시청 통계', icon: Tv },
   { key: 'history', label: '시청 내역', icon: Eye },
   { key: 'tossAdConfig', label: '토스광고 설정', icon: Settings },
 ];
 
 const POSITION_LABELS: Record<string, string> = {
+  HOME_TOP: '홈(대시보드) 상단',
   WEIGHT_TAB_TOP: '체중 탭 상단',
   ANALYSIS_TAB_TOP: '분석 탭 상단',
   REVIEW_TAB_TOP: '후기 탭 상단',
@@ -39,6 +75,10 @@ const POSITION_LABELS: Record<string, string> = {
   BENEFIT_TOP: '혜택 상단',
   BENEFIT: '혜택 카드 사이',
   FASTING_BOTTOM: '간헐적 단식 하단',
+  ATTENDANCE_RESULT: '출석 완료 페이지',
+  EXCHANGE_RESULT: '꺼내기(환전) 완료 페이지',
+  WEIGHT_RESULT: '체중기록 완료 페이지',
+  MISSION_RESULT: '미션 완료 페이지',
 };
 
 const ALL_POSITIONS = Object.keys(POSITION_LABELS);
@@ -56,10 +96,30 @@ const StatsSubTab = () => {
   });
 
   const summaryCards = [
-    { label: '총 시청 수', value: summary?.totalWatchCount ?? 0, icon: Tv, color: 'text-blue-600' },
-    { label: '오늘 시청 수', value: summary?.todayWatchCount ?? 0, icon: Eye, color: 'text-green-600' },
-    { label: '시청한 유저 수', value: summary?.uniqueUsers ?? 0, icon: Users, color: 'text-purple-600' },
-    { label: '오늘 시청 유저', value: summary?.todayUniqueUsers ?? 0, icon: Activity, color: 'text-yellow-600' },
+    {
+      label: '총 시청 수',
+      value: summary?.totalWatchCount ?? 0,
+      icon: Tv,
+      color: 'text-blue-600',
+    },
+    {
+      label: '오늘 시청 수',
+      value: summary?.todayWatchCount ?? 0,
+      icon: Eye,
+      color: 'text-green-600',
+    },
+    {
+      label: '시청한 유저 수',
+      value: summary?.uniqueUsers ?? 0,
+      icon: Users,
+      color: 'text-purple-600',
+    },
+    {
+      label: '오늘 시청 유저',
+      value: summary?.todayUniqueUsers ?? 0,
+      icon: Activity,
+      color: 'text-yellow-600',
+    },
   ];
 
   const locationTableHeader = [
@@ -67,10 +127,13 @@ const StatsSubTab = () => {
     { id: 2, name: '횟수' },
   ];
 
-  const getLocationLabel = (location: string) => LOCATION_LABELS[location] ?? location;
+  const getLocationLabel = (location: string) =>
+    LOCATION_LABELS[location] ?? location;
 
   if (isSummaryLoading) {
-    return <div className="text-center py-8 text-muted-foreground">로딩 중...</div>;
+    return (
+      <div className="text-center py-8 text-muted-foreground">로딩 중...</div>
+    );
   }
 
   if (isSummaryError) {
@@ -93,7 +156,9 @@ const StatsSubTab = () => {
                   <Icon className={`h-4 w-4 ${card.color}`} />
                   <span className="text-sm font-medium">{card.label}</span>
                 </div>
-                <p className="text-2xl font-bold mt-2">{card.value.toLocaleString()}</p>
+                <p className="text-2xl font-bold mt-2">
+                  {card.value.toLocaleString()}
+                </p>
               </CardContent>
             </Card>
           );
@@ -164,7 +229,8 @@ const HistorySubTab = () => {
     { id: 4, name: '시청일시' },
   ];
 
-  const getLocationLabel = (location: string) => LOCATION_LABELS[location] ?? location;
+  const getLocationLabel = (location: string) =>
+    LOCATION_LABELS[location] ?? location;
 
   const getResponseBadge = (response: string) => {
     switch (response) {
@@ -187,7 +253,9 @@ const HistorySubTab = () => {
       </CardHeader>
       <CardContent className="overflow-x-auto">
         {isHistoryLoading ? (
-          <div className="text-center py-8 text-muted-foreground">로딩 중...</div>
+          <div className="text-center py-8 text-muted-foreground">
+            로딩 중...
+          </div>
         ) : isHistoryError ? (
           <div className="text-center py-8 text-destructive">
             데이터를 불러오는 중 오류가 발생했습니다.
@@ -255,7 +323,9 @@ const HistorySubTab = () => {
                     variant="outline"
                     size="sm"
                     disabled={page >= totalPages - 1}
-                    onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                    onClick={() =>
+                      setPage((p) => Math.min(totalPages - 1, p + 1))
+                    }
                   >
                     다음
                     <ChevronRight className="h-4 w-4" />
@@ -289,15 +359,30 @@ interface PositionFormState {
   interstitialAdGrams: number;
 }
 
-type AdTypeTab = 'smallBanner' | 'reward';
+type AdTypeTab = 'smallBanner' | 'imageBanner' | 'reward';
 
 const AD_TYPE_TABS: { key: AdTypeTab; label: string }[] = [
   { key: 'smallBanner', label: '작은배너 광고' },
+  { key: 'imageBanner', label: '이미지배너 광고' },
   { key: 'reward', label: '리워드 광고' },
 ];
 
 const AD_TYPE_POSITIONS: Record<AdTypeTab, string[]> = {
-  smallBanner: ['WEIGHT_TAB_TOP', 'ANALYSIS_TAB_TOP', 'REVIEW_TAB_TOP', 'ATTENDANCE', 'BENEFIT_TOP', 'BENEFIT'],
+  smallBanner: [
+    'HOME_TOP',
+    'WEIGHT_TAB_TOP',
+    'ANALYSIS_TAB_TOP',
+    'REVIEW_TAB_TOP',
+    'ATTENDANCE',
+    'BENEFIT_TOP',
+    'BENEFIT',
+  ],
+  imageBanner: [
+    'ATTENDANCE_RESULT',
+    'EXCHANGE_RESULT',
+    'WEIGHT_RESULT',
+    'MISSION_RESULT',
+  ],
   reward: ['WEIGHT_AD_BONUS', 'EXCHANGE', 'ATTENDANCE_AD_BONUS'],
 };
 
@@ -320,6 +405,15 @@ const AD_TYPE_FIELDS: Record<AdTypeTab, AdTypeFieldConfig> = {
     ratioLabel: '작은배너 광고 비율 (%)',
     groupIdLabel: '작은배너 광고 그룹 ID',
     groupIdPlaceholder: '작은배너 광고 그룹 ID를 입력하세요',
+  },
+  imageBanner: {
+    enabledField: 'isTossImageAdEnabled',
+    ratioField: 'tossImageAdRatio',
+    groupIdField: 'tossImageAdGroupId',
+    enabledLabel: '이미지배너 광고 활성화',
+    ratioLabel: '이미지배너 광고 비율 (%)',
+    groupIdLabel: '이미지배너 광고 그룹 ID',
+    groupIdPlaceholder: '이미지배너 광고 그룹 ID를 입력하세요',
   },
   reward: {
     enabledField: 'isTossAdEnabled',
@@ -354,7 +448,11 @@ const AdFieldSection = ({
   position: string;
   state: PositionFormState;
   fields: AdTypeFieldConfig;
-  onFieldChange: (position: string, field: keyof PositionFormState, value: string | number | boolean) => void;
+  onFieldChange: (
+    position: string,
+    field: keyof PositionFormState,
+    value: string | number | boolean
+  ) => void;
 }) => {
   const isEnabled = state[fields.enabledField] as boolean;
   const ratio = state[fields.ratioField] as number;
@@ -363,12 +461,16 @@ const AdFieldSection = ({
   return (
     <>
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-gray-700">{fields.enabledLabel}</label>
+        <label className="text-sm font-medium text-gray-700">
+          {fields.enabledLabel}
+        </label>
         <button
           type="button"
           role="switch"
           aria-checked={isEnabled}
-          onClick={() => onFieldChange(position, fields.enabledField, !isEnabled)}
+          onClick={() =>
+            onFieldChange(position, fields.enabledField, !isEnabled)
+          }
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
             isEnabled ? 'bg-blue-600' : 'bg-gray-300'
           }`}
@@ -382,23 +484,35 @@ const AdFieldSection = ({
       </div>
 
       <div className="space-y-1">
-        <label className="text-sm font-medium text-gray-700">{fields.ratioLabel}</label>
+        <label className="text-sm font-medium text-gray-700">
+          {fields.ratioLabel}
+        </label>
         <input
           type="number"
           min={0}
           max={100}
           value={ratio}
-          onChange={(e) => onFieldChange(position, fields.ratioField, Math.min(100, Math.max(0, Number(e.target.value))))}
+          onChange={(e) =>
+            onFieldChange(
+              position,
+              fields.ratioField,
+              Math.min(100, Math.max(0, Number(e.target.value)))
+            )
+          }
           className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
 
       <div className="space-y-1">
-        <label className="text-sm font-medium text-gray-700">{fields.groupIdLabel}</label>
+        <label className="text-sm font-medium text-gray-700">
+          {fields.groupIdLabel}
+        </label>
         <input
           type="text"
           value={groupId}
-          onChange={(e) => onFieldChange(position, fields.groupIdField, e.target.value)}
+          onChange={(e) =>
+            onFieldChange(position, fields.groupIdField, e.target.value)
+          }
           placeholder={fields.groupIdPlaceholder}
           className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
@@ -418,25 +532,43 @@ const PositionCard = ({
   position: string;
   state: PositionFormState;
   fields: AdTypeFieldConfig;
-  onFieldChange: (position: string, field: keyof PositionFormState, value: string | number | boolean) => void;
+  onFieldChange: (
+    position: string,
+    field: keyof PositionFormState,
+    value: string | number | boolean
+  ) => void;
   onSave: (position: string) => void;
   isSaving: boolean;
 }) => {
   const isEnabled = state[fields.enabledField] as boolean;
   const hasImageAd = IMAGE_AD_POSITIONS.has(position);
-  const isImageEnabled = hasImageAd ? (state[IMAGE_AD_FIELDS.enabledField] as boolean) : false;
+  const isImageEnabled = hasImageAd
+    ? (state[IMAGE_AD_FIELDS.enabledField] as boolean)
+    : false;
 
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">{POSITION_LABELS[position]}</CardTitle>
+          <CardTitle className="text-base">
+            {POSITION_LABELS[position]}
+          </CardTitle>
           <div className="flex gap-1">
-            <Badge className={isEnabled ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}>
+            <Badge
+              className={
+                isEnabled ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'
+              }
+            >
               {isEnabled ? '활성' : '비활성'}
             </Badge>
             {hasImageAd && (
-              <Badge className={isImageEnabled ? 'bg-purple-500 text-white' : 'bg-gray-400 text-white'}>
+              <Badge
+                className={
+                  isImageEnabled
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-gray-400 text-white'
+                }
+              >
                 이미지 {isImageEnabled ? '활성' : '비활성'}
               </Badge>
             )}
@@ -444,12 +576,22 @@ const PositionCard = ({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <AdFieldSection position={position} state={state} fields={fields} onFieldChange={onFieldChange} />
+        <AdFieldSection
+          position={position}
+          state={state}
+          fields={fields}
+          onFieldChange={onFieldChange}
+        />
 
         {hasImageAd && (
           <>
             <hr className="border-gray-200" />
-            <AdFieldSection position={position} state={state} fields={IMAGE_AD_FIELDS} onFieldChange={onFieldChange} />
+            <AdFieldSection
+              position={position}
+              state={state}
+              fields={IMAGE_AD_FIELDS}
+              onFieldChange={onFieldChange}
+            />
           </>
         )}
 
@@ -476,13 +618,26 @@ const RewardAdPositionCard = ({
 }: {
   position: string;
   state: PositionFormState;
-  onFieldChange: (position: string, field: keyof PositionFormState, value: string | number | boolean) => void;
+  onFieldChange: (
+    position: string,
+    field: keyof PositionFormState,
+    value: string | number | boolean
+  ) => void;
   onSave: (position: string) => void;
   isSaving: boolean;
 }) => {
-  const bothEnabled = state.isTossAdEnabled && state.isTossInterstitialAdEnabled;
+  const bothEnabled =
+    state.isTossAdEnabled && state.isTossInterstitialAdEnabled;
 
-  const ToggleRow = ({ label, checked, field }: { label: string; checked: boolean; field: keyof PositionFormState }) => (
+  const ToggleRow = ({
+    label,
+    checked,
+    field,
+  }: {
+    label: string;
+    checked: boolean;
+    field: keyof PositionFormState;
+  }) => (
     <div className="flex items-center justify-between">
       <label className="text-sm font-medium text-gray-700">{label}</label>
       <button
@@ -492,7 +647,9 @@ const RewardAdPositionCard = ({
         onClick={() => onFieldChange(position, field, !checked)}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${checked ? 'bg-blue-600' : 'bg-gray-300'}`}
       >
-        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`} />
+        <span
+          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`}
+        />
       </button>
     </div>
   );
@@ -500,19 +657,27 @@ const RewardAdPositionCard = ({
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">{POSITION_LABELS[position] ?? position}</CardTitle>
+        <CardTitle className="text-base">
+          {POSITION_LABELS[position] ?? position}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* 리워드 광고 */}
         <div className="p-3 bg-blue-50 rounded-lg space-y-3">
           <div className="text-sm font-semibold text-blue-700">리워드 광고</div>
-          <ToggleRow label="활성화" checked={state.isTossAdEnabled} field="isTossAdEnabled" />
+          <ToggleRow
+            label="활성화"
+            checked={state.isTossAdEnabled}
+            field="isTossAdEnabled"
+          />
           <div className="space-y-1">
             <label className="text-xs text-gray-500">AD Group ID</label>
             <input
               type="text"
               value={state.tossAdGroupId}
-              onChange={(e) => onFieldChange(position, 'tossAdGroupId', e.target.value)}
+              onChange={(e) =>
+                onFieldChange(position, 'tossAdGroupId', e.target.value)
+              }
               placeholder="리워드 광고 그룹 ID"
               className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
             />
@@ -523,7 +688,13 @@ const RewardAdPositionCard = ({
               type="number"
               min={0}
               value={state.rewardedAdGrams}
-              onChange={(e) => onFieldChange(position, 'rewardedAdGrams', Math.max(0, Number(e.target.value)))}
+              onChange={(e) =>
+                onFieldChange(
+                  position,
+                  'rewardedAdGrams',
+                  Math.max(0, Number(e.target.value))
+                )
+              }
               className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
             />
           </div>
@@ -532,13 +703,23 @@ const RewardAdPositionCard = ({
         {/* 전면 광고 */}
         <div className="p-3 bg-orange-50 rounded-lg space-y-3">
           <div className="text-sm font-semibold text-orange-700">전면 광고</div>
-          <ToggleRow label="활성화" checked={state.isTossInterstitialAdEnabled} field="isTossInterstitialAdEnabled" />
+          <ToggleRow
+            label="활성화"
+            checked={state.isTossInterstitialAdEnabled}
+            field="isTossInterstitialAdEnabled"
+          />
           <div className="space-y-1">
             <label className="text-xs text-gray-500">AD Group ID</label>
             <input
               type="text"
               value={state.tossInterstitialAdGroupId}
-              onChange={(e) => onFieldChange(position, 'tossInterstitialAdGroupId', e.target.value)}
+              onChange={(e) =>
+                onFieldChange(
+                  position,
+                  'tossInterstitialAdGroupId',
+                  e.target.value
+                )
+              }
               placeholder="전면 광고 그룹 ID"
               className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
             />
@@ -549,7 +730,13 @@ const RewardAdPositionCard = ({
               type="number"
               min={0}
               value={state.interstitialAdGrams}
-              onChange={(e) => onFieldChange(position, 'interstitialAdGrams', Math.max(0, Number(e.target.value)))}
+              onChange={(e) =>
+                onFieldChange(
+                  position,
+                  'interstitialAdGrams',
+                  Math.max(0, Number(e.target.value))
+                )
+              }
               className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
             />
           </div>
@@ -564,17 +751,32 @@ const RewardAdPositionCard = ({
               min={0}
               max={100}
               value={state.rewardedAdRatio}
-              onChange={(e) => onFieldChange(position, 'rewardedAdRatio', Number(e.target.value))}
+              onChange={(e) =>
+                onFieldChange(
+                  position,
+                  'rewardedAdRatio',
+                  Number(e.target.value)
+                )
+              }
               className="w-full"
             />
             <div className="flex justify-between text-xs text-gray-500">
-              <span className="text-blue-600 font-medium">리워드 {state.rewardedAdRatio}%</span>
-              <span className="text-orange-600 font-medium">전면 {100 - state.rewardedAdRatio}%</span>
+              <span className="text-blue-600 font-medium">
+                리워드 {state.rewardedAdRatio}%
+              </span>
+              <span className="text-orange-600 font-medium">
+                전면 {100 - state.rewardedAdRatio}%
+              </span>
             </div>
           </div>
         )}
 
-        <Button size="sm" className="w-full" onClick={() => onSave(position)} disabled={isSaving}>
+        <Button
+          size="sm"
+          className="w-full"
+          onClick={() => onSave(position)}
+          disabled={isSaving}
+        >
           {isSaving ? '저장 중...' : '저장'}
         </Button>
       </CardContent>
@@ -586,12 +788,18 @@ const TossAdConfigSubTab = () => {
   const queryClient = useQueryClient();
   const [adTypeTab, setAdTypeTab] = useState<AdTypeTab>('reward');
 
-  const { data: configs, isLoading, isError } = useQuery<TossAdPositionConfig[]>({
+  const {
+    data: configs,
+    isLoading,
+    isError,
+  } = useQuery<TossAdPositionConfig[]>({
     queryKey: ['admin-toss-ad-configs'],
     queryFn: () => adminApi.getTossAdConfigs().then((res) => res.data),
   });
 
-  const [formStates, setFormStates] = useState<Record<string, PositionFormState>>({});
+  const [formStates, setFormStates] = useState<
+    Record<string, PositionFormState>
+  >({});
 
   useEffect(() => {
     if (!configs) return;
@@ -615,7 +823,8 @@ const TossAdConfigSubTab = () => {
         tossBannerAdRatio: existing?.tossBannerAdRatio ?? 0,
         isTossBannerAdEnabled: existing?.isTossBannerAdEnabled ?? false,
         tossInterstitialAdGroupId: existing?.tossInterstitialAdGroupId ?? '',
-        isTossInterstitialAdEnabled: existing?.isTossInterstitialAdEnabled ?? false,
+        isTossInterstitialAdEnabled:
+          existing?.isTossInterstitialAdEnabled ?? false,
         rewardedAdRatio: existing?.rewardedAdRatio ?? 100,
         rewardedAdGrams: existing?.rewardedAdGrams ?? 1,
         interstitialAdGrams: existing?.interstitialAdGrams ?? 1,
@@ -625,8 +834,13 @@ const TossAdConfigSubTab = () => {
   }, [configs]);
 
   const updateMutation = useMutation({
-    mutationFn: ({ position, data }: { position: string; data: Parameters<typeof adminApi.updateTossAdConfig>[1] }) =>
-      adminApi.updateTossAdConfig(position, data),
+    mutationFn: ({
+      position,
+      data,
+    }: {
+      position: string;
+      data: Parameters<typeof adminApi.updateTossAdConfig>[1];
+    }) => adminApi.updateTossAdConfig(position, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-toss-ad-configs'] });
       toast.success('설정이 저장되었습니다.');
@@ -636,7 +850,11 @@ const TossAdConfigSubTab = () => {
     },
   });
 
-  const handleFieldChange = (position: string, field: keyof PositionFormState, value: string | number | boolean) => {
+  const handleFieldChange = (
+    position: string,
+    field: keyof PositionFormState,
+    value: string | number | boolean
+  ) => {
     setFormStates((prev) => ({
       ...prev,
       [position]: {
@@ -672,7 +890,9 @@ const TossAdConfigSubTab = () => {
   };
 
   if (isLoading) {
-    return <div className="text-center py-8 text-muted-foreground">로딩 중...</div>;
+    return (
+      <div className="text-center py-8 text-muted-foreground">로딩 중...</div>
+    );
   }
 
   if (isError) {
