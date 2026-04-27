@@ -201,6 +201,9 @@ const REWARD_TYPES = [
   { value: 'PROFILE_BONUS_GENDER', label: '프로필 완성 (성별)' },
   { value: 'PROFILE_BONUS_BIRTHDATE', label: '프로필 완성 (생년월일)' },
   { value: 'FIRST_ATTENDANCE_BONUS', label: '첫 출석 프로모션 (토스포인트)' },
+  { value: 'WEEKLY_MILESTONE_3', label: '주간 마일스톤 (체중기록 3회)' },
+  { value: 'WEEKLY_MILESTONE_5', label: '주간 마일스톤 (체중기록 5회)' },
+  { value: 'WEEKLY_MILESTONE_7', label: '주간 마일스톤 (체중기록 7회)' },
 ];
 
 const RewardConfigSubTab = () => {
@@ -280,7 +283,43 @@ const RewardConfigSubTab = () => {
     { id: 5, name: '상태' },
     { id: 6, name: '등록일' },
     { id: 7, name: '수정일' },
+    { id: 8, name: '수정' },
   ];
+
+  const [editing, setEditing] = useState<AdminRewardConfig | null>(null);
+  const [editForm, setEditForm] = useState({
+    amount: 0,
+    dailyLimit: 0,
+    description: '',
+    threshold: 0,
+    promotionCode: '',
+  });
+  const openEdit = (config: AdminRewardConfig) => {
+    setEditing(config);
+    setEditForm({
+      amount: Number(config.pieceAmount) || 0,
+      dailyLimit: 0,
+      description: config.description ?? '',
+      threshold: 0,
+      promotionCode: config.promotionCode ?? '',
+    });
+  };
+  const submitEdit = async () => {
+    if (!editing) return;
+    try {
+      await adminApi.updateRewardConfig(editing.configId, {
+        amount: editForm.amount,
+        ...(editForm.dailyLimit > 0 ? { dailyLimit: editForm.dailyLimit } : {}),
+        description: editForm.description,
+        ...(editForm.threshold > 0 ? { threshold: editForm.threshold } : {}),
+        promotionCode: editForm.promotionCode.trim() || null,
+      });
+      await queryClient.refetchQueries({ queryKey: ['adminRewardConfigs'] });
+      setEditing(null);
+    } catch {
+      alert('수정 실패');
+    }
+  };
 
   return (
     <Card>
@@ -504,10 +543,140 @@ const RewardConfigSubTab = () => {
                     <TableCell className="whitespace-nowrap">
                       {formatDate(config.modDateTime)}
                     </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openEdit(config)}
+                      >
+                        수정
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+
+            {editing && (
+              <div
+                className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+                onClick={() => setEditing(null)}
+              >
+                <div
+                  className="bg-white rounded-lg p-6 w-[420px] max-w-[90vw]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h3 className="text-lg font-semibold mb-1">
+                    {editing.rewardType} 수정
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-4">
+                    빈 값은 변경 안 함 (description / promotionCode 제외)
+                  </p>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">
+                        조각 수량 (gram)
+                      </label>
+                      <input
+                        type="number"
+                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                        value={editForm.amount}
+                        onChange={(e) =>
+                          setEditForm({
+                            ...editForm,
+                            amount: Number(e.target.value),
+                          })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">
+                        일일 제한 (0 = 변경 안 함)
+                      </label>
+                      <input
+                        type="number"
+                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                        value={editForm.dailyLimit}
+                        onChange={(e) =>
+                          setEditForm({
+                            ...editForm,
+                            dailyLimit: Number(e.target.value),
+                          })
+                        }
+                      />
+                    </div>
+                    {editing.rewardType === 'ATTENDANCE_STREAK' && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">
+                          threshold (일수, 0 = 변경 안 함)
+                        </label>
+                        <input
+                          type="number"
+                          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                          value={editForm.threshold}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              threshold: Number(e.target.value),
+                            })
+                          }
+                        />
+                      </div>
+                    )}
+                    {editing.rewardType === 'FIRST_ATTENDANCE_BONUS' && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">
+                          토스 프로모션 코드
+                        </label>
+                        <input
+                          type="text"
+                          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                          value={editForm.promotionCode}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              promotionCode: e.target.value,
+                            })
+                          }
+                          placeholder="토스 콘솔에서 발급받은 promotionCode"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">
+                          비워서 저장하면 코드 제거.
+                        </p>
+                      </div>
+                    )}
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">
+                        설명
+                      </label>
+                      <input
+                        type="text"
+                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                        value={editForm.description}
+                        onChange={(e) =>
+                          setEditForm({
+                            ...editForm,
+                            description: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2 mt-5">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setEditing(null)}
+                    >
+                      취소
+                    </Button>
+                    <Button size="sm" onClick={submitEdit}>
+                      저장
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* 페이지네이션 */}
             {totalPages > 1 && (
