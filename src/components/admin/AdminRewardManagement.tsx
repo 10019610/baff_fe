@@ -278,14 +278,14 @@ const RewardConfigSubTab = () => {
   };
 
   const tableHeader = [
-    { id: 1, name: '리워드 타입' },
-    { id: 2, name: '액션 타입' },
+    { id: 1, name: '수정' },
+    { id: 2, name: '리워드 타입' },
     { id: 3, name: '조각 수량' },
-    { id: 4, name: '설명' },
-    { id: 5, name: '상태' },
-    { id: 6, name: '등록일' },
-    { id: 7, name: '수정일' },
-    { id: 8, name: '수정' },
+    { id: 4, name: '프로모션 코드' },
+    { id: 5, name: '설명' },
+    { id: 6, name: '상태' },
+    { id: 7, name: '등록일' },
+    { id: 8, name: '수정일' },
   ];
 
   const [editing, setEditing] = useState<AdminRewardConfig | null>(null);
@@ -508,14 +508,25 @@ const RewardConfigSubTab = () => {
               <TableBody>
                 {configList.map((config) => (
                   <TableRow key={config.configId}>
+                    <TableCell className="whitespace-nowrap">
+                      <Button size="sm" onClick={() => openEdit(config)}>
+                        수정
+                      </Button>
+                    </TableCell>
                     <TableCell className="whitespace-nowrap font-medium">
                       {config.rewardType}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
-                      {config.actionType}
+                      {formatAmount(config.pieceAmount)}개
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
-                      {formatAmount(config.pieceAmount)}개
+                      {config.promotionCode ? (
+                        <span className="text-xs font-mono text-blue-700">
+                          {config.promotionCode}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400">-</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="min-w-[150px]">{config.description}</div>
@@ -544,15 +555,6 @@ const RewardConfigSubTab = () => {
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
                       {formatDate(config.modDateTime)}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openEdit(config)}
-                      >
-                        수정
-                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -625,28 +627,32 @@ const RewardConfigSubTab = () => {
                         />
                       </div>
                     )}
-                    {editing.rewardType === 'FIRST_ATTENDANCE_BONUS' && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">
-                          토스 프로모션 코드
-                        </label>
-                        <input
-                          type="text"
-                          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                          value={editForm.promotionCode}
-                          onChange={(e) =>
-                            setEditForm({
-                              ...editForm,
-                              promotionCode: e.target.value,
-                            })
-                          }
-                          placeholder="토스 콘솔에서 발급받은 promotionCode"
-                        />
-                        <p className="text-xs text-gray-400 mt-1">
-                          비워서 저장하면 코드 제거.
-                        </p>
-                      </div>
-                    )}
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">
+                        토스 프로모션 코드
+                        {editing.rewardType === 'FIRST_ATTENDANCE_BONUS' && (
+                          <span className="ml-1 text-xs text-blue-600">
+                            (필수 - 토스 콘솔 발급)
+                          </span>
+                        )}
+                      </label>
+                      <input
+                        type="text"
+                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                        value={editForm.promotionCode}
+                        onChange={(e) =>
+                          setEditForm({
+                            ...editForm,
+                            promotionCode: e.target.value,
+                          })
+                        }
+                        placeholder="토스 콘솔에서 발급받은 promotionCode (없으면 비워두기)"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">
+                        비워서 저장하면 코드 제거. 토스포인트 직접 지급 타입에만
+                        의미 있음.
+                      </p>
+                    </div>
                     <div>
                       <label className="text-sm font-medium text-gray-700">
                         설명
