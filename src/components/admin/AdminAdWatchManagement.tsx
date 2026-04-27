@@ -362,6 +362,8 @@ interface PositionFormState {
   rewardedAdRatio: number;
   rewardedAdGrams: number;
   interstitialAdGrams: number;
+  frequencyLimitEnabled: boolean;
+  dailyImpressionLimit: number | null;
 }
 
 type AdTypeTab = 'smallBanner' | 'imageBanner' | 'reward';
@@ -783,6 +785,46 @@ const RewardAdPositionCard = ({
           </div>
         )}
 
+        {/* 빈도 제한 (자체배너 fallback enforce) */}
+        <div className="border-t pt-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-medium text-gray-700">
+              빈도 제한 활성화
+            </label>
+            <input
+              type="checkbox"
+              checked={state.frequencyLimitEnabled}
+              onChange={(e) =>
+                updateField(position, 'frequencyLimitEnabled', e.target.checked)
+              }
+            />
+          </div>
+          {state.frequencyLimitEnabled && (
+            <div>
+              <label className="text-xs text-gray-700">
+                유저당 1일 노출 상한
+              </label>
+              <input
+                type="number"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                value={state.dailyImpressionLimit ?? ''}
+                onChange={(e) =>
+                  updateField(
+                    position,
+                    'dailyImpressionLimit',
+                    e.target.value === '' ? null : Number(e.target.value)
+                  )
+                }
+                min={1}
+                placeholder="예: 5 (5회 도달 시 자체배너 fallback)"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                도달 시 토스 광고 차단 → 자체배너 우선 노출 (없으면 빈 영역)
+              </p>
+            </div>
+          )}
+        </div>
+
         <Button
           size="sm"
           className="w-full"
@@ -840,6 +882,8 @@ const TossAdConfigSubTab = () => {
         rewardedAdRatio: existing?.rewardedAdRatio ?? 100,
         rewardedAdGrams: existing?.rewardedAdGrams ?? 1,
         interstitialAdGrams: existing?.interstitialAdGrams ?? 1,
+        frequencyLimitEnabled: existing?.frequencyLimitEnabled ?? false,
+        dailyImpressionLimit: existing?.dailyImpressionLimit ?? null,
       };
     }
     setFormStates(newFormStates);
@@ -897,6 +941,8 @@ const TossAdConfigSubTab = () => {
         rewardedAdRatio: state.rewardedAdRatio,
         rewardedAdGrams: state.rewardedAdGrams,
         interstitialAdGrams: state.interstitialAdGrams,
+        frequencyLimitEnabled: state.frequencyLimitEnabled,
+        dailyImpressionLimit: state.dailyImpressionLimit,
       },
     });
   };

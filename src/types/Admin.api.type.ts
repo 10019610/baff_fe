@@ -258,6 +258,8 @@ export interface TossAdPositionConfig {
   rewardedAdRatio: number;
   rewardedAdGrams: number;
   interstitialAdGrams: number;
+  frequencyLimitEnabled: boolean;
+  dailyImpressionLimit: number | null;
   regDateTime: string;
   modDateTime: string;
 }
@@ -277,4 +279,6 @@ export interface UpdateTossAdConfigRequest {
   rewardedAdRatio?: number;
   rewardedAdGrams?: number;
   interstitialAdGrams?: number;
+  frequencyLimitEnabled?: boolean;
+  dailyImpressionLimit?: number | null;
 }
