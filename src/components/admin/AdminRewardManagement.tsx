@@ -204,6 +204,8 @@ const REWARD_TYPES = [
   { value: 'WEEKLY_MILESTONE_3', label: '주간 마일스톤 (체중기록 3회)' },
   { value: 'WEEKLY_MILESTONE_5', label: '주간 마일스톤 (체중기록 5회)' },
   { value: 'WEEKLY_MILESTONE_7', label: '주간 마일스톤 (체중기록 7회)' },
+  { value: 'FASTING_COMPLETE', label: '간헐적 단식 완료' },
+  { value: 'FASTING_AD_BONUS', label: '간헐적 단식 광고 보너스' },
 ];
 
 const RewardConfigSubTab = () => {

@@ -80,6 +80,8 @@ const POSITION_LABELS: Record<string, string> = {
   EXCHANGE_RESULT: '꺼내기(환전) 완료 페이지',
   WEIGHT_RESULT: '체중기록 완료 페이지',
   MISSION_RESULT: '미션 완료 페이지',
+  FASTING_RESULT: '간헐적 단식 완료 페이지',
+  FASTING_AD_BONUS: '간헐적 단식 완료 광고 보너스',
 };
 
 const ALL_POSITIONS = Object.keys(POSITION_LABELS);
@@ -383,12 +385,14 @@ const AD_TYPE_POSITIONS: Record<AdTypeTab, string[]> = {
     'EXCHANGE_RESULT',
     'WEIGHT_RESULT',
     'MISSION_RESULT',
+    'FASTING_RESULT',
   ],
   reward: [
     'WEIGHT_AD_BONUS',
     'EXCHANGE',
     'ATTENDANCE_AD_BONUS',
     'ATTENDANCE_STREAK_SAVE',
+    'FASTING_AD_BONUS',
   ],
 };
 
