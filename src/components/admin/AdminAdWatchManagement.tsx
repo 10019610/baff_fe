@@ -72,6 +72,7 @@ const POSITION_LABELS: Record<string, string> = {
   EXCHANGE: '환전',
   ATTENDANCE: '출석체크 하단',
   ATTENDANCE_AD_BONUS: '출석 광고 보너스',
+  ATTENDANCE_STREAK_SAVE: '출석 연속 유지 광고',
   BENEFIT_TOP: '혜택 상단',
   BENEFIT: '혜택 카드 사이',
   FASTING_BOTTOM: '간헐적 단식 하단',
@@ -383,7 +384,12 @@ const AD_TYPE_POSITIONS: Record<AdTypeTab, string[]> = {
     'WEIGHT_RESULT',
     'MISSION_RESULT',
   ],
-  reward: ['WEIGHT_AD_BONUS', 'EXCHANGE', 'ATTENDANCE_AD_BONUS'],
+  reward: [
+    'WEIGHT_AD_BONUS',
+    'EXCHANGE',
+    'ATTENDANCE_AD_BONUS',
+    'ATTENDANCE_STREAK_SAVE',
+  ],
 };
 
 interface AdTypeFieldConfig {

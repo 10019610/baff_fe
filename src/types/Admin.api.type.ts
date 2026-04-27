@@ -151,6 +151,7 @@ export interface AdminRewardConfig {
   cooldownMinutes: number | null;
   regDateTime: string;
   modDateTime: string;
+  promotionCode: string | null;
 }
 
 export interface AdminRewardExchange {

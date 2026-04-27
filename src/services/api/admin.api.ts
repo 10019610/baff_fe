@@ -65,6 +65,7 @@ export const adminApi = {
     enabled?: boolean;
     threshold?: number;
     cooldownMinutes?: number;
+    promotionCode?: string;
   }) => api.post(`${BASE}/rewards/configs`, data),
   updateRewardConfig: (
     id: number,
@@ -75,6 +76,7 @@ export const adminApi = {
       enabled?: boolean;
       threshold?: number;
       cooldownMinutes?: number;
+      promotionCode?: string | null;
     }
   ) => api.put(`${BASE}/rewards/configs/${id}`, data),
   getRewardExchanges: (params?: { page?: number; size?: number }) =>

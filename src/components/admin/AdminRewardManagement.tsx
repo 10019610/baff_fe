@@ -197,6 +197,10 @@ const REWARD_TYPES = [
   { value: 'MISSION_WEIGHT_WEEKLY', label: '이번주 체중기록 미션' },
   { value: 'REVIEW_AD_BONUS', label: '리뷰 광고 보너스' },
   { value: 'SIGNUP_BONUS', label: '가입 축하' },
+  { value: 'PROFILE_BONUS', label: '프로필 완성 (키)' },
+  { value: 'PROFILE_BONUS_GENDER', label: '프로필 완성 (성별)' },
+  { value: 'PROFILE_BONUS_BIRTHDATE', label: '프로필 완성 (생년월일)' },
+  { value: 'FIRST_ATTENDANCE_BONUS', label: '첫 출석 프로모션 (토스포인트)' },
 ];
 
 const RewardConfigSubTab = () => {
@@ -210,6 +214,7 @@ const RewardConfigSubTab = () => {
     description: '',
     threshold: 0,
     cooldownMinutes: 0,
+    promotionCode: '',
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -244,6 +249,10 @@ const RewardConfigSubTab = () => {
         ...(formData.cooldownMinutes > 0
           ? { cooldownMinutes: formData.cooldownMinutes }
           : {}),
+        ...(formData.rewardType === 'FIRST_ATTENDANCE_BONUS' &&
+        formData.promotionCode.trim()
+          ? { promotionCode: formData.promotionCode.trim() }
+          : {}),
       });
       queryClient.invalidateQueries({ queryKey: ['adminRewardConfigs'] });
       setShowForm(false);
@@ -254,6 +263,7 @@ const RewardConfigSubTab = () => {
         description: '',
         threshold: 0,
         cooldownMinutes: 0,
+        promotionCode: '',
       });
     } catch (e) {
       alert('설정 추가 실패');
@@ -376,6 +386,29 @@ const RewardConfigSubTab = () => {
                   />
                   <p className="text-xs text-gray-400 mt-1">
                     예: 7회 연속 → 1g, 14회 연속 → 2g
+                  </p>
+                </div>
+              )}
+              {formData.rewardType === 'FIRST_ATTENDANCE_BONUS' && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    토스 프로모션 코드
+                  </label>
+                  <input
+                    type="text"
+                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                    value={formData.promotionCode}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        promotionCode: e.target.value,
+                      })
+                    }
+                    placeholder="토스 콘솔에서 발급받은 promotionCode"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    비어있으면 활성화돼도 지급되지 않음. 토스 승인 후 코드 입력
+                    필요.
                   </p>
                 </div>
               )}
