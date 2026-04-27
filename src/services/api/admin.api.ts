@@ -100,6 +100,37 @@ export const adminApi = {
   }) => api.get(`${BASE}/history/rewards`, { params }),
   getAttendanceHistories: (params: { page?: number; size?: number }) =>
     api.get(`${BASE}/history/attendances`, { params }),
+  getActivities: (params: { page?: number; size?: number }) =>
+    api.get(`${BASE}/history/activities`, { params }),
+  getRewardExchanges: (params: { page?: number; size?: number }) =>
+    api.get(`${BASE}/rewards/exchanges`, { params }),
+
+  // 자체 배너광고 (공지/외부앱)
+  getSelfBanners: () => api.get(`${BASE}/self-banners`),
+  createSelfBanner: (data: {
+    bannerType: string;
+    position: string;
+    title: string;
+    imageUrl: string;
+    linkUrl: string;
+    priority?: number;
+    dailyImpressionLimit?: number;
+    enabled?: boolean;
+  }) => api.post(`${BASE}/self-banners`, data),
+  updateSelfBanner: (
+    id: number,
+    data: {
+      bannerType?: string;
+      position?: string;
+      title?: string;
+      imageUrl?: string;
+      linkUrl?: string;
+      priority?: number;
+      dailyImpressionLimit?: number | null;
+      enabled?: boolean;
+    }
+  ) => api.put(`${BASE}/self-banners/${id}`, data),
+  deleteSelfBanner: (id: number) => api.delete(`${BASE}/self-banners/${id}`),
 
   // 광고 시청 관리
   getAdWatchSummary: () => api.get(`${BASE}/ad-watch/summary`),

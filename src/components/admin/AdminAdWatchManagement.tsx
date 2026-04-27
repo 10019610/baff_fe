@@ -25,6 +25,7 @@ import {
   Settings,
 } from 'lucide-react';
 import { adminApi } from '../../services/api/admin.api.ts';
+import AdminSelfBannerManagement from './AdminSelfBannerManagement.tsx';
 import type {
   AdWatchSummary,
   AdWatchHistoryItem,
@@ -50,7 +51,7 @@ const LOCATION_LABELS: Record<string, string> = {
   MISSION_RESULT: '미션 완료 페이지',
 };
 
-type AdWatchSubTab = 'stats' | 'history' | 'tossAdConfig';
+type AdWatchSubTab = 'stats' | 'history' | 'tossAdConfig' | 'selfBanner';
 
 const SUB_TABS: {
   key: AdWatchSubTab;
@@ -60,6 +61,7 @@ const SUB_TABS: {
   { key: 'stats', label: '시청 통계', icon: Tv },
   { key: 'history', label: '시청 내역', icon: Eye },
   { key: 'tossAdConfig', label: '토스광고 설정', icon: Settings },
+  { key: 'selfBanner', label: '자체 배너', icon: Settings },
 ];
 
 const POSITION_LABELS: Record<string, string> = {
@@ -1003,6 +1005,7 @@ const AdminAdWatchManagement = () => {
       {activeSubTab === 'stats' && <StatsSubTab />}
       {activeSubTab === 'history' && <HistorySubTab />}
       {activeSubTab === 'tossAdConfig' && <TossAdConfigSubTab />}
+      {activeSubTab === 'selfBanner' && <AdminSelfBannerManagement />}
     </div>
   );
 };

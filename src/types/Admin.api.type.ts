@@ -154,6 +154,35 @@ export interface AdminRewardConfig {
   promotionCode: string | null;
 }
 
+export interface RewardHistoryItem {
+  id: number;
+  userId: number;
+  nickname: string;
+  rewardType: string;
+  amount: number;
+  status: string;
+  regDateTime: string;
+}
+
+export interface AttendanceHistoryItem {
+  id: number;
+  userId: number;
+  nickname: string;
+  attendanceDate: string;
+  streakCount: number;
+  regDateTime: string;
+}
+
+export interface ActivityItem {
+  type: string;
+  userId: number | null;
+  nickname: string;
+  summary: string;
+  amount: number;
+  refId: number | null;
+  occurredAt: string | null;
+}
+
 export interface AdminRewardExchange {
   exchangeId: number;
   userId: number;
