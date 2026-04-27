@@ -102,8 +102,6 @@ export const adminApi = {
     api.get(`${BASE}/history/attendances`, { params }),
   getActivities: (params: { page?: number; size?: number }) =>
     api.get(`${BASE}/history/activities`, { params }),
-  getRewardExchanges: (params: { page?: number; size?: number }) =>
-    api.get(`${BASE}/rewards/exchanges`, { params }),
 
   // 자체 배너광고 (공지/외부앱)
   getSelfBanners: () => api.get(`${BASE}/self-banners`),

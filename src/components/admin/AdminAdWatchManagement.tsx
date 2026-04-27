@@ -795,7 +795,11 @@ const RewardAdPositionCard = ({
               type="checkbox"
               checked={state.frequencyLimitEnabled}
               onChange={(e) =>
-                updateField(position, 'frequencyLimitEnabled', e.target.checked)
+                onFieldChange(
+                  position,
+                  'frequencyLimitEnabled',
+                  e.target.checked
+                )
               }
             />
           </div>
@@ -809,10 +813,10 @@ const RewardAdPositionCard = ({
                 className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                 value={state.dailyImpressionLimit ?? ''}
                 onChange={(e) =>
-                  updateField(
+                  onFieldChange(
                     position,
                     'dailyImpressionLimit',
-                    e.target.value === '' ? null : Number(e.target.value)
+                    e.target.value === '' ? 0 : Number(e.target.value)
                   )
                 }
                 min={1}
