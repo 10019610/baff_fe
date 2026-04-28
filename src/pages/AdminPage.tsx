@@ -13,6 +13,7 @@ import {
   Brain,
   Send,
   ToggleRight,
+  TrendingUp,
 } from 'lucide-react';
 import { useState } from 'react';
 import AdminOverview from '../components/admin/AdminOverview.tsx';
@@ -28,6 +29,7 @@ import AdminAdWatchManagement from '../components/admin/AdminAdWatchManagement.t
 import AdminAiManagement from '../components/admin/AdminAiManagement.tsx';
 import AdminSmartPushManagement from '../components/admin/AdminSmartPushManagement.tsx';
 import AdminFeatureAccessManagement from '../components/admin/AdminFeatureAccessManagement.tsx';
+import AdminAdStrategyManagement from '../components/admin/AdminAdStrategyManagement.tsx';
 import {
   Tabs,
   TabsContent,
@@ -56,6 +58,7 @@ const TABS = [
   { value: 'ai', icon: Brain, label: 'AI 관리' },
   { value: 'smartPush', icon: Send, label: '스마트발송' },
   { value: 'featureAccess', icon: ToggleRight, label: '기능 접근' },
+  { value: 'adStrategy', icon: TrendingUp, label: '광고전략' },
 ] as const;
 
 const AdminPage = () => {
@@ -141,6 +144,9 @@ const AdminPage = () => {
         </TabsContent>
         <TabsContent value="featureAccess" className="mt-6">
           <AdminFeatureAccessManagement />
+        </TabsContent>
+        <TabsContent value="adStrategy" className="mt-6">
+          <AdminAdStrategyManagement />
         </TabsContent>
       </Tabs>
     </div>
