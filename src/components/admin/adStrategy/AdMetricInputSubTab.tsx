@@ -155,9 +155,6 @@ const AdMetricInputSubTab = () => {
     return map;
   }, [positionConfigs]);
 
-  const usePositionMode = enabledBannerPositions.length > 0;
-  const useImagePositionMode = enabledImagePositions.length > 0;
-
   useEffect(() => {
     if (bundle?.daily) {
       const next: DailyForm = {};
@@ -369,134 +366,116 @@ const AdMetricInputSubTab = () => {
         />
       </SectionCard>
 
-      {/* B 배너 — 위치별 + 미분리 행 (OTHER) + 합산 4축 */}
+      {/* B 배너 — 활성 위치 N개 + 미분리(OTHER) + 일별 합산. 활성 0개여도 OTHER+합산은 항상 노출 */}
       <SectionCard
-        title={`배너 광고 B ${usePositionMode ? '(위치별 + 미분리)' : '(일별 합산만)'}`}
+        title="배너 광고 B (위치별 + 미분리 + 합산)"
         colorClass="text-orange-600"
       >
-        {usePositionMode ? (
-          <div className="space-y-3">
-            {enabledBannerPositions.map((position) => (
-              <PositionRow
-                key={position}
-                label={POSITION_LABELS[position] ?? position}
-                colorClass="border-orange-200"
-                adId={bannerAdIdByPosition[position]}
-                getValue={(field) =>
-                  getPositionNumValue(banners, position, field)
-                }
-                onChange={(field, raw) =>
-                  upsertPositionNum(banners, setBanners, position, field, raw)
-                }
-              />
-            ))}
+        <div className="space-y-3">
+          {enabledBannerPositions.length === 0 && (
+            <p className="text-xs text-muted-foreground">
+              현재 활성된 작은 배너 위치가 없습니다 (어드민 → 광고관리에서
+              활성). 미분리(OTHER) 행과 일별 합산만 입력하세요.
+            </p>
+          )}
+          {enabledBannerPositions.map((position) => (
             <PositionRow
-              label="기타 (미분리)"
-              colorClass="border-gray-300"
-              editableAdId
-              getAdId={() => getPositionAdId(banners, POSITION_OTHER)}
-              onAdIdChange={(raw) =>
-                upsertPositionAdId(banners, setBanners, POSITION_OTHER, raw)
-              }
+              key={position}
+              label={POSITION_LABELS[position] ?? position}
+              colorClass="border-orange-200"
+              adId={bannerAdIdByPosition[position]}
               getValue={(field) =>
-                getPositionNumValue(banners, POSITION_OTHER, field)
+                getPositionNumValue(banners, position, field)
               }
               onChange={(field, raw) =>
-                upsertPositionNum(
-                  banners,
-                  setBanners,
-                  POSITION_OTHER,
-                  field,
-                  raw
-                )
+                upsertPositionNum(banners, setBanners, position, field, raw)
               }
             />
-            <div className="pt-3 border-t border-dashed">
-              <p className="text-xs text-muted-foreground mb-2">
-                일별 합산 (위치별 합과 검증) — reconciliation_status 기준
-              </p>
-              <FourAxisGrid
-                impressionKey="impressionBTotal"
-                ctrKey="ctrBTotalReported"
-                ecpmKey="ecpmBTotalReported"
-                revenueKey="tossRevenueBTotal"
-                daily={daily}
-                onChange={setDailyField}
-              />
-            </div>
-          </div>
-        ) : (
-          <FourAxisGrid
-            impressionKey="impressionBTotal"
-            ctrKey="ctrBTotalReported"
-            ecpmKey="ecpmBTotalReported"
-            revenueKey="tossRevenueBTotal"
-            daily={daily}
-            onChange={setDailyField}
+          ))}
+          <PositionRow
+            label="기타 (미분리)"
+            colorClass="border-gray-300"
+            editableAdId
+            getAdId={() => getPositionAdId(banners, POSITION_OTHER)}
+            onAdIdChange={(raw) =>
+              upsertPositionAdId(banners, setBanners, POSITION_OTHER, raw)
+            }
+            getValue={(field) =>
+              getPositionNumValue(banners, POSITION_OTHER, field)
+            }
+            onChange={(field, raw) =>
+              upsertPositionNum(banners, setBanners, POSITION_OTHER, field, raw)
+            }
           />
-        )}
+          <div className="pt-3 border-t border-dashed">
+            <p className="text-xs text-muted-foreground mb-2">
+              일별 합산 (위치별 합과 검증) — reconciliation_status 기준
+            </p>
+            <FourAxisGrid
+              impressionKey="impressionBTotal"
+              ctrKey="ctrBTotalReported"
+              ecpmKey="ecpmBTotalReported"
+              revenueKey="tossRevenueBTotal"
+              daily={daily}
+              onChange={setDailyField}
+            />
+          </div>
+        </div>
       </SectionCard>
 
-      {/* I 이미지배너 — 위치별 + 미분리 + 합산 */}
+      {/* I 이미지배너 — 동일 구조: 활성 N개 + OTHER + 합산 항상 노출 */}
       <SectionCard
-        title={`이미지배너 I ${useImagePositionMode ? '(위치별 + 미분리)' : '(일별 합산만)'}`}
+        title="이미지배너 I (위치별 + 미분리 + 합산)"
         colorClass="text-emerald-600"
       >
-        {useImagePositionMode ? (
-          <div className="space-y-3">
-            {enabledImagePositions.map((position) => (
-              <PositionRow
-                key={position}
-                label={POSITION_LABELS[position] ?? position}
-                colorClass="border-emerald-200"
-                adId={imageAdIdByPosition[position]}
-                getValue={(field) =>
-                  getPositionNumValue(images, position, field)
-                }
-                onChange={(field, raw) =>
-                  upsertPositionNum(images, setImages, position, field, raw)
-                }
-              />
-            ))}
+        <div className="space-y-3">
+          {enabledImagePositions.length === 0 && (
+            <p className="text-xs text-muted-foreground">
+              현재 활성된 이미지배너 위치가 없습니다 (어드민 → 광고관리에서
+              활성). 미분리(OTHER) 행과 일별 합산만 입력하세요.
+            </p>
+          )}
+          {enabledImagePositions.map((position) => (
             <PositionRow
-              label="기타 (미분리)"
-              colorClass="border-gray-300"
-              editableAdId
-              getAdId={() => getPositionAdId(images, POSITION_OTHER)}
-              onAdIdChange={(raw) =>
-                upsertPositionAdId(images, setImages, POSITION_OTHER, raw)
-              }
-              getValue={(field) =>
-                getPositionNumValue(images, POSITION_OTHER, field)
-              }
+              key={position}
+              label={POSITION_LABELS[position] ?? position}
+              colorClass="border-emerald-200"
+              adId={imageAdIdByPosition[position]}
+              getValue={(field) => getPositionNumValue(images, position, field)}
               onChange={(field, raw) =>
-                upsertPositionNum(images, setImages, POSITION_OTHER, field, raw)
+                upsertPositionNum(images, setImages, position, field, raw)
               }
             />
-            <div className="pt-3 border-t border-dashed">
-              <p className="text-xs text-muted-foreground mb-2">
-                일별 합산 (위치별 합과 검증)
-              </p>
-              <FourAxisGrid
-                impressionKey="impressionI"
-                ctrKey="ctrIReported"
-                ecpmKey="ecpmIReported"
-                revenueKey="tossRevenueI"
-                daily={daily}
-                onChange={setDailyField}
-              />
-            </div>
-          </div>
-        ) : (
-          <FourAxisGrid
-            impressionKey="impressionI"
-            ctrKey="ctrIReported"
-            ecpmKey="ecpmIReported"
-            revenueKey="tossRevenueI"
-            daily={daily}
-            onChange={setDailyField}
+          ))}
+          <PositionRow
+            label="기타 (미분리)"
+            colorClass="border-gray-300"
+            editableAdId
+            getAdId={() => getPositionAdId(images, POSITION_OTHER)}
+            onAdIdChange={(raw) =>
+              upsertPositionAdId(images, setImages, POSITION_OTHER, raw)
+            }
+            getValue={(field) =>
+              getPositionNumValue(images, POSITION_OTHER, field)
+            }
+            onChange={(field, raw) =>
+              upsertPositionNum(images, setImages, POSITION_OTHER, field, raw)
+            }
           />
-        )}
+          <div className="pt-3 border-t border-dashed">
+            <p className="text-xs text-muted-foreground mb-2">
+              일별 합산 (위치별 합과 검증)
+            </p>
+            <FourAxisGrid
+              impressionKey="impressionI"
+              ctrKey="ctrIReported"
+              ecpmKey="ecpmIReported"
+              revenueKey="tossRevenueI"
+              daily={daily}
+              onChange={setDailyField}
+            />
+          </div>
+        </div>
       </SectionCard>
 
       {/* 유저 / 리텐션 (토스 콘솔 reported) */}
