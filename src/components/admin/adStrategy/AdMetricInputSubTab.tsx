@@ -103,7 +103,7 @@ const AdMetricInputSubTab = () => {
     queryKey: ['adMetricBundle', date],
     queryFn: async () => {
       const res = await api.get<AdMetricDailyBundle>(
-        '/api/admin/ad-metrics/daily',
+        '/admin/ad-metrics/daily',
         {
           params: { date },
         }
@@ -117,7 +117,7 @@ const AdMetricInputSubTab = () => {
     queryKey: ['tossAdConfigs'],
     queryFn: async () => {
       const res = await api.get<TossAdPositionConfig[]>(
-        '/api/admin/dashboard/toss-ad/configs'
+        '/admin/dashboard/toss-ad/configs'
       );
       return res.data;
     },
@@ -275,7 +275,7 @@ const AdMetricInputSubTab = () => {
         images: images.length > 0 ? images : undefined,
         reason: override?.reason,
       };
-      const res = await api.post('/api/admin/ad-metrics/daily', payload);
+      const res = await api.post('/admin/ad-metrics/daily', payload);
       return res.data;
     },
     onSuccess: () => {

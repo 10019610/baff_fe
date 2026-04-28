@@ -31,7 +31,7 @@ const AdMetricAiReportSubTab = () => {
   const { data: kpi } = useQuery<AdMetricKpi>({
     queryKey: ['adMetricKpi', date],
     queryFn: async () => {
-      const res = await api.get<AdMetricKpi>('/api/admin/ad-metrics/kpi', {
+      const res = await api.get<AdMetricKpi>('/admin/ad-metrics/kpi', {
         params: { date },
       });
       return res.data;

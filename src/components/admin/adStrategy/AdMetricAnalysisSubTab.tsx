@@ -39,7 +39,7 @@ const AdMetricAnalysisSubTab = () => {
   const { data: kpi, isLoading } = useQuery<AdMetricKpi>({
     queryKey: ['adMetricKpi', date],
     queryFn: async () => {
-      const res = await api.get<AdMetricKpi>('/api/admin/ad-metrics/kpi', {
+      const res = await api.get<AdMetricKpi>('/admin/ad-metrics/kpi', {
         params: { date },
       });
       return res.data;
@@ -56,7 +56,7 @@ const AdMetricAnalysisSubTab = () => {
     queryKey: ['adMetricDailyTable', fromDate, date],
     queryFn: async () => {
       const res = await api.get<AdMetricDailyTableRow[]>(
-        '/api/admin/ad-metrics/daily-table',
+        '/admin/ad-metrics/daily-table',
         { params: { from: fromDate, to: date } }
       );
       return res.data;
