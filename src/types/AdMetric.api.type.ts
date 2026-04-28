@@ -30,6 +30,8 @@ export interface AdMetricDailyEntry {
 
   newUsersReported: number | null;
   totalUsersReported: number | null;
+  retentionD1New: number | null;
+  retentionD1Total: number | null;
 
   actorAdminId: number | null;
   regDateTime: string;
@@ -44,6 +46,8 @@ export interface PositionEntry {
   ctrReported: number | null;
   ecpmReported: number | null;
   revenue: number | null;
+  /** 해당일 매핑된 광고 ID. 위치별 행은 AdPositionConfig 자동, OTHER는 직접 입력 */
+  adIdSnapshot?: string | null;
 }
 
 export interface AdMetricDailyBundle {
@@ -77,6 +81,8 @@ export interface AdMetricFullRequest {
 
   newUsersReported?: number | null;
   totalUsersReported?: number | null;
+  retentionD1New?: number | null;
+  retentionD1Total?: number | null;
 
   banners?: PositionEntry[];
   images?: PositionEntry[];
@@ -119,4 +125,9 @@ export interface TossAdPositionConfig {
   isTossBannerAdEnabled: boolean;
   isTossAdEnabled: boolean;
   isTossImageAdEnabled: boolean;
+  isTossInterstitialAdEnabled?: boolean;
+  tossBannerAdGroupId?: string | null;
+  tossAdGroupId?: string | null;
+  tossImageAdGroupId?: string | null;
+  tossInterstitialAdGroupId?: string | null;
 }

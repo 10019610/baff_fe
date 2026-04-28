@@ -36,7 +36,7 @@ import {
  *  · I(이미지배너) 위치별 4축 — 동일
  *
  * 4축 = 노출 / 시청률(%) / eCPM(원) / 수익(원).
- * 토스 외 항목(신규유입·체류·혜택탭) 및 D1 리텐션은 본 폼에서 제외 — CSV 업로드(P2)로 처리.
+ * 신규/전체 유저 + D1 리텐션은 토스 콘솔에서 운영자가 직접 옮김. 체류·혜택탭만 CSV(P2).
  * 활성유저·체중·출석·환전·신규가입은 BE에서 자동 집계 (분석 탭).
  */
 
@@ -74,7 +74,9 @@ type DailyKey =
   | 'impressionBTotal'
   | 'impressionI'
   | 'newUsersReported'
-  | 'totalUsersReported';
+  | 'totalUsersReported'
+  | 'retentionD1New'
+  | 'retentionD1Total';
 
 const POSITION_OTHER = 'OTHER';
 
@@ -124,7 +126,7 @@ const AdMetricInputSubTab = () => {
   const enabledBannerPositions = useMemo(
     () =>
       (positionConfigs ?? [])
-        .filter((c) => c.isTossBannerAdEnabled || c.isTossAdEnabled)
+        .filter((c) => c.isTossBannerAdEnabled)
         .map((c) => c.position),
     [positionConfigs]
   );
@@ -136,6 +138,22 @@ const AdMetricInputSubTab = () => {
         .map((c) => c.position),
     [positionConfigs]
   );
+
+  const bannerAdIdByPosition = useMemo(() => {
+    const map: Record<string, string> = {};
+    (positionConfigs ?? []).forEach((c) => {
+      if (c.tossBannerAdGroupId) map[c.position] = c.tossBannerAdGroupId;
+    });
+    return map;
+  }, [positionConfigs]);
+
+  const imageAdIdByPosition = useMemo(() => {
+    const map: Record<string, string> = {};
+    (positionConfigs ?? []).forEach((c) => {
+      if (c.tossImageAdGroupId) map[c.position] = c.tossImageAdGroupId;
+    });
+    return map;
+  }, [positionConfigs]);
 
   const usePositionMode = enabledBannerPositions.length > 0;
   const useImagePositionMode = enabledImagePositions.length > 0;
@@ -163,6 +181,8 @@ const AdMetricInputSubTab = () => {
           'impressionI',
           'newUsersReported',
           'totalUsersReported',
+          'retentionD1New',
+          'retentionD1Total',
         ] as DailyKey[]
       ).forEach((k) => {
         next[k] =
@@ -186,11 +206,11 @@ const AdMetricInputSubTab = () => {
     setDaily({ ...daily, [key]: num });
   };
 
-  const upsertPosition = (
+  const upsertPositionNum = (
     list: PositionEntry[],
     setter: (next: PositionEntry[]) => void,
     position: string,
-    field: keyof Omit<PositionEntry, 'adPositionCode' | 'id' | 'metricDate'>,
+    field: 'impression' | 'ctrReported' | 'ecpmReported' | 'revenue',
     raw: string
   ) => {
     const value = raw === '' ? null : Number(raw);
@@ -212,14 +232,42 @@ const AdMetricInputSubTab = () => {
     setter(next);
   };
 
-  const getPositionValue = (
+  const upsertPositionAdId = (
+    list: PositionEntry[],
+    setter: (next: PositionEntry[]) => void,
+    position: string,
+    raw: string
+  ) => {
+    const idx = list.findIndex((p) => p.adPositionCode === position);
+    const next = [...list];
+    if (idx >= 0) {
+      next[idx] = { ...next[idx], adIdSnapshot: raw };
+    } else {
+      next.push({
+        adPositionCode: position,
+        impression: null,
+        ctrReported: null,
+        ecpmReported: null,
+        revenue: null,
+        adIdSnapshot: raw,
+      });
+    }
+    setter(next);
+  };
+
+  const getPositionNumValue = (
     list: PositionEntry[],
     position: string,
-    field: keyof Omit<PositionEntry, 'adPositionCode' | 'id' | 'metricDate'>
+    field: 'impression' | 'ctrReported' | 'ecpmReported' | 'revenue'
   ): string => {
     const row = list.find((p) => p.adPositionCode === position);
     const v = row?.[field];
     return v === null || v === undefined ? '' : String(v);
+  };
+
+  const getPositionAdId = (list: PositionEntry[], position: string): string => {
+    const row = list.find((p) => p.adPositionCode === position);
+    return row?.adIdSnapshot ?? '';
   };
 
   const { mutate: save, isPending } = useMutation({
@@ -333,20 +381,34 @@ const AdMetricInputSubTab = () => {
                 key={position}
                 label={POSITION_LABELS[position] ?? position}
                 colorClass="border-orange-200"
-                getValue={(field) => getPositionValue(banners, position, field)}
+                adId={bannerAdIdByPosition[position]}
+                getValue={(field) =>
+                  getPositionNumValue(banners, position, field)
+                }
                 onChange={(field, raw) =>
-                  upsertPosition(banners, setBanners, position, field, raw)
+                  upsertPositionNum(banners, setBanners, position, field, raw)
                 }
               />
             ))}
             <PositionRow
               label="기타 (미분리)"
               colorClass="border-gray-300"
+              editableAdId
+              getAdId={() => getPositionAdId(banners, POSITION_OTHER)}
+              onAdIdChange={(raw) =>
+                upsertPositionAdId(banners, setBanners, POSITION_OTHER, raw)
+              }
               getValue={(field) =>
-                getPositionValue(banners, POSITION_OTHER, field)
+                getPositionNumValue(banners, POSITION_OTHER, field)
               }
               onChange={(field, raw) =>
-                upsertPosition(banners, setBanners, POSITION_OTHER, field, raw)
+                upsertPositionNum(
+                  banners,
+                  setBanners,
+                  POSITION_OTHER,
+                  field,
+                  raw
+                )
               }
             />
             <div className="pt-3 border-t border-dashed">
@@ -387,20 +449,28 @@ const AdMetricInputSubTab = () => {
                 key={position}
                 label={POSITION_LABELS[position] ?? position}
                 colorClass="border-emerald-200"
-                getValue={(field) => getPositionValue(images, position, field)}
+                adId={imageAdIdByPosition[position]}
+                getValue={(field) =>
+                  getPositionNumValue(images, position, field)
+                }
                 onChange={(field, raw) =>
-                  upsertPosition(images, setImages, position, field, raw)
+                  upsertPositionNum(images, setImages, position, field, raw)
                 }
               />
             ))}
             <PositionRow
               label="기타 (미분리)"
               colorClass="border-gray-300"
+              editableAdId
+              getAdId={() => getPositionAdId(images, POSITION_OTHER)}
+              onAdIdChange={(raw) =>
+                upsertPositionAdId(images, setImages, POSITION_OTHER, raw)
+              }
               getValue={(field) =>
-                getPositionValue(images, POSITION_OTHER, field)
+                getPositionNumValue(images, POSITION_OTHER, field)
               }
               onChange={(field, raw) =>
-                upsertPosition(images, setImages, POSITION_OTHER, field, raw)
+                upsertPositionNum(images, setImages, POSITION_OTHER, field, raw)
               }
             />
             <div className="pt-3 border-t border-dashed">
@@ -429,8 +499,8 @@ const AdMetricInputSubTab = () => {
         )}
       </SectionCard>
 
-      {/* 유저 (토스 콘솔 reported) */}
-      <SectionCard title="유저 (토스 콘솔)" colorClass="text-gray-700">
+      {/* 유저 / 리텐션 (토스 콘솔 reported) */}
+      <SectionCard title="유저 / 리텐션 (토스 콘솔)" colorClass="text-gray-700">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <NumField
             label="신규유저"
@@ -444,19 +514,34 @@ const AdMetricInputSubTab = () => {
             value={daily.totalUsersReported}
             onChange={(v) => setDailyField('totalUsersReported', v)}
           />
+          <NumField
+            label="D1 리텐션 신규"
+            unit="%"
+            step="0.01"
+            value={daily.retentionD1New}
+            onChange={(v) => setDailyField('retentionD1New', v)}
+          />
+          <NumField
+            label="D1 리텐션 전체"
+            unit="%"
+            step="0.01"
+            value={daily.retentionD1Total}
+            onChange={(v) => setDailyField('retentionD1Total', v)}
+          />
         </div>
       </SectionCard>
 
-      {/* 안내 — CSV 업로드 P2 */}
+      {/* 안내 — CSV 업로드 P2 (체류·혜택탭만 P2) */}
       <Card className="border-dashed border-muted-foreground/30">
         <CardContent className="py-4 text-xs text-muted-foreground space-y-1">
           <p>
-            🔒 신규 유입 / 체류시간 / 혜택탭 유입 / D1 리텐션은 본 폼에서
-            입력하지 않습니다. 대표가 토스 콘솔에서 다운로드한 CSV 파일은
-            ads_agent에 보관 → P2에서 어드민 CSV 업로드 폼으로 자동 적재.
+            🔒 체류시간 / 혜택탭 유입은 본 폼에서 입력하지 않습니다. 토스 콘솔
+            CSV 다운로드 파일을 ads_agent에 보관 → P2에서 어드민 CSV 업로드
+            폼으로 자동 적재.
           </p>
           <p>
-            🔒 활성유저·체중기록·출석·환전·신규가입은 분석 탭에서 BE 자동 집계.
+            🔒 활성유저·체중기록·출석·환전·신규가입(DB 기준)은 분석 탭에서 BE
+            자동 집계.
           </p>
         </CardContent>
       </Card>
@@ -573,11 +658,21 @@ const FourAxisGrid = ({
 const PositionRow = ({
   label,
   colorClass,
+  adId,
+  editableAdId,
+  getAdId,
+  onAdIdChange,
   getValue,
   onChange,
 }: {
   label: string;
   colorClass: string;
+  /** 광고관리에서 매핑된 광고ID (자동 표시, readonly). OTHER 행은 미사용. */
+  adId?: string;
+  /** 미분리(OTHER) 행에서 운영자가 직접 광고ID 입력 */
+  editableAdId?: boolean;
+  getAdId?: () => string;
+  onAdIdChange?: (raw: string) => void;
   getValue: (
     field: 'impression' | 'ctrReported' | 'ecpmReported' | 'revenue'
   ) => string;
@@ -587,7 +682,28 @@ const PositionRow = ({
   ) => void;
 }) => (
   <div className={`border-l-2 pl-3 ${colorClass}`}>
-    <p className="text-xs font-medium mb-1">{label}</p>
+    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+      <p className="text-xs font-medium">{label}</p>
+      {editableAdId ? (
+        <div className="flex items-center gap-1.5 flex-1 min-w-[200px]">
+          <span className="text-[10px] text-muted-foreground">광고ID:</span>
+          <Input
+            value={getAdId?.() ?? ''}
+            onChange={(e) => onAdIdChange?.(e.target.value)}
+            placeholder="ait.v2.live.xxxxx (토스 콘솔 합산 광고ID)"
+            className="h-6 text-[11px] font-mono"
+          />
+        </div>
+      ) : adId ? (
+        <span className="text-[10px] text-muted-foreground font-mono bg-gray-50 px-1.5 py-0.5 rounded">
+          {adId}
+        </span>
+      ) : (
+        <span className="text-[10px] text-amber-600">
+          광고ID 미설정 (어드민 → 광고관리에서 지정 필요)
+        </span>
+      )}
+    </div>
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
       <NumFieldStr
         label="노출"
