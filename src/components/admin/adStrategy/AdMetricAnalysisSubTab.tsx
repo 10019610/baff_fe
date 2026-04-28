@@ -157,8 +157,9 @@ const AdMetricAnalysisSubTab = () => {
                 <TableHead>날짜</TableHead>
                 <TableHead className="text-right">토스수익(R/F/B/I)</TableHead>
                 <TableHead className="text-right">eCPM(R/F/B/I)</TableHead>
-                <TableHead className="text-right">노출 R observed</TableHead>
-                <TableHead className="text-right">노출 R reported</TableHead>
+                <TableHead className="text-right">시청률(R/F/B/I)</TableHead>
+                <TableHead className="text-right">노출 R obs</TableHead>
+                <TableHead className="text-right">노출 R rep</TableHead>
                 <TableHead className="text-right">활성유저(raw)</TableHead>
                 <TableHead className="text-right">체중/출석/환전</TableHead>
                 <TableHead className="text-right">신규가입</TableHead>
@@ -193,6 +194,16 @@ const AdMetricAnalysisSubTab = () => {
                         <>
                           {d.ecpmRReported ?? '-'}/{d.ecpmFReported ?? '-'}/
                           {d.ecpmBTotalReported ?? '-'}/{d.ecpmIReported ?? '-'}
+                        </>
+                      ) : (
+                        '-'
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right text-xs">
+                      {d ? (
+                        <>
+                          {d.ctrRReported ?? '-'}/{d.ctrFReported ?? '-'}/
+                          {d.ctrBTotalReported ?? '-'}/{d.ctrIReported ?? '-'}
                         </>
                       ) : (
                         '-'

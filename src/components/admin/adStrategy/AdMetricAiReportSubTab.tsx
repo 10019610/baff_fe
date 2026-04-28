@@ -158,12 +158,18 @@ function buildMarkdown(date: string, kpi: AdMetricKpi | null): string {
       lines.push(
         `- 토스수익 ${totalRevenue}원 — R ${nullDash(daily.tossRevenueR)} / F ${nullDash(daily.tossRevenueF)} / B합산 ${nullDash(daily.tossRevenueBTotal)} / I ${nullDash(daily.tossRevenueI)}`
       );
-      lines.push(`- R-eCPM ${nullDash(daily.ecpmRReported)} (콘솔)`);
-      lines.push(`- F-eCPM ${nullDash(daily.ecpmFReported)} (콘솔)`);
       lines.push(
-        `- B-eCPM 합산 ${nullDash(daily.ecpmBTotalReported)} (콘솔). 위치별: 🔒 P1 BannerEntry 미구축`
+        `- R-eCPM ${nullDash(daily.ecpmRReported)} / 시청률 ${nullDashPct(daily.ctrRReported)} (콘솔)`
       );
-      lines.push(`- I-eCPM ${nullDash(daily.ecpmIReported)} (콘솔)`);
+      lines.push(
+        `- F-eCPM ${nullDash(daily.ecpmFReported)} / 시청률 ${nullDashPct(daily.ctrFReported)} (콘솔)`
+      );
+      lines.push(
+        `- B-eCPM 합산 ${nullDash(daily.ecpmBTotalReported)} / 시청률 ${nullDashPct(daily.ctrBTotalReported)} (콘솔). 위치별: AdMetricBannerEntry 분해 가동중`
+      );
+      lines.push(
+        `- I-eCPM ${nullDash(daily.ecpmIReported)} / 시청률 ${nullDashPct(daily.ctrIReported)} (콘솔)`
+      );
       lines.push(
         `- R 노출 ${kpi.observedImpressionR} (DB observed, truth) — 콘솔 reported ${nullDash(daily.impressionRReported)}${mismatchTag(
           kpi.observedImpressionR,
@@ -189,11 +195,9 @@ function buildMarkdown(date: string, kpi: AdMetricKpi | null): string {
     lines.push(`- 환전 ${kpi.coreActions.exchange}`);
     lines.push(`- 실제 가입 ${kpi.newSignups}`);
 
-    if (daily) {
-      lines.push(`- 신규 유입 (토스 진입) ${nullDash(daily.newInflowToss)}`);
-      lines.push(`- 체류시간 ${nullDash(daily.avgSessionSec)}초`);
-      lines.push(`- 혜택탭 유입 ${nullDash(daily.benefitsTabInflow)}명`);
-    }
+    lines.push(
+      '- 신규 유입 / 체류시간 / 혜택탭 유입 / D1 리텐션: 🔒 P2 CSV 업로드 가동 후 자동 채움'
+    );
 
     lines.push(
       `- 누적 그램 — 발행 ${kpi.cumulativeGramBalance.totalIssued} / 잔액 ${kpi.cumulativeGramBalance.circulating} / 보유유저 ${kpi.cumulativeGramBalance.holders}`
@@ -259,6 +263,10 @@ function buildMarkdown(date: string, kpi: AdMetricKpi | null): string {
 
 function nullDash(v: number | null | undefined): string | number {
   return v === null || v === undefined ? '-' : v;
+}
+
+function nullDashPct(v: number | null | undefined): string {
+  return v === null || v === undefined ? '-' : `${v}%`;
 }
 
 function sumNullable(vs: (number | null | undefined)[]): number {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card.tsx';
@@ -17,8 +17,10 @@ import {
 } from '../../ui/dialog.tsx';
 import { api } from '../../../services/api/Api.ts';
 import type {
-  AdMetricDailyEntry,
-  AdMetricDailyRequest,
+  AdMetricDailyBundle,
+  AdMetricFullRequest,
+  PositionEntry,
+  TossAdPositionConfig,
 } from '../../../types/AdMetric.api.type.ts';
 import {
   getSampleTag,
@@ -27,91 +29,61 @@ import {
 } from '../../../utils/AdMetricUtil.ts';
 
 /**
- * 탭 ② 데이터 입력 — A 항목 13종 + 일자 선택 + D+7 사유 모달.
+ * 데이터 입력 — 나만그래 패턴 정합.
+ *  · R(리워드) 일별 4축
+ *  · F(전면) 일별 4축
+ *  · B(배너) 위치별 4축 — AdPositionConfig 활성 위치별 분리, 없으면 합산 모드
+ *  · I(이미지배너) 위치별 4축 — 동일
  *
- * spec v0.3 §4-1 A 정본 + §4-2 폼 동작 룰.
+ * 4축 = 노출 / 시청률(%) / eCPM(원) / 수익(원).
+ * 토스 외 항목(신규유입·체류·혜택탭) 및 D1 리텐션은 본 폼에서 제외 — CSV 업로드(P2)로 처리.
+ * 활성유저·체중·출석·환전·신규가입은 BE에서 자동 집계 (분석 탭).
  */
 
-type FormState = Omit<AdMetricDailyRequest, 'metricDate'>;
-
-const EMPTY_FORM: FormState = {
-  tossRevenueR: null,
-  tossRevenueF: null,
-  tossRevenueBTotal: null,
-  tossRevenueI: null,
-  ecpmRReported: null,
-  ecpmFReported: null,
-  ecpmBTotalReported: null,
-  ecpmIReported: null,
-  impressionRReported: null,
-  impressionFReported: null,
-  impressionBTotal: null,
-  impressionI: null,
-  newInflowToss: null,
-  avgSessionSec: null,
-  benefitsTabInflow: null,
+const POSITION_LABELS: Record<string, string> = {
+  HOME_TOP: '홈(대시보드) 상단',
+  WEIGHT_TAB_TOP: '체중 탭 상단',
+  ANALYSIS_TAB_TOP: '분석 탭 상단',
+  REVIEW_TAB_TOP: '후기 탭 상단',
+  BENEFIT_TOP: '혜택 상단',
+  BENEFIT: '혜택 카드 사이',
+  ATTENDANCE: '출석 달력 하단',
+  FASTING_BOTTOM: '간헐적 단식 하단',
+  ATTENDANCE_RESULT: '출석 완료 페이지',
+  WEIGHT_RESULT: '체중기록 완료 페이지',
+  EXCHANGE_RESULT: '꺼내기(환전) 완료 페이지',
+  MISSION_RESULT: '미션 완료 페이지',
+  FASTING_RESULT: '간헐적 단식 완료 페이지',
 };
 
-const FIELD_GROUPS: {
-  group: string;
-  fields: {
-    key: keyof FormState;
-    label: string;
-    unit: string;
-    hint?: string;
-  }[];
-}[] = [
-  {
-    group: '토스 수익 (콘솔 reported)',
-    fields: [
-      { key: 'tossRevenueR', label: 'R 수익', unit: '원' },
-      { key: 'tossRevenueF', label: 'F 수익', unit: '원' },
-      { key: 'tossRevenueBTotal', label: 'B 합산 수익', unit: '원' },
-      { key: 'tossRevenueI', label: 'I 수익', unit: '원' },
-    ],
-  },
-  {
-    group: 'eCPM (콘솔 reported)',
-    fields: [
-      { key: 'ecpmRReported', label: 'R-eCPM', unit: '원' },
-      { key: 'ecpmFReported', label: 'F-eCPM', unit: '원' },
-      { key: 'ecpmBTotalReported', label: 'B-eCPM 합산', unit: '원' },
-      { key: 'ecpmIReported', label: 'I-eCPM', unit: '원' },
-    ],
-  },
-  {
-    group: '노출',
-    fields: [
-      {
-        key: 'impressionRReported',
-        label: 'R 노출 (검증용)',
-        unit: '건',
-        hint: 'truth는 DB observed (자동 집계)',
-      },
-      {
-        key: 'impressionFReported',
-        label: 'F 노출 (검증용)',
-        unit: '건',
-        hint: 'truth는 DB observed (자동 집계)',
-      },
-      { key: 'impressionBTotal', label: 'B 노출 합산 (truth)', unit: '건' },
-      { key: 'impressionI', label: 'I 노출 (truth)', unit: '건' },
-    ],
-  },
-  {
-    group: '토스 외 자동 미수집',
-    fields: [
-      { key: 'newInflowToss', label: '신규 유입 (토스 진입)', unit: '명' },
-      { key: 'avgSessionSec', label: '체류시간 평균', unit: '초' },
-      { key: 'benefitsTabInflow', label: '혜택탭 유입', unit: '명' },
-    ],
-  },
-];
+type DailyKey =
+  | 'tossRevenueR'
+  | 'tossRevenueF'
+  | 'tossRevenueBTotal'
+  | 'tossRevenueI'
+  | 'ecpmRReported'
+  | 'ecpmFReported'
+  | 'ecpmBTotalReported'
+  | 'ecpmIReported'
+  | 'ctrRReported'
+  | 'ctrFReported'
+  | 'ctrBTotalReported'
+  | 'ctrIReported'
+  | 'impressionRReported'
+  | 'impressionFReported'
+  | 'impressionBTotal'
+  | 'impressionI';
+
+type DailyForm = Partial<Record<DailyKey, number | null>>;
+
+const EMPTY: DailyForm = {};
 
 const AdMetricInputSubTab = () => {
   const queryClient = useQueryClient();
   const [date, setDate] = useState<string>(getYesterday());
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [daily, setDaily] = useState<DailyForm>(EMPTY);
+  const [banners, setBanners] = useState<PositionEntry[]>([]);
+  const [images, setImages] = useState<PositionEntry[]>([]);
   const [reasonModal, setReasonModal] = useState<{
     open: boolean;
     reason: string;
@@ -121,57 +93,144 @@ const AdMetricInputSubTab = () => {
   });
 
   // 일자 선택 → 자동 로드
-  const { data: existing, isLoading } = useQuery<AdMetricDailyEntry | null>({
-    queryKey: ['adMetricDaily', date],
+  const { data: bundle, isLoading } = useQuery<AdMetricDailyBundle>({
+    queryKey: ['adMetricBundle', date],
     queryFn: async () => {
-      const res = await api.get<AdMetricDailyEntry | null>(
-        `/api/admin/ad-metrics/daily`,
-        { params: { date } }
+      const res = await api.get<AdMetricDailyBundle>(
+        '/api/admin/ad-metrics/daily',
+        {
+          params: { date },
+        }
       );
-      return res.data ?? null;
+      return res.data ?? { daily: null, banners: [], images: [] };
     },
   });
 
-  useEffect(() => {
-    if (existing) {
-      const next: FormState = { ...EMPTY_FORM };
-      (Object.keys(EMPTY_FORM) as (keyof FormState)[]).forEach((key) => {
-        next[key] =
-          (existing[key as keyof AdMetricDailyEntry] as number | null) ?? null;
-      });
-      setForm(next);
-    } else {
-      setForm(EMPTY_FORM);
-    }
-  }, [existing]);
+  // 활성 위치 (AdPositionConfig)
+  const { data: positionConfigs } = useQuery<TossAdPositionConfig[]>({
+    queryKey: ['tossAdConfigs'],
+    queryFn: async () => {
+      const res = await api.get<TossAdPositionConfig[]>(
+        '/api/admin/dashboard/toss-ad/configs'
+      );
+      return res.data;
+    },
+  });
 
-  // POST/PUT/PATCH 분기
+  const enabledBannerPositions = useMemo(
+    () =>
+      (positionConfigs ?? [])
+        .filter((c) => c.isTossBannerAdEnabled || c.isTossAdEnabled)
+        .map((c) => c.position),
+    [positionConfigs]
+  );
+
+  const enabledImagePositions = useMemo(
+    () =>
+      (positionConfigs ?? [])
+        .filter((c) => c.isTossImageAdEnabled)
+        .map((c) => c.position),
+    [positionConfigs]
+  );
+
+  const usePositionMode = enabledBannerPositions.length > 0;
+  const useImagePositionMode = enabledImagePositions.length > 0;
+
+  useEffect(() => {
+    if (bundle?.daily) {
+      const next: DailyForm = {};
+      (
+        [
+          'tossRevenueR',
+          'tossRevenueF',
+          'tossRevenueBTotal',
+          'tossRevenueI',
+          'ecpmRReported',
+          'ecpmFReported',
+          'ecpmBTotalReported',
+          'ecpmIReported',
+          'ctrRReported',
+          'ctrFReported',
+          'ctrBTotalReported',
+          'ctrIReported',
+          'impressionRReported',
+          'impressionFReported',
+          'impressionBTotal',
+          'impressionI',
+        ] as DailyKey[]
+      ).forEach((k) => {
+        next[k] =
+          (bundle.daily as Record<string, number | null> | null)?.[k] ?? null;
+      });
+      setDaily(next);
+    } else {
+      setDaily(EMPTY);
+    }
+    setBanners(bundle?.banners ?? []);
+    setImages(bundle?.images ?? []);
+  }, [bundle]);
+
+  const setDailyField = (key: DailyKey, raw: string) => {
+    if (raw === '') {
+      setDaily({ ...daily, [key]: null });
+      return;
+    }
+    const num = Number(raw);
+    if (Number.isNaN(num)) return;
+    setDaily({ ...daily, [key]: num });
+  };
+
+  const upsertPosition = (
+    list: PositionEntry[],
+    setter: (next: PositionEntry[]) => void,
+    position: string,
+    field: keyof Omit<PositionEntry, 'adPositionCode' | 'id' | 'metricDate'>,
+    raw: string
+  ) => {
+    const value = raw === '' ? null : Number(raw);
+    if (value !== null && Number.isNaN(value)) return;
+    const idx = list.findIndex((p) => p.adPositionCode === position);
+    const next = [...list];
+    if (idx >= 0) {
+      next[idx] = { ...next[idx], [field]: value };
+    } else {
+      next.push({
+        adPositionCode: position,
+        impression: null,
+        ctrReported: null,
+        ecpmReported: null,
+        revenue: null,
+        [field]: value,
+      });
+    }
+    setter(next);
+  };
+
+  const getPositionValue = (
+    list: PositionEntry[],
+    position: string,
+    field: keyof Omit<PositionEntry, 'adPositionCode' | 'id' | 'metricDate'>
+  ): string => {
+    const row = list.find((p) => p.adPositionCode === position);
+    const v = row?.[field];
+    return v === null || v === undefined ? '' : String(v);
+  };
+
   const { mutate: save, isPending } = useMutation({
     mutationFn: async (override?: { reason?: string }) => {
-      const payload: Record<string, unknown> = { metricDate: date, ...form };
-
-      if (!existing) {
-        await api.post('/api/admin/ad-metrics/daily', payload);
-        return { mode: 'create' as const };
-      }
-      if (isAfterDPlus7(date)) {
-        await api.patch(`/api/admin/ad-metrics/daily/${date}`, {
-          ...payload,
-          reason: override?.reason,
-        });
-        return { mode: 'patch' as const };
-      }
-      await api.put(`/api/admin/ad-metrics/daily/${date}`, payload);
-      return { mode: 'update' as const };
-    },
-    onSuccess: ({ mode }) => {
-      const labels = {
-        create: '신규 저장',
-        update: '수정',
-        patch: 'D+7 이후 수정 (변경 이력 적재)',
+      const payload: AdMetricFullRequest = {
+        metricDate: date,
+        ...daily,
+        banners: banners.length > 0 ? banners : undefined,
+        images: images.length > 0 ? images : undefined,
+        reason: override?.reason,
       };
-      toast.success(`${labels[mode]} 완료`);
-      queryClient.invalidateQueries({ queryKey: ['adMetricDaily', date] });
+      const res = await api.post('/api/admin/ad-metrics/daily', payload);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success('저장 완료');
+      queryClient.invalidateQueries({ queryKey: ['adMetricBundle', date] });
       queryClient.invalidateQueries({ queryKey: ['adMetricKpi'] });
       queryClient.invalidateQueries({ queryKey: ['adMetricDailyTable'] });
       setReasonModal({ open: false, reason: '' });
@@ -185,7 +244,7 @@ const AdMetricInputSubTab = () => {
   });
 
   const handleSave = () => {
-    if (existing && isAfterDPlus7(date)) {
+    if (bundle?.daily && isAfterDPlus7(date)) {
       setReasonModal({ open: true, reason: '' });
       return;
     }
@@ -200,25 +259,15 @@ const AdMetricInputSubTab = () => {
     save({ reason: reasonModal.reason });
   };
 
-  const setField = (key: keyof FormState, raw: string) => {
-    if (raw === '') {
-      setForm({ ...form, [key]: null });
-      return;
-    }
-    const num = Number(raw);
-    if (Number.isNaN(num)) return;
-    setForm({ ...form, [key]: num });
-  };
-
   return (
     <div className="space-y-4">
-      {/* 일자 선택 + 모드 표시 */}
+      {/* 일자 선택 */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             데이터 입력 일자
             <Badge variant="outline">[표본: {getSampleTag(date)}]</Badge>
-            {existing && isAfterDPlus7(date) && (
+            {bundle?.daily && isAfterDPlus7(date) && (
               <Badge className="bg-amber-500">
                 D+7 이후 — 수정 시 사유 필수
               </Badge>
@@ -235,56 +284,122 @@ const AdMetricInputSubTab = () => {
           <span className="text-sm text-muted-foreground">
             {isLoading
               ? '로딩 중…'
-              : existing
+              : bundle?.daily
                 ? '기존 입력값 자동 로드됨'
                 : '신규 모드'}
           </span>
         </CardContent>
       </Card>
 
-      {/* 폼 그룹 */}
-      {FIELD_GROUPS.map(({ group, fields }) => (
-        <Card key={group}>
-          <CardHeader>
-            <CardTitle className="text-base">{group}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              {fields.map(({ key, label, unit, hint }) => (
-                <div key={key} className="space-y-1">
-                  <Label className="text-sm">
-                    {label}
-                    <span className="text-muted-foreground ml-1">({unit})</span>
-                  </Label>
-                  <Input
-                    type="number"
-                    inputMode="decimal"
-                    value={form[key] === null ? '' : String(form[key])}
-                    onChange={(e) => setField(key, e.target.value)}
-                    placeholder={
-                      existing
-                        ? '미입력 = NULL 유지'
-                        : '0과 미입력 구분: 빈칸 = NULL'
-                    }
-                  />
-                  {hint && (
-                    <p className="text-xs text-muted-foreground">{hint}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+      {/* R 리워드 (일별 4축) */}
+      <SectionCard title="리워드 광고 R (일별)" colorClass="text-blue-600">
+        <FourAxisGrid
+          impressionKey="impressionRReported"
+          ctrKey="ctrRReported"
+          ecpmKey="ecpmRReported"
+          revenueKey="tossRevenueR"
+          daily={daily}
+          onChange={setDailyField}
+        />
+      </SectionCard>
 
-      {/* 저장 버튼 */}
-      <div className="flex justify-end gap-2">
+      {/* F 전면 (일별 4축) */}
+      <SectionCard title="전면 광고 F (일별)" colorClass="text-rose-600">
+        <FourAxisGrid
+          impressionKey="impressionFReported"
+          ctrKey="ctrFReported"
+          ecpmKey="ecpmFReported"
+          revenueKey="tossRevenueF"
+          daily={daily}
+          onChange={setDailyField}
+        />
+      </SectionCard>
+
+      {/* B 배너 — 위치별 또는 일별 합산 */}
+      <SectionCard
+        title={`배너 광고 B ${usePositionMode ? '(위치별)' : '(일별 합산)'}`}
+        colorClass="text-orange-600"
+      >
+        {usePositionMode ? (
+          <div className="space-y-3">
+            {enabledBannerPositions.map((position) => (
+              <PositionRow
+                key={position}
+                position={position}
+                label={POSITION_LABELS[position] ?? position}
+                colorClass="border-orange-200"
+                getValue={(field) => getPositionValue(banners, position, field)}
+                onChange={(field, raw) =>
+                  upsertPosition(banners, setBanners, position, field, raw)
+                }
+              />
+            ))}
+          </div>
+        ) : (
+          <FourAxisGrid
+            impressionKey="impressionBTotal"
+            ctrKey="ctrBTotalReported"
+            ecpmKey="ecpmBTotalReported"
+            revenueKey="tossRevenueBTotal"
+            daily={daily}
+            onChange={setDailyField}
+          />
+        )}
+      </SectionCard>
+
+      {/* I 이미지배너 — 위치별 또는 일별 합산 */}
+      <SectionCard
+        title={`이미지배너 I ${useImagePositionMode ? '(위치별)' : '(일별 합산)'}`}
+        colorClass="text-emerald-600"
+      >
+        {useImagePositionMode ? (
+          <div className="space-y-3">
+            {enabledImagePositions.map((position) => (
+              <PositionRow
+                key={position}
+                position={position}
+                label={POSITION_LABELS[position] ?? position}
+                colorClass="border-emerald-200"
+                getValue={(field) => getPositionValue(images, position, field)}
+                onChange={(field, raw) =>
+                  upsertPosition(images, setImages, position, field, raw)
+                }
+              />
+            ))}
+          </div>
+        ) : (
+          <FourAxisGrid
+            impressionKey="impressionI"
+            ctrKey="ctrIReported"
+            ecpmKey="ecpmIReported"
+            revenueKey="tossRevenueI"
+            daily={daily}
+            onChange={setDailyField}
+          />
+        )}
+      </SectionCard>
+
+      {/* 안내 — CSV 업로드 P2 */}
+      <Card className="border-dashed border-muted-foreground/30">
+        <CardContent className="py-4 text-xs text-muted-foreground space-y-1">
+          <p>
+            🔒 신규 유입 / 체류시간 / 혜택탭 유입 / D1 리텐션은 본 폼에서
+            입력하지 않습니다. 대표가 토스 콘솔에서 다운로드한 CSV 파일은
+            ads_agent에 보관 → P2에서 어드민 CSV 업로드 폼으로 자동 적재.
+          </p>
+          <p>
+            🔒 활성유저·체중기록·출석·환전·신규가입은 분석 탭에서 BE 자동 집계.
+          </p>
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-end">
         <Button onClick={handleSave} disabled={isPending}>
-          {isPending ? '저장 중…' : existing ? '수정 저장' : '신규 저장'}
+          {isPending ? '저장 중…' : bundle?.daily ? '수정 저장' : '신규 저장'}
         </Button>
       </div>
 
-      {/* D+7 이후 수정 사유 모달 */}
+      {/* D+7 이후 사유 모달 */}
       <Dialog
         open={reasonModal.open}
         onOpenChange={(open) => setReasonModal({ ...reasonModal, open })}
@@ -293,8 +408,8 @@ const AdMetricInputSubTab = () => {
           <DialogHeader>
             <DialogTitle>D+7 이후 수정 — 사유 입력</DialogTitle>
             <DialogDescription>
-              {date} 데이터는 metric_date 기준 D+7이 지난 일자입니다. 수정 시
-              변경 이력이 적재되며, 사유는 필수 입력입니다.
+              {date} 데이터는 metric_date 기준 D+7이 지난 일자입니다. 변경
+              이력이 적재되며 사유는 필수입니다.
             </DialogDescription>
           </DialogHeader>
           <Textarea
@@ -321,5 +436,174 @@ const AdMetricInputSubTab = () => {
     </div>
   );
 };
+
+// ───────────────── helpers ─────────────────
+
+const SectionCard = ({
+  title,
+  colorClass,
+  children,
+}: {
+  title: string;
+  colorClass: string;
+  children: React.ReactNode;
+}) => (
+  <Card>
+    <CardHeader className="pb-2">
+      <CardTitle className={`text-sm font-semibold ${colorClass}`}>
+        {title}
+      </CardTitle>
+    </CardHeader>
+    <CardContent>{children}</CardContent>
+  </Card>
+);
+
+const FourAxisGrid = ({
+  impressionKey,
+  ctrKey,
+  ecpmKey,
+  revenueKey,
+  daily,
+  onChange,
+}: {
+  impressionKey: DailyKey;
+  ctrKey: DailyKey;
+  ecpmKey: DailyKey;
+  revenueKey: DailyKey;
+  daily: DailyForm;
+  onChange: (key: DailyKey, raw: string) => void;
+}) => (
+  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <NumField
+      label="노출"
+      unit="건"
+      value={daily[impressionKey]}
+      onChange={(v) => onChange(impressionKey, v)}
+    />
+    <NumField
+      label="시청률"
+      unit="%"
+      step="0.01"
+      value={daily[ctrKey]}
+      onChange={(v) => onChange(ctrKey, v)}
+    />
+    <NumField
+      label="eCPM"
+      unit="원"
+      value={daily[ecpmKey]}
+      onChange={(v) => onChange(ecpmKey, v)}
+    />
+    <NumField
+      label="수익"
+      unit="원"
+      value={daily[revenueKey]}
+      onChange={(v) => onChange(revenueKey, v)}
+    />
+  </div>
+);
+
+const PositionRow = ({
+  position: _position,
+  label,
+  colorClass,
+  getValue,
+  onChange,
+}: {
+  position: string;
+  label: string;
+  colorClass: string;
+  getValue: (
+    field: 'impression' | 'ctrReported' | 'ecpmReported' | 'revenue'
+  ) => string;
+  onChange: (
+    field: 'impression' | 'ctrReported' | 'ecpmReported' | 'revenue',
+    raw: string
+  ) => void;
+}) => (
+  <div className={`border-l-2 pl-3 ${colorClass}`}>
+    <p className="text-xs font-medium mb-1">{label}</p>
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <NumFieldStr
+        label="노출"
+        unit="건"
+        value={getValue('impression')}
+        onChange={(v) => onChange('impression', v)}
+      />
+      <NumFieldStr
+        label="시청률"
+        unit="%"
+        step="0.01"
+        value={getValue('ctrReported')}
+        onChange={(v) => onChange('ctrReported', v)}
+      />
+      <NumFieldStr
+        label="eCPM"
+        unit="원"
+        value={getValue('ecpmReported')}
+        onChange={(v) => onChange('ecpmReported', v)}
+      />
+      <NumFieldStr
+        label="수익"
+        unit="원"
+        value={getValue('revenue')}
+        onChange={(v) => onChange('revenue', v)}
+      />
+    </div>
+  </div>
+);
+
+const NumField = ({
+  label,
+  unit,
+  step,
+  value,
+  onChange,
+}: {
+  label: string;
+  unit: string;
+  step?: string;
+  value: number | null | undefined;
+  onChange: (raw: string) => void;
+}) => (
+  <div className="space-y-1">
+    <Label className="text-xs">
+      {label} <span className="text-muted-foreground">({unit})</span>
+    </Label>
+    <Input
+      type="number"
+      inputMode="decimal"
+      step={step}
+      value={value === null || value === undefined ? '' : String(value)}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  </div>
+);
+
+const NumFieldStr = ({
+  label,
+  unit,
+  step,
+  value,
+  onChange,
+}: {
+  label: string;
+  unit: string;
+  step?: string;
+  value: string;
+  onChange: (raw: string) => void;
+}) => (
+  <div className="space-y-1">
+    <Label className="text-xs">
+      {label} <span className="text-muted-foreground">({unit})</span>
+    </Label>
+    <Input
+      type="number"
+      inputMode="decimal"
+      step={step}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  </div>
+);
 
 export default AdMetricInputSubTab;
