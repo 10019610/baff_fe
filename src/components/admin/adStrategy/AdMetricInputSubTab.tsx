@@ -18,6 +18,7 @@ import {
 import { api } from '../../../services/api/Api.ts';
 import type {
   AdMetricDailyBundle,
+  AdMetricDailyEntry,
   AdMetricFullRequest,
   PositionEntry,
   TossAdPositionConfig,
@@ -96,6 +97,79 @@ const AdMetricInputSubTab = () => {
   }>({
     open: false,
     reason: '',
+  });
+
+  // 입력된 토스 데이터 목록 (D-14 기본 필터)
+  const defaultFrom = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 14);
+    return d.toISOString().split('T')[0];
+  })();
+  const defaultTo = new Date().toISOString().split('T')[0];
+  const [filterFrom, setFilterFrom] = useState<string>(defaultFrom);
+  const [filterTo, setFilterTo] = useState<string>(defaultTo);
+
+  const { data: dailyList } = useQuery<AdMetricDailyEntry[]>({
+    queryKey: ['adMetricDailyList', filterFrom, filterTo],
+    queryFn: async () => {
+      const res = await api.get<AdMetricDailyEntry[]>(
+        '/admin/ad-metrics/daily',
+        { params: { from: filterFrom, to: filterTo } }
+      );
+      return res.data ?? [];
+    },
+  });
+
+  // 배포 마커
+  type DeployMarker = {
+    id: number;
+    metricDate: string;
+    deployVersion: string;
+    deployNote?: string | null;
+  };
+  const [deployForm, setDeployForm] = useState<{
+    metricDate: string;
+    deployVersion: string;
+    deployNote: string;
+  }>({ metricDate: '', deployVersion: '', deployNote: '' });
+
+  const { data: deploys } = useQuery<DeployMarker[]>({
+    queryKey: ['adMetricDeploys'],
+    queryFn: async () => {
+      const res = await api.get<DeployMarker[]>('/admin/ad-metrics/deploys');
+      return res.data ?? [];
+    },
+  });
+
+  const { mutate: saveDeploy, isPending: isDeployPending } = useMutation({
+    mutationFn: async () => {
+      if (!deployForm.metricDate || !deployForm.deployVersion.trim()) {
+        throw new Error('날짜와 버전 필수');
+      }
+      const res = await api.post('/admin/ad-metrics/deploys', {
+        metricDate: deployForm.metricDate,
+        deployVersion: deployForm.deployVersion.trim(),
+        deployNote: deployForm.deployNote.trim() || null,
+      });
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success('배포 마커 등록 완료');
+      queryClient.invalidateQueries({ queryKey: ['adMetricDeploys'] });
+      setDeployForm({ metricDate: '', deployVersion: '', deployNote: '' });
+    },
+    onError: (err: unknown) => {
+      const msg =
+        (
+          err as {
+            response?: { data?: { message?: string } };
+            message?: string;
+          }
+        )?.response?.data?.message ??
+        (err as { message?: string })?.message ??
+        '저장 실패';
+      toast.error(msg);
+    },
   });
 
   // 일자 선택 → 자동 로드
@@ -485,6 +559,280 @@ const AdMetricInputSubTab = () => {
           {isPending ? '저장 중…' : bundle?.daily ? '수정 저장' : '신규 저장'}
         </Button>
       </div>
+
+      {/* 입력된 토스 데이터 목록 (D-14 기본, 행 클릭 → 폼 prefill) */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <CardTitle className="text-sm">
+              입력된 토스 데이터 ({dailyList?.length ?? 0}건)
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Input
+                type="date"
+                value={filterFrom}
+                onChange={(e) => setFilterFrom(e.target.value)}
+                className="h-7 w-36 text-xs"
+              />
+              <span className="text-xs text-muted-foreground">~</span>
+              <Input
+                type="date"
+                value={filterTo}
+                onChange={(e) => setFilterTo(e.target.value)}
+                className="h-7 w-36 text-xs"
+              />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b text-left text-muted-foreground">
+                <th className="pb-2 pr-2 whitespace-nowrap">날짜</th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap text-blue-500">
+                  R노출
+                </th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap text-blue-500">
+                  R시청
+                </th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap text-blue-500">
+                  R-eCPM
+                </th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap text-blue-500">
+                  R수익
+                </th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap text-rose-500">
+                  F노출
+                </th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap text-rose-500">
+                  F시청
+                </th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap text-rose-500">
+                  F-eCPM
+                </th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap text-rose-500">
+                  F수익
+                </th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap text-orange-500">
+                  B노출
+                </th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap text-orange-500">
+                  B시청
+                </th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap text-orange-500">
+                  B-eCPM
+                </th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap text-orange-500">
+                  B수익
+                </th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap text-emerald-500">
+                  I노출
+                </th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap text-emerald-500">
+                  I시청
+                </th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap text-emerald-500">
+                  I-eCPM
+                </th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap text-emerald-500">
+                  I수익
+                </th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap">신규</th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap">전체</th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap">
+                  D1신규
+                </th>
+                <th className="pb-2 pr-2 text-right whitespace-nowrap">
+                  D1전체
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {(dailyList ?? []).length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={21}
+                    className="py-4 text-center text-muted-foreground"
+                  >
+                    입력된 데이터가 없습니다.
+                  </td>
+                </tr>
+              ) : (
+                dailyList!.map((d) => (
+                  <tr
+                    key={d.metricDate}
+                    onClick={() => setDate(d.metricDate)}
+                    className="border-b last:border-0 hover:bg-blue-50 cursor-pointer"
+                    title="행 클릭 → 위 폼에 자동 채움"
+                  >
+                    <td className="py-1.5 pr-2 font-mono whitespace-nowrap">
+                      {d.metricDate.slice(5)}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.impressionRReported ?? '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.ctrRReported != null ? `${d.ctrRReported}%` : '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.ecpmRReported ?? '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.tossRevenueR ?? '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.impressionFReported ?? '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.ctrFReported != null ? `${d.ctrFReported}%` : '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.ecpmFReported ?? '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.tossRevenueF ?? '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.impressionBTotal ?? '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.ctrBTotalReported != null
+                        ? `${d.ctrBTotalReported}%`
+                        : '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.ecpmBTotalReported ?? '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.tossRevenueBTotal ?? '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.impressionI ?? '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.ctrIReported != null ? `${d.ctrIReported}%` : '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.ecpmIReported ?? '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.tossRevenueI ?? '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.newUsersReported ?? '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.totalUsersReported ?? '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.retentionD1New != null ? `${d.retentionD1New}%` : '-'}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {d.retentionD1Total != null
+                        ? `${d.retentionD1Total}%`
+                        : '-'}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </CardContent>
+      </Card>
+
+      {/* 배포 마커 등록 */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm">배포 마커 등록</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs">배포 날짜 *</Label>
+              <Input
+                type="date"
+                value={deployForm.metricDate}
+                onChange={(e) =>
+                  setDeployForm({ ...deployForm, metricDate: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">버전 *</Label>
+              <Input
+                placeholder="v1.5.0"
+                value={deployForm.deployVersion}
+                onChange={(e) =>
+                  setDeployForm({
+                    ...deployForm,
+                    deployVersion: e.target.value,
+                  })
+                }
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">메모</Label>
+              <Input
+                placeholder="주요 변경사항"
+                value={deployForm.deployNote}
+                onChange={(e) =>
+                  setDeployForm({ ...deployForm, deployNote: e.target.value })
+                }
+              />
+            </div>
+          </div>
+          <div>
+            <Button
+              size="sm"
+              onClick={() => saveDeploy()}
+              disabled={isDeployPending}
+            >
+              {isDeployPending ? '저장 중…' : '등록'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 등록된 배포 마커 목록 */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm">등록된 배포 마커</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {(deploys ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              등록된 배포 마커가 없습니다.
+            </p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b text-left text-muted-foreground">
+                  <th className="pb-2 pr-4">날짜</th>
+                  <th className="pb-2 pr-4">버전</th>
+                  <th className="pb-2">메모</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deploys!.map((d) => (
+                  <tr key={d.id} className="border-b last:border-0">
+                    <td className="py-2 pr-4 font-mono text-muted-foreground">
+                      {d.metricDate}
+                    </td>
+                    <td className="py-2 pr-4">
+                      <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded">
+                        {d.deployVersion}
+                      </span>
+                    </td>
+                    <td className="py-2 text-muted-foreground">
+                      {d.deployNote || '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </CardContent>
+      </Card>
 
       {/* D+7 이후 사유 모달 */}
       <Dialog
