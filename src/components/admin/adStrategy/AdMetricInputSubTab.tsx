@@ -72,7 +72,11 @@ type DailyKey =
   | 'impressionRReported'
   | 'impressionFReported'
   | 'impressionBTotal'
-  | 'impressionI';
+  | 'impressionI'
+  | 'newUsersReported'
+  | 'totalUsersReported';
+
+const POSITION_OTHER = 'OTHER';
 
 type DailyForm = Partial<Record<DailyKey, number | null>>;
 
@@ -157,6 +161,8 @@ const AdMetricInputSubTab = () => {
           'impressionFReported',
           'impressionBTotal',
           'impressionI',
+          'newUsersReported',
+          'totalUsersReported',
         ] as DailyKey[]
       ).forEach((k) => {
         next[k] =
@@ -315,9 +321,9 @@ const AdMetricInputSubTab = () => {
         />
       </SectionCard>
 
-      {/* B 배너 — 위치별 또는 일별 합산 */}
+      {/* B 배너 — 위치별 + 미분리 행 (OTHER) + 합산 4축 */}
       <SectionCard
-        title={`배너 광고 B ${usePositionMode ? '(위치별)' : '(일별 합산)'}`}
+        title={`배너 광고 B ${usePositionMode ? '(위치별 + 미분리)' : '(일별 합산만)'}`}
         colorClass="text-orange-600"
       >
         {usePositionMode ? (
@@ -325,7 +331,6 @@ const AdMetricInputSubTab = () => {
             {enabledBannerPositions.map((position) => (
               <PositionRow
                 key={position}
-                position={position}
                 label={POSITION_LABELS[position] ?? position}
                 colorClass="border-orange-200"
                 getValue={(field) => getPositionValue(banners, position, field)}
@@ -334,6 +339,29 @@ const AdMetricInputSubTab = () => {
                 }
               />
             ))}
+            <PositionRow
+              label="기타 (미분리)"
+              colorClass="border-gray-300"
+              getValue={(field) =>
+                getPositionValue(banners, POSITION_OTHER, field)
+              }
+              onChange={(field, raw) =>
+                upsertPosition(banners, setBanners, POSITION_OTHER, field, raw)
+              }
+            />
+            <div className="pt-3 border-t border-dashed">
+              <p className="text-xs text-muted-foreground mb-2">
+                일별 합산 (위치별 합과 검증) — reconciliation_status 기준
+              </p>
+              <FourAxisGrid
+                impressionKey="impressionBTotal"
+                ctrKey="ctrBTotalReported"
+                ecpmKey="ecpmBTotalReported"
+                revenueKey="tossRevenueBTotal"
+                daily={daily}
+                onChange={setDailyField}
+              />
+            </div>
           </div>
         ) : (
           <FourAxisGrid
@@ -347,9 +375,9 @@ const AdMetricInputSubTab = () => {
         )}
       </SectionCard>
 
-      {/* I 이미지배너 — 위치별 또는 일별 합산 */}
+      {/* I 이미지배너 — 위치별 + 미분리 + 합산 */}
       <SectionCard
-        title={`이미지배너 I ${useImagePositionMode ? '(위치별)' : '(일별 합산)'}`}
+        title={`이미지배너 I ${useImagePositionMode ? '(위치별 + 미분리)' : '(일별 합산만)'}`}
         colorClass="text-emerald-600"
       >
         {useImagePositionMode ? (
@@ -357,7 +385,6 @@ const AdMetricInputSubTab = () => {
             {enabledImagePositions.map((position) => (
               <PositionRow
                 key={position}
-                position={position}
                 label={POSITION_LABELS[position] ?? position}
                 colorClass="border-emerald-200"
                 getValue={(field) => getPositionValue(images, position, field)}
@@ -366,6 +393,29 @@ const AdMetricInputSubTab = () => {
                 }
               />
             ))}
+            <PositionRow
+              label="기타 (미분리)"
+              colorClass="border-gray-300"
+              getValue={(field) =>
+                getPositionValue(images, POSITION_OTHER, field)
+              }
+              onChange={(field, raw) =>
+                upsertPosition(images, setImages, POSITION_OTHER, field, raw)
+              }
+            />
+            <div className="pt-3 border-t border-dashed">
+              <p className="text-xs text-muted-foreground mb-2">
+                일별 합산 (위치별 합과 검증)
+              </p>
+              <FourAxisGrid
+                impressionKey="impressionI"
+                ctrKey="ctrIReported"
+                ecpmKey="ecpmIReported"
+                revenueKey="tossRevenueI"
+                daily={daily}
+                onChange={setDailyField}
+              />
+            </div>
           </div>
         ) : (
           <FourAxisGrid
@@ -377,6 +427,24 @@ const AdMetricInputSubTab = () => {
             onChange={setDailyField}
           />
         )}
+      </SectionCard>
+
+      {/* 유저 (토스 콘솔 reported) */}
+      <SectionCard title="유저 (토스 콘솔)" colorClass="text-gray-700">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <NumField
+            label="신규유저"
+            unit="명"
+            value={daily.newUsersReported}
+            onChange={(v) => setDailyField('newUsersReported', v)}
+          />
+          <NumField
+            label="전체유저"
+            unit="명"
+            value={daily.totalUsersReported}
+            onChange={(v) => setDailyField('totalUsersReported', v)}
+          />
+        </div>
       </SectionCard>
 
       {/* 안내 — CSV 업로드 P2 */}
@@ -503,13 +571,11 @@ const FourAxisGrid = ({
 );
 
 const PositionRow = ({
-  position: _position,
   label,
   colorClass,
   getValue,
   onChange,
 }: {
-  position: string;
   label: string;
   colorClass: string;
   getValue: (

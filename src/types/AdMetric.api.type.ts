@@ -28,6 +28,9 @@ export interface AdMetricDailyEntry {
   impressionBTotal: number | null;
   impressionI: number | null;
 
+  newUsersReported: number | null;
+  totalUsersReported: number | null;
+
   actorAdminId: number | null;
   regDateTime: string;
   modDateTime: string;
@@ -71,6 +74,9 @@ export interface AdMetricFullRequest {
   impressionFReported?: number | null;
   impressionBTotal?: number | null;
   impressionI?: number | null;
+
+  newUsersReported?: number | null;
+  totalUsersReported?: number | null;
 
   banners?: PositionEntry[];
   images?: PositionEntry[];
