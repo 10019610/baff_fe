@@ -126,7 +126,7 @@ const AdMetricInputSubTab = () => {
   const enabledBannerPositions = useMemo(
     () =>
       (positionConfigs ?? [])
-        .filter((c) => c.isTossBannerAdEnabled)
+        .filter((c) => c.isTossBannerAdEnabled || c.isTossAdEnabled)
         .map((c) => c.position),
     [positionConfigs]
   );
@@ -142,7 +142,8 @@ const AdMetricInputSubTab = () => {
   const bannerAdIdByPosition = useMemo(() => {
     const map: Record<string, string> = {};
     (positionConfigs ?? []).forEach((c) => {
-      if (c.tossBannerAdGroupId) map[c.position] = c.tossBannerAdGroupId;
+      const id = c.tossBannerAdGroupId || c.tossAdGroupId;
+      if (id) map[c.position] = id;
     });
     return map;
   }, [positionConfigs]);
@@ -366,16 +367,13 @@ const AdMetricInputSubTab = () => {
         />
       </SectionCard>
 
-      {/* B 배너 — 활성 위치 N개 + 미분리(OTHER) + 일별 합산. 활성 0개여도 OTHER+합산은 항상 노출 */}
-      <SectionCard
-        title="배너 광고 B (위치별 + 미분리 + 합산)"
-        colorClass="text-orange-600"
-      >
+      {/* B 배너 — 활성 위치 N개 + 기타(미분리). 일별 합산은 위치별 합으로 자동 산출 (입력 X). */}
+      <SectionCard title="배너 광고 B (위치별)" colorClass="text-orange-600">
         <div className="space-y-3">
           {enabledBannerPositions.length === 0 && (
             <p className="text-xs text-muted-foreground">
-              현재 활성된 작은 배너 위치가 없습니다 (어드민 → 광고관리에서
-              활성). 미분리(OTHER) 행과 일별 합산만 입력하세요.
+              현재 활성된 배너 위치가 없습니다 (어드민 → 광고관리에서 활성).
+              기타(미분리) 행에 합산 광고ID로 입력하세요.
             </p>
           )}
           {enabledBannerPositions.map((position) => (
@@ -407,32 +405,16 @@ const AdMetricInputSubTab = () => {
               upsertPositionNum(banners, setBanners, POSITION_OTHER, field, raw)
             }
           />
-          <div className="pt-3 border-t border-dashed">
-            <p className="text-xs text-muted-foreground mb-2">
-              일별 합산 (위치별 합과 검증) — reconciliation_status 기준
-            </p>
-            <FourAxisGrid
-              impressionKey="impressionBTotal"
-              ctrKey="ctrBTotalReported"
-              ecpmKey="ecpmBTotalReported"
-              revenueKey="tossRevenueBTotal"
-              daily={daily}
-              onChange={setDailyField}
-            />
-          </div>
         </div>
       </SectionCard>
 
-      {/* I 이미지배너 — 동일 구조: 활성 N개 + OTHER + 합산 항상 노출 */}
-      <SectionCard
-        title="이미지배너 I (위치별 + 미분리 + 합산)"
-        colorClass="text-emerald-600"
-      >
+      {/* I 이미지배너 — 동일 구조 */}
+      <SectionCard title="이미지배너 I (위치별)" colorClass="text-emerald-600">
         <div className="space-y-3">
           {enabledImagePositions.length === 0 && (
             <p className="text-xs text-muted-foreground">
               현재 활성된 이미지배너 위치가 없습니다 (어드민 → 광고관리에서
-              활성). 미분리(OTHER) 행과 일별 합산만 입력하세요.
+              활성). 기타(미분리) 행에 합산 광고ID로 입력하세요.
             </p>
           )}
           {enabledImagePositions.map((position) => (
@@ -462,19 +444,6 @@ const AdMetricInputSubTab = () => {
               upsertPositionNum(images, setImages, POSITION_OTHER, field, raw)
             }
           />
-          <div className="pt-3 border-t border-dashed">
-            <p className="text-xs text-muted-foreground mb-2">
-              일별 합산 (위치별 합과 검증)
-            </p>
-            <FourAxisGrid
-              impressionKey="impressionI"
-              ctrKey="ctrIReported"
-              ecpmKey="ecpmIReported"
-              revenueKey="tossRevenueI"
-              daily={daily}
-              onChange={setDailyField}
-            />
-          </div>
         </div>
       </SectionCard>
 
