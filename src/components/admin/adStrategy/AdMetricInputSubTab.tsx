@@ -123,21 +123,19 @@ const AdMetricInputSubTab = () => {
     },
   });
 
-  const enabledBannerPositions = useMemo(
-    () =>
-      (positionConfigs ?? [])
-        .filter((c) => c.isTossBannerAdEnabled || c.isTossAdEnabled)
-        .map((c) => c.position),
-    [positionConfigs]
-  );
+  /**
+   * 위치 펼침 전략 — 나만그래 화면6 정합:
+   * AdPositionConfig 등록된 모든 row를 위치별로 펼친다 (enable 필터 X).
+   * 광고관리에 row 자체가 0개일 때만 POSITION_LABELS 키 fallback.
+   */
+  const allConfiguredPositions = useMemo(() => {
+    const rows = positionConfigs ?? [];
+    if (rows.length > 0) return rows.map((c) => c.position);
+    return Object.keys(POSITION_LABELS);
+  }, [positionConfigs]);
 
-  const enabledImagePositions = useMemo(
-    () =>
-      (positionConfigs ?? [])
-        .filter((c) => c.isTossImageAdEnabled)
-        .map((c) => c.position),
-    [positionConfigs]
-  );
+  const enabledBannerPositions = allConfiguredPositions;
+  const enabledImagePositions = allConfiguredPositions;
 
   const bannerAdIdByPosition = useMemo(() => {
     const map: Record<string, string> = {};
@@ -370,12 +368,6 @@ const AdMetricInputSubTab = () => {
       {/* B 배너 — 활성 위치 N개 + 기타(미분리). 일별 합산은 위치별 합으로 자동 산출 (입력 X). */}
       <SectionCard title="배너 광고 B (위치별)" colorClass="text-orange-600">
         <div className="space-y-3">
-          {enabledBannerPositions.length === 0 && (
-            <p className="text-xs text-muted-foreground">
-              현재 활성된 배너 위치가 없습니다 (어드민 → 광고관리에서 활성).
-              기타(미분리) 행에 합산 광고ID로 입력하세요.
-            </p>
-          )}
           {enabledBannerPositions.map((position) => (
             <PositionRow
               key={position}
@@ -411,12 +403,6 @@ const AdMetricInputSubTab = () => {
       {/* I 이미지배너 — 동일 구조 */}
       <SectionCard title="이미지배너 I (위치별)" colorClass="text-emerald-600">
         <div className="space-y-3">
-          {enabledImagePositions.length === 0 && (
-            <p className="text-xs text-muted-foreground">
-              현재 활성된 이미지배너 위치가 없습니다 (어드민 → 광고관리에서
-              활성). 기타(미분리) 행에 합산 광고ID로 입력하세요.
-            </p>
-          )}
           {enabledImagePositions.map((position) => (
             <PositionRow
               key={position}
