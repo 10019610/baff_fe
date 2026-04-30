@@ -30,16 +30,25 @@ import {
 } from '../../../utils/AdMetricUtil.ts';
 
 /**
- * 데이터 입력 — 나만그래 패턴 정합.
- *  · R(리워드) 일별 4축
- *  · F(전면) 일별 4축
- *  · B(배너) 위치별 4축 — AdPositionConfig 활성 위치별 분리, 없으면 합산 모드
- *  · I(이미지배너) 위치별 4축 — 동일
+ * 데이터 입력 — 광고 종류별 4축.
+ *  · R(리워드) 미분리 + 꺼내기(EXCHANGE_RESULT)
+ *  · F(전면) 미분리 + 체중기록(WEIGHT_RESULT) + 출석체크(ATTENDANCE_RESULT)
+ *  · B(배너) 위치별 (AdPositionConfig 활성) + 미분리
+ *  · I(이미지배너) 단일 4축
  *
  * 4축 = 노출 / 시청률(%) / eCPM(원) / 수익(원).
  * 신규/전체 유저 + D1 리텐션은 토스 콘솔에서 운영자가 직접 옮김. 체류·혜택탭만 CSV(P2).
  * 활성유저·체중·출석·환전·신규가입은 BE에서 자동 집계 (분석 탭).
  */
+
+// R/F 위치별 분리 정책 — 변경 시 이 두 상수만 수정
+const REWARD_POSITIONS: { code: string; label: string }[] = [
+  { code: 'EXCHANGE_RESULT', label: '꺼내기 완료 페이지' },
+];
+const INTERSTITIAL_POSITIONS: { code: string; label: string }[] = [
+  { code: 'WEIGHT_RESULT', label: '체중기록 완료 페이지' },
+  { code: 'ATTENDANCE_RESULT', label: '출석체크 완료 페이지' },
+];
 
 const POSITION_LABELS: Record<string, string> = {
   HOME_TOP: '홈(대시보드) 상단',
@@ -83,7 +92,35 @@ const POSITION_OTHER = 'OTHER';
 
 type DailyForm = Partial<Record<DailyKey, number | null>>;
 
+type PositionField = 'impression' | 'ctrReported' | 'ecpmReported' | 'revenue';
+
 const EMPTY: DailyForm = {};
+
+/** PositionRow field → R 미분리 daily 컬럼 키 매핑 */
+const REWARD_DAILY_KEY: Record<PositionField, DailyKey> = {
+  impression: 'impressionRReported',
+  ctrReported: 'ctrRReported',
+  ecpmReported: 'ecpmRReported',
+  revenue: 'tossRevenueR',
+};
+
+/** PositionRow field → F 미분리 daily 컬럼 키 매핑 */
+const INTERSTITIAL_DAILY_KEY: Record<PositionField, DailyKey> = {
+  impression: 'impressionFReported',
+  ctrReported: 'ctrFReported',
+  ecpmReported: 'ecpmFReported',
+  revenue: 'tossRevenueF',
+};
+
+const rewardField = (_t: 'daily', f: PositionField): DailyKey =>
+  REWARD_DAILY_KEY[f];
+const interstitialField = (_t: 'daily', f: PositionField): DailyKey =>
+  INTERSTITIAL_DAILY_KEY[f];
+
+const dailyFieldToString = (daily: DailyForm, key: DailyKey): string => {
+  const v = daily[key];
+  return v === null || v === undefined ? '' : String(v);
+};
 
 const AdMetricInputSubTab = () => {
   const queryClient = useQueryClient();
@@ -91,6 +128,8 @@ const AdMetricInputSubTab = () => {
   const [daily, setDaily] = useState<DailyForm>(EMPTY);
   const [banners, setBanners] = useState<PositionEntry[]>([]);
   const [images, setImages] = useState<PositionEntry[]>([]);
+  const [rewards, setRewards] = useState<PositionEntry[]>([]);
+  const [interstitials, setInterstitials] = useState<PositionEntry[]>([]);
   const [reasonModal, setReasonModal] = useState<{
     open: boolean;
     reason: string;
@@ -182,7 +221,15 @@ const AdMetricInputSubTab = () => {
           params: { date },
         }
       );
-      return res.data ?? { daily: null, banners: [], images: [] };
+      return (
+        res.data ?? {
+          daily: null,
+          banners: [],
+          images: [],
+          rewards: [],
+          interstitials: [],
+        }
+      );
     },
   });
 
@@ -228,6 +275,25 @@ const AdMetricInputSubTab = () => {
     return map;
   }, [positionConfigs]);
 
+  // F 위치별 광고ID — AdPositionConfig 인터스티셜 매핑
+  const interstitialAdIdByPosition = useMemo(() => {
+    const map: Record<string, string> = {};
+    (positionConfigs ?? []).forEach((c) => {
+      if (c.tossInterstitialAdGroupId)
+        map[c.position] = c.tossInterstitialAdGroupId;
+    });
+    return map;
+  }, [positionConfigs]);
+
+  // R 위치별 광고ID — AdPositionConfig 리워드 매핑 (tossAdGroupId가 일반 토스광고이자 리워드/F에 모두 쓰일 수 있음)
+  const rewardAdIdByPosition = useMemo(() => {
+    const map: Record<string, string> = {};
+    (positionConfigs ?? []).forEach((c) => {
+      if (c.tossAdGroupId) map[c.position] = c.tossAdGroupId;
+    });
+    return map;
+  }, [positionConfigs]);
+
   useEffect(() => {
     if (bundle?.daily) {
       const next: DailyForm = {};
@@ -264,6 +330,8 @@ const AdMetricInputSubTab = () => {
     }
     setBanners(bundle?.banners ?? []);
     setImages(bundle?.images ?? []);
+    setRewards(bundle?.rewards ?? []);
+    setInterstitials(bundle?.interstitials ?? []);
   }, [bundle]);
 
   const setDailyField = (key: DailyKey, raw: string) => {
@@ -347,6 +415,8 @@ const AdMetricInputSubTab = () => {
         ...daily,
         banners: banners.length > 0 ? banners : undefined,
         images: images.length > 0 ? images : undefined,
+        rewards: rewards.length > 0 ? rewards : undefined,
+        interstitials: interstitials.length > 0 ? interstitials : undefined,
         reason: override?.reason,
       };
       const res = await api.post('/admin/ad-metrics/daily', payload);
@@ -415,28 +485,68 @@ const AdMetricInputSubTab = () => {
         </CardContent>
       </Card>
 
-      {/* R 리워드 (일별 4축) */}
-      <SectionCard title="리워드 광고 R (일별)" colorClass="text-blue-600">
-        <FourAxisGrid
-          impressionKey="impressionRReported"
-          ctrKey="ctrRReported"
-          ecpmKey="ecpmRReported"
-          revenueKey="tossRevenueR"
-          daily={daily}
-          onChange={setDailyField}
-        />
+      {/* R 리워드 — 미분리 + 위치별(꺼내기). 미분리는 daily, 위치별은 rewards[]. */}
+      <SectionCard title="리워드 광고 R" colorClass="text-blue-600">
+        <div className="space-y-3">
+          <PositionRow
+            label="미분리 (전체 합산)"
+            colorClass="border-blue-200"
+            getValue={(field) =>
+              dailyFieldToString(daily, rewardField('daily', field))
+            }
+            onChange={(field, raw) =>
+              setDailyField(rewardField('daily', field), raw)
+            }
+          />
+          {REWARD_POSITIONS.map(({ code, label }) => (
+            <PositionRow
+              key={code}
+              label={label}
+              colorClass="border-blue-200"
+              adId={rewardAdIdByPosition[code]}
+              getValue={(field) => getPositionNumValue(rewards, code, field)}
+              onChange={(field, raw) =>
+                upsertPositionNum(rewards, setRewards, code, field, raw)
+              }
+            />
+          ))}
+        </div>
       </SectionCard>
 
-      {/* F 전면 (일별 4축) */}
-      <SectionCard title="전면 광고 F (일별)" colorClass="text-rose-600">
-        <FourAxisGrid
-          impressionKey="impressionFReported"
-          ctrKey="ctrFReported"
-          ecpmKey="ecpmFReported"
-          revenueKey="tossRevenueF"
-          daily={daily}
-          onChange={setDailyField}
-        />
+      {/* F 전면 — 미분리 + 위치별(체중기록/출석체크). 미분리는 daily, 위치별은 interstitials[]. */}
+      <SectionCard title="전면 광고 F" colorClass="text-rose-600">
+        <div className="space-y-3">
+          <PositionRow
+            label="미분리 (전체 합산)"
+            colorClass="border-rose-200"
+            getValue={(field) =>
+              dailyFieldToString(daily, interstitialField('daily', field))
+            }
+            onChange={(field, raw) =>
+              setDailyField(interstitialField('daily', field), raw)
+            }
+          />
+          {INTERSTITIAL_POSITIONS.map(({ code, label }) => (
+            <PositionRow
+              key={code}
+              label={label}
+              colorClass="border-rose-200"
+              adId={interstitialAdIdByPosition[code]}
+              getValue={(field) =>
+                getPositionNumValue(interstitials, code, field)
+              }
+              onChange={(field, raw) =>
+                upsertPositionNum(
+                  interstitials,
+                  setInterstitials,
+                  code,
+                  field,
+                  raw
+                )
+              }
+            />
+          ))}
+        </div>
       </SectionCard>
 
       {/* B 배너 — 활성 위치 N개 + 기타(미분리). 일별 합산은 위치별 합으로 자동 산출 (입력 X). */}
@@ -474,37 +584,16 @@ const AdMetricInputSubTab = () => {
         </div>
       </SectionCard>
 
-      {/* I 이미지배너 — 동일 구조 */}
-      <SectionCard title="이미지배너 I (위치별)" colorClass="text-emerald-600">
-        <div className="space-y-3">
-          {enabledImagePositions.map((position) => (
-            <PositionRow
-              key={position}
-              label={POSITION_LABELS[position] ?? position}
-              colorClass="border-emerald-200"
-              adId={imageAdIdByPosition[position]}
-              getValue={(field) => getPositionNumValue(images, position, field)}
-              onChange={(field, raw) =>
-                upsertPositionNum(images, setImages, position, field, raw)
-              }
-            />
-          ))}
-          <PositionRow
-            label="기타 (미분리)"
-            colorClass="border-gray-300"
-            editableAdId
-            getAdId={() => getPositionAdId(images, POSITION_OTHER)}
-            onAdIdChange={(raw) =>
-              upsertPositionAdId(images, setImages, POSITION_OTHER, raw)
-            }
-            getValue={(field) =>
-              getPositionNumValue(images, POSITION_OTHER, field)
-            }
-            onChange={(field, raw) =>
-              upsertPositionNum(images, setImages, POSITION_OTHER, field, raw)
-            }
-          />
-        </div>
+      {/* I 이미지배너 — 단일 4축 (위치별 분리 폐지) */}
+      <SectionCard title="이미지배너 I" colorClass="text-emerald-600">
+        <FourAxisGrid
+          impressionKey="impressionI"
+          ctrKey="ctrIReported"
+          ecpmKey="ecpmIReported"
+          revenueKey="tossRevenueI"
+          daily={daily}
+          onChange={setDailyField}
+        />
       </SectionCard>
 
       {/* 유저 / 리텐션 (토스 콘솔 reported) */}

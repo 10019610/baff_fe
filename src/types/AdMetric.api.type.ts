@@ -54,6 +54,8 @@ export interface AdMetricDailyBundle {
   daily: AdMetricDailyEntry | null;
   banners: PositionEntry[];
   images: PositionEntry[];
+  rewards: PositionEntry[];
+  interstitials: PositionEntry[];
 }
 
 export interface AdMetricFullRequest {
@@ -86,6 +88,8 @@ export interface AdMetricFullRequest {
 
   banners?: PositionEntry[];
   images?: PositionEntry[];
+  rewards?: PositionEntry[];
+  interstitials?: PositionEntry[];
 
   reason?: string;
 }
