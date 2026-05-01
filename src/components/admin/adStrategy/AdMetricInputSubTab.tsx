@@ -41,7 +41,7 @@ import {
  * 활성유저·체중·출석·환전·신규가입은 BE에서 자동 집계 (분석 탭).
  */
 
-// R/F 위치별 분리 정책 — 변경 시 이 두 상수만 수정
+// R/F/B 위치별 분리 정책 — 변경 시 이 세 상수만 수정
 const REWARD_POSITIONS: { code: string; label: string }[] = [
   { code: 'EXCHANGE_RESULT', label: '꺼내기 완료 페이지' },
 ];
@@ -49,22 +49,10 @@ const INTERSTITIAL_POSITIONS: { code: string; label: string }[] = [
   { code: 'WEIGHT_RESULT', label: '체중기록 완료 페이지' },
   { code: 'ATTENDANCE_RESULT', label: '출석체크 완료 페이지' },
 ];
-
-const POSITION_LABELS: Record<string, string> = {
-  HOME_TOP: '홈(대시보드) 상단',
-  WEIGHT_TAB_TOP: '체중 탭 상단',
-  ANALYSIS_TAB_TOP: '분석 탭 상단',
-  REVIEW_TAB_TOP: '후기 탭 상단',
-  BENEFIT_TOP: '혜택 상단',
-  BENEFIT: '혜택 카드 사이',
-  ATTENDANCE: '출석 달력 하단',
-  FASTING_BOTTOM: '간헐적 단식 하단',
-  ATTENDANCE_RESULT: '출석 완료 페이지',
-  WEIGHT_RESULT: '체중기록 완료 페이지',
-  EXCHANGE_RESULT: '꺼내기(환전) 완료 페이지',
-  MISSION_RESULT: '미션 완료 페이지',
-  FASTING_RESULT: '간헐적 단식 완료 페이지',
-};
+const BANNER_POSITIONS: { code: string; label: string }[] = [
+  { code: 'ATTENDANCE', label: '출석체크 하단' },
+  { code: 'BENEFIT_TOP', label: '혜택 상단' },
+];
 
 type DailyKey =
   | 'tossRevenueR'
@@ -244,33 +232,11 @@ const AdMetricInputSubTab = () => {
     },
   });
 
-  /**
-   * 위치 펼침 전략 — 나만그래 화면6 정합:
-   * AdPositionConfig 등록된 모든 row를 위치별로 펼친다 (enable 필터 X).
-   * 광고관리에 row 자체가 0개일 때만 POSITION_LABELS 키 fallback.
-   */
-  const allConfiguredPositions = useMemo(() => {
-    const rows = positionConfigs ?? [];
-    if (rows.length > 0) return rows.map((c) => c.position);
-    return Object.keys(POSITION_LABELS);
-  }, [positionConfigs]);
-
-  const enabledBannerPositions = allConfiguredPositions;
-  const enabledImagePositions = allConfiguredPositions;
-
   const bannerAdIdByPosition = useMemo(() => {
     const map: Record<string, string> = {};
     (positionConfigs ?? []).forEach((c) => {
       const id = c.tossBannerAdGroupId || c.tossAdGroupId;
       if (id) map[c.position] = id;
-    });
-    return map;
-  }, [positionConfigs]);
-
-  const imageAdIdByPosition = useMemo(() => {
-    const map: Record<string, string> = {};
-    (positionConfigs ?? []).forEach((c) => {
-      if (c.tossImageAdGroupId) map[c.position] = c.tossImageAdGroupId;
     });
     return map;
   }, [positionConfigs]);
@@ -549,25 +515,11 @@ const AdMetricInputSubTab = () => {
         </div>
       </SectionCard>
 
-      {/* B 배너 — 활성 위치 N개 + 기타(미분리). 일별 합산은 위치별 합으로 자동 산출 (입력 X). */}
+      {/* B 배너 — 미분리 + 노출 위치(출석 하단/혜택 상단)만. 일별 합산은 위치별 합으로 자동 산출. */}
       <SectionCard title="배너 광고 B (위치별)" colorClass="text-orange-600">
         <div className="space-y-3">
-          {enabledBannerPositions.map((position) => (
-            <PositionRow
-              key={position}
-              label={POSITION_LABELS[position] ?? position}
-              colorClass="border-orange-200"
-              adId={bannerAdIdByPosition[position]}
-              getValue={(field) =>
-                getPositionNumValue(banners, position, field)
-              }
-              onChange={(field, raw) =>
-                upsertPositionNum(banners, setBanners, position, field, raw)
-              }
-            />
-          ))}
           <PositionRow
-            label="기타 (미분리)"
+            label="미분리 (전체 합산)"
             colorClass="border-gray-300"
             editableAdId
             getAdId={() => getPositionAdId(banners, POSITION_OTHER)}
@@ -581,6 +533,18 @@ const AdMetricInputSubTab = () => {
               upsertPositionNum(banners, setBanners, POSITION_OTHER, field, raw)
             }
           />
+          {BANNER_POSITIONS.map(({ code, label }) => (
+            <PositionRow
+              key={code}
+              label={label}
+              colorClass="border-orange-200"
+              adId={bannerAdIdByPosition[code]}
+              getValue={(field) => getPositionNumValue(banners, code, field)}
+              onChange={(field, raw) =>
+                upsertPositionNum(banners, setBanners, code, field, raw)
+              }
+            />
+          ))}
         </div>
       </SectionCard>
 
