@@ -53,6 +53,23 @@ const ACTIVITY_ICON_MAP: Record<string, typeof Activity> = {
   WEIGHT: Activity,
 };
 
+/** 플랫폼 배지 매핑 (label, className) */
+const PLATFORM_BADGE_MAP: Record<string, { label: string; className: string }> =
+  {
+    TOSS: {
+      label: 'Toss',
+      className: 'bg-blue-100 text-blue-700 border-blue-200',
+    },
+    ANDROID: {
+      label: 'App',
+      className: 'bg-green-100 text-green-700 border-green-200',
+    },
+    WEB: {
+      label: 'Web',
+      className: 'bg-gray-100 text-gray-700 border-gray-200',
+    },
+  };
+
 /**
  * 어드민 대시보드 개요(Overview) 탭 컴포넌트
  *
@@ -418,15 +435,28 @@ const AdminOverview = () => {
                 )}
                 {recentActivities?.map((activity, index) => {
                   const Icon = ACTIVITY_ICON_MAP[activity.type] ?? Activity;
+                  const platformBadge = activity.platform
+                    ? PLATFORM_BADGE_MAP[activity.platform]
+                    : null;
                   return (
                     <div key={index} className="flex items-start gap-3">
                       <div className="mt-0.5 p-1.5 rounded-full bg-gray-100">
                         <Icon className="w-3.5 h-3.5 text-gray-600" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-900 leading-snug">
-                          {activity.message}
-                        </p>
+                        <div className="flex items-start gap-1.5">
+                          {platformBadge && (
+                            <Badge
+                              variant="outline"
+                              className={`shrink-0 mt-0.5 px-1.5 py-0 text-[10px] leading-4 ${platformBadge.className}`}
+                            >
+                              {platformBadge.label}
+                            </Badge>
+                          )}
+                          <p className="text-sm text-gray-900 leading-snug">
+                            {activity.message}
+                          </p>
+                        </div>
                         <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground">
                           <Clock className="w-3 h-3" />
                           <span>{formatRelativeTime(activity.timestamp)}</span>

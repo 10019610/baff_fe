@@ -38,6 +38,7 @@ export interface RecentActivity {
   type: string;
   message: string;
   timestamp: string;
+  platform: string | null;
 }
 
 export interface AdminUserListItem {
