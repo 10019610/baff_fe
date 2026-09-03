@@ -20,6 +20,7 @@ import {
 } from '../ui/alert-dialog';
 import { AlertTriangle, Calendar, Plus, BarChart3 } from 'lucide-react';
 import { validationRules } from '../../utils/validation';
+import { todayKst } from '../../utils/DateUtil';
 import ValidatedInput from './ValidatedInput';
 import { useEffect, useState } from 'react';
 import type {
@@ -107,7 +108,7 @@ const WeightCreate = ({
 
   // 컴포넌트가 처음 마운트될 때만 오늘 날짜로 초기화
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = todayKst();
     onChangeParam('recordDate', today);
   }, []);
 

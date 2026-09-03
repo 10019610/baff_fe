@@ -4,6 +4,7 @@ import { Label } from '../ui/label';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { validateField, type ValidationRule } from '../../utils/validation';
+import { todayKst } from '../../utils/DateUtil';
 
 interface ValidatedInputProps {
   id: string;
@@ -161,7 +162,7 @@ export default function ValidatedInput({
           disabled={disabled}
           max={
             type === 'date'
-              ? new Date().toISOString().split('T')[0]
+              ? todayKst()
               : type === 'number' && maxNumber !== undefined
                 ? maxNumber
                 : undefined
