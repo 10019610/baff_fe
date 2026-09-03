@@ -103,3 +103,27 @@ export const formatDateTime = (dateString: string | null | undefined): string =>
   const seconds = date.getSeconds().toString().padStart(2, '0');
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
+
+const KST_TIME_ZONE = 'Asia/Seoul';
+
+/**
+ * 오늘 날짜(KST 기준) 'YYYY-MM-DD'.
+ *
+ * 🔴 `new Date().toISOString()`을 쓰면 안 된다. UTC 기준이라 KST 09:00 직전에는
+ *    전날 날짜가 나온다. 매일 아침 9시에 체중을 기록하면 전날 기록을 덮어쓰는
+ *    사고가 여기서 났다 (M-002).
+ *
+ * 기기 로컬시간이 아니라 KST 고정인 이유: 서버가 `DateTimeUtils.now()`에서
+ * `ZoneId.of("Asia/Seoul")`로 못 박고 있다. 같은 축을 써야 어긋나지 않는다.
+ */
+export const todayKst = (): string => {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: KST_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+
+  const get = (type: string) => parts.find((part) => part.type === type)!.value;
+  return `${get('year')}-${get('month')}-${get('day')}`;
+};

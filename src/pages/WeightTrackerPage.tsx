@@ -9,6 +9,7 @@ import type {
 } from '../types/WeightTracker.api.type';
 import { useState, useRef } from 'react';
 import { weightTrackerInitializer } from '../types/WeightTracker.initializer';
+import { todayKst } from '../utils/DateUtil';
 import { api } from '../services/api/Api';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
@@ -26,7 +27,7 @@ const WeightTrackerPage = () => {
   const [recordWeightParam, setRecordWeightParam] =
     useState<RecordWeightRequest>({
       ...weightTrackerInitializer.INITIAL_RECORD_WEIGHT_PARAM,
-      recordDate: new Date().toISOString().split('T')[0],
+      recordDate: todayKst(),
     });
 
   /* 
