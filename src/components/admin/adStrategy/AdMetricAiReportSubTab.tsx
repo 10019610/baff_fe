@@ -126,7 +126,7 @@ function buildMarkdown(date: string, kpi: AdMetricKpi | null): string {
     '> 자동 채움 범위: 🟢 P0 subset — 운영설정 스냅샷·터치포인트별·배너위치별·리텐션·예측vs실적 섹션은 자동 생략'
   );
   lines.push(
-    '> 📐 작성 규칙: ~/ads_agent/projects/onlyme/daily-template.md 준수. 표본 태그 [표본: N일] 병기.'
+    '> 📐 작성 규칙: ~/Lumpen/app/ads-agent/projects/onlyme/daily-template.md 준수. 표본 태그 [표본: N일] 병기.'
   );
   lines.push('');
   lines.push('---');
