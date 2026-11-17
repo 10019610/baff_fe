@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Card,
@@ -30,6 +30,7 @@ interface Battle {
   myStartWeight: number;
   opponentStartWeight: number;
   targetWeightLoss: number;
+  opponentTargetWeightLoss: number;
   startDate: string;
   endDate: string;
   status: 'active' | 'completed' | 'cancelled';
@@ -38,6 +39,11 @@ interface Battle {
   result?: 'me' | 'opponent' | 'tie';
   myFinalWeight?: number;
   opponentFinalWeight?: number;
+  /** BE 요약 값 — 각자 자기 목표 kg 으로 나눈 달성률(%) · 종료일까지 기록 기준 */
+  myProgress: number;
+  opponentProgress: number;
+  myWeightLoss: number;
+  opponentWeightLoss: number;
 }
 
 // BattleSummaryData를 Battle 인터페이스로 변환하는 헬퍼 함수
@@ -48,6 +54,7 @@ const convertToBattle = (battle: BattleSummaryData): Battle => ({
   myStartWeight: battle.myStartWeight,
   opponentStartWeight: battle.opponentStartWeight,
   targetWeightLoss: battle.myTargetWeightLoss,
+  opponentTargetWeightLoss: battle.opponentTargetWeightLoss,
   startDate: battle.startDate,
   endDate: battle.endDate,
   status: 'completed' as const,
@@ -61,65 +68,17 @@ const convertToBattle = (battle: BattleSummaryData): Battle => ({
         : ('tie' as const),
   myFinalWeight: battle.myCurrentWeight,
   opponentFinalWeight: battle.opponentCurrentWeight,
+  myProgress: battle.myProgress,
+  opponentProgress: battle.opponentProgress,
+  myWeightLoss: battle.myWeightLoss,
+  opponentWeightLoss: battle.opponentWeightLoss,
 });
 
-// Mock completed battles for demonstration (API 데이터가 없을 때 사용)
-const getMockCompletedBattles = (): Battle[] => [
-  {
-    id: 'completed-1',
-    opponent: '이영희',
-    opponentId: '2',
-    myStartWeight: 72.0,
-    opponentStartWeight: 58.2,
-    targetWeightLoss: 3.0,
-    startDate: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split('T')[0],
-    endDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split('T')[0],
-    status: 'completed',
-    result: 'me',
-    myFinalWeight: 69.2,
-    opponentFinalWeight: 56.8,
-  },
-  {
-    id: 'completed-2',
-    opponent: '박민수',
-    opponentId: '3',
-    myStartWeight: 69.2,
-    opponentStartWeight: 82.1,
-    targetWeightLoss: 2.5,
-    startDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split('T')[0],
-    endDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split('T')[0],
-    status: 'completed',
-    result: 'opponent',
-    myFinalWeight: 67.8,
-    opponentFinalWeight: 79.2,
-  },
-  {
-    id: 'completed-3',
-    opponent: '최지영',
-    opponentId: '4',
-    myStartWeight: 71.5,
-    opponentStartWeight: 63.7,
-    targetWeightLoss: 2.0,
-    startDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split('T')[0],
-    endDate: new Date(Date.now() - 76 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split('T')[0],
-    status: 'completed',
-    result: 'tie',
-    myFinalWeight: 69.6,
-    opponentFinalWeight: 61.8,
-  },
-];
+/** 두 사람 목표가 다르면 둘 다 보여 준다 — 상대 달성률이 무엇 기준인지 알 수 있게 */
+const formatTargets = (battle: Battle) =>
+  battle.targetWeightLoss === battle.opponentTargetWeightLoss
+    ? `${battle.targetWeightLoss}kg`
+    : `나 ${battle.targetWeightLoss}kg · 상대 ${battle.opponentTargetWeightLoss}kg`;
 
 interface BattleHistoryProps {
   selectedRoomEntryCode?: string;
@@ -128,7 +87,6 @@ interface BattleHistoryProps {
 export default function BattleHistory({
   selectedRoomEntryCode,
 }: BattleHistoryProps) {
-  const [completedBattles, setCompletedBattles] = useState<Battle[]>([]);
   const navigate = useNavigate();
 
   // TanStack Query를 사용하여 종료된 대결 데이터 가져오기
@@ -141,27 +99,11 @@ export default function BattleHistory({
     queryFn: getEndedBattles,
   });
 
-  useEffect(() => {
-    if (endedBattlesData?.activeBattles) {
-      // API 데이터를 Battle 형식으로 변환
-      const apiBattles = endedBattlesData.activeBattles.map(convertToBattle);
-      setCompletedBattles(apiBattles);
-    } else {
-      // API 데이터가 없으면 목데이터 사용
-      const savedBattles = localStorage.getItem('weightBattles');
-      const realCompletedBattles = savedBattles
-        ? JSON.parse(savedBattles).filter(
-            (battle: Battle) => battle.status === 'completed'
-          )
-        : [];
-
-      const allCompletedBattles = [
-        ...realCompletedBattles,
-        ...getMockCompletedBattles(),
-      ];
-      setCompletedBattles(allCompletedBattles);
-    }
-  }, [endedBattlesData]);
+  // 응답에서 바로 만든다 — 응답이 없으면 빈 목록 (가짜 목록 · localStorage 를 보이지 않는다)
+  const completedBattles = useMemo<Battle[]>(
+    () => endedBattlesData?.activeBattles?.map(convertToBattle) ?? [],
+    [endedBattlesData]
+  );
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -179,19 +121,16 @@ export default function BattleHistory({
     return diffDays;
   };
 
-  const calculateProgress = (battle: Battle) => {
-    const myWeightLoss =
-      battle.myStartWeight - (battle.myFinalWeight || battle.myStartWeight);
-    const myProgress = (myWeightLoss / battle.targetWeightLoss) * 100;
-
-    const opponentWeightLoss =
-      battle.opponentStartWeight -
-      (battle.opponentFinalWeight || battle.opponentStartWeight);
-    const opponentProgress =
-      (opponentWeightLoss / battle.targetWeightLoss) * 100;
-
-    return { myProgress, opponentProgress, myWeightLoss, opponentWeightLoss };
-  };
+  /**
+   * 달성률 · 감량 kg 은 BE 요약 값을 그대로 쓴다 (M-030).
+   * 달성률은 토스 종료 화면처럼 0% 아래로 내리지 않는다 — 같은 대결이면 웹 · 토스 숫자가 같다.
+   */
+  const calculateProgress = (battle: Battle) => ({
+    myProgress: Math.max(0, battle.myProgress),
+    opponentProgress: Math.max(0, battle.opponentProgress),
+    myWeightLoss: battle.myWeightLoss,
+    opponentWeightLoss: battle.opponentWeightLoss,
+  });
 
   const getResultBadge = (result?: 'me' | 'opponent' | 'tie') => {
     switch (result) {
@@ -250,7 +189,7 @@ export default function BattleHistory({
         <CardContent className="pt-12 pb-12 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <h3 className="text-xl font-medium mb-3">
-            대결 기록을 불러오는 중...
+            대결 기록을 불러오고 있어요
           </h3>
           <p className="text-muted-foreground">잠시만 기다려주세요</p>
         </CardContent>
@@ -264,10 +203,10 @@ export default function BattleHistory({
         <CardContent className="pt-12 pb-12 text-center">
           <Calendar className="h-16 w-16 mx-auto mb-6 text-muted-foreground" />
           <h3 className="text-xl font-medium mb-3">
-            대결 기록을 불러올 수 없습니다
+            대결 기록을 불러오지 못했어요
           </h3>
           <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-            네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+            잠시 후 다시 시도해주세요.
           </p>
         </CardContent>
       </Card>
@@ -279,12 +218,9 @@ export default function BattleHistory({
       <Card>
         <CardContent className="pt-12 pb-12 text-center">
           <Calendar className="h-16 w-16 mx-auto mb-6 text-muted-foreground" />
-          <h3 className="text-xl font-medium mb-3">
-            아직 완료된 대결이 없습니다
-          </h3>
+          <h3 className="text-xl font-medium mb-3">아직 끝난 대결이 없어요</h3>
           <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-            대결을 완료하면 여기에 기록과 통계가 표시됩니다. 첫 번째 대결을
-            시작해보세요!
+            대결이 끝나면 여기에 기록과 통계가 보여요. 첫 대결을 시작해 보세요!
           </p>
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Trophy className="h-4 w-4" />
@@ -561,7 +497,7 @@ export default function BattleHistory({
                       {/* Battle Info */}
                       <div className="flex items-center justify-between pt-2 border-t">
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>목표: {battle.targetWeightLoss}kg 감량</span>
+                          <span>목표: {formatTargets(battle)} 감량</span>
                           <span>기간: {duration}일</span>
                         </div>
                         {battle.result === 'me' && (
@@ -632,7 +568,7 @@ export default function BattleHistory({
                         <div className="space-y-1 pt-1">
                           <div className="flex items-center justify-between text-xs text-muted-foreground">
                             <span>목표 달성률 비교</span>
-                            <span>목표: {battle.targetWeightLoss}kg</span>
+                            <span>목표: {formatTargets(battle)}</span>
                           </div>
                           <div className="relative h-3 bg-muted rounded-full overflow-hidden">
                             {/* 내 진행률 */}

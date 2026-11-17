@@ -59,6 +59,14 @@ import {
   getActiveBattles,
   getEndedBattles,
 } from '../services/api/activeBattle.api';
+import {
+  sliceRecordsByGoal,
+  resolveGoalWeight,
+  calcGoalProgress,
+} from '../utils/goalProgress';
+
+/** 진행률 화면 값(%) 상한 — 막대 · 원형 그래프가 0~100 을 전제로 그린다 */
+const PERCENT = 100;
 
 const AnalyticsPage = () => {
   const { user } = useAuth();
@@ -264,21 +272,28 @@ const AnalyticsPage = () => {
   const weightVolatility = calculateVolatility(
     convertWeightEntries(weightData?.entries || [], user?.height) || []
   );
-  /* 진행률 계산 handler */
-  const calculateProgress = (goal: Goal) => {
-    // weightData.currentWeight를 사용 (더 신뢰할 수 있는 데이터)
-    const currentWeight =
-      weightData?.currentWeight || getCurrentWeightInfo?.currentWeight;
+  /**
+   * 진행률 계산 handler (0~100)
+   * 목표 기간 안의 마지막 기록으로 계산한다 — 끝난 목표는 종료일까지의 기록으로 고정된다 (M-025)
+   */
+  const calculateProgress = (goal: Goal | undefined) => {
+    if (!goal) return 0;
 
-    if (!currentWeight || !goal) return 0;
-
-    const totalChange = goal.targetWeight - goal.startWeight;
-    const currentChange = currentWeight - goal.startWeight;
-
-    if (totalChange === 0) return 100;
-
-    const progress = (currentChange / totalChange) * 100;
-    return Math.min(Math.max(progress, 0), 100);
+    const records: WeightResponseDto[] = (weightData?.entries || []).map(
+      (entry) => ({
+        recordDate: entry.date,
+        recordWeight: entry.weight,
+        weightChange: entry.change ?? 0, // 유틸은 쓰지 않는 칸
+      })
+    );
+    const sliced = sliceRecordsByGoal(records, goal);
+    const point = resolveGoalWeight(goal, sliced);
+    const { barRatio } = calcGoalProgress(
+      goal.startWeight,
+      goal.targetWeight,
+      point.weight
+    );
+    return barRatio * PERCENT;
   };
 
   // 어제 대비 변화량 계산
@@ -297,7 +312,14 @@ const AnalyticsPage = () => {
 
   const yesterdayChange = calculateYesterdayChange();
 
-  const goalProgress = calculateProgress(goalList[goalList.length - 1]);
+  // 지표 카드 · 원형 그래프가 보여 줄 목표: 진행 중인 목표, 없으면 종료일이 가장 늦은 목표
+  // (목록은 BE 에서 정렬되지 않아 「마지막」 이 어떤 목표인지 정해져 있지 않다)
+  const displayGoal: Goal | undefined =
+    goalList.find((goal: Goal) => !goal.isExpired) ??
+    [...goalList].sort((a: Goal, b: Goal) =>
+      b.endDate.localeCompare(a.endDate)
+    )[0];
+  const goalProgress = calculateProgress(displayGoal);
   const currentBMI = calculateBMI(
     weightData?.currentWeight || getCurrentWeightInfo?.currentWeight || 0,
     user?.height || 170
@@ -569,7 +591,7 @@ const AnalyticsPage = () => {
         currentBMI={currentBMI}
         bmiCategory={bmiCategory}
         goalProgress={goalProgress}
-        goalWeight={goalList[goalList.length - 1].targetWeight}
+        goalWeight={displayGoal?.targetWeight ?? 0}
         currentStreak={calculateStreak(
           convertWeightEntries(weightData.entries, user?.height)
         )}
@@ -587,10 +609,8 @@ const AnalyticsPage = () => {
         <TabsContent value="overview">
           <AnalyticsOverviewTab
             weightData={convertWeightEntries(weightData.entries, user?.height)}
-            activeGoal={goalList[goalList.length - 1]}
-            goalProgress={Number(
-              calculateProgress(goalList[goalList.length - 1]).toFixed(0)
-            )}
+            activeGoal={displayGoal ?? null}
+            goalProgress={Number(goalProgress.toFixed(0))}
             winRate={winRate}
             currentStreak={calculateStreak(
               convertWeightEntries(weightData.entries, user?.height)

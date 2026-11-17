@@ -127,3 +127,23 @@ export const todayKst = (): string => {
   const get = (type: string) => parts.find((part) => part.type === type)!.value;
   return `${get('year')}-${get('month')}-${get('day')}`;
 };
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+/** 'YYYY-MM-DD' → 그 날짜의 UTC 자정(ms). 날짜 키끼리 계산할 때만 쓴다 — 기기 시간대가 섞이지 않는다 */
+const dateKeyToUtcMs = (key: string): number => {
+  const [year, month, day] = key.split('-').map(Number);
+  return Date.UTC(year, month - 1, day);
+};
+
+/** 날짜 키에 N일을 더한 날짜 키 ('2026-11-17' + 3 → '2026-11-20') */
+export const addDaysToDateKey = (key: string, days: number): string => {
+  const date = new Date(dateKeyToUtcMs(key) + days * MS_PER_DAY);
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  return `${date.getUTCFullYear()}-${month}-${day}`;
+};
+
+/** 두 날짜 키 사이 일수 ('2026-11-17' → '2026-11-20' = 3). 거꾸로면 음수 */
+export const diffDaysBetweenDateKeys = (fromKey: string, toKey: string): number =>
+  Math.round((dateKeyToUtcMs(toKey) - dateKeyToUtcMs(fromKey)) / MS_PER_DAY);

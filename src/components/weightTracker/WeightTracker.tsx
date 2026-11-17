@@ -29,7 +29,7 @@ interface WeightDataForDashboard {
 }
 
 interface WeightTrackerProps {
-  onClickRecord: () => void;
+  onClickRecord: () => Promise<boolean>;
   onChangeParam: (
     key: keyof RecordWeightRequest,
     value: string | number
