@@ -13,7 +13,6 @@ import {
   Scale,
   Target,
   Trash2,
-  PenSquare,
 } from 'lucide-react';
 
 import { Button } from './ui/button.tsx';
@@ -28,10 +27,10 @@ import { Progress } from './ui/progress.tsx';
 import AnimatedContainer from './weightTracker/AnimatedContainer.tsx';
 import { useState } from 'react';
 import GoalsCreate from './GoalsCreate.tsx';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LoginModal from './auth/LoginModal.tsx';
 import toast from 'react-hot-toast';
+import GoalDetailDrawer from './goals/GoalDetailDrawer.tsx';
 
 interface GoalSettingProps {
   onClickRecord: () => void;
@@ -74,7 +73,10 @@ const GoalSetting = ({
    */
   /* 목표 설정 생성 컴포넌트 상태 */
   const [showCreateGoal, setShowCreateGoal] = useState(false);
-  const navigate = useNavigate();
+  /* 상세를 연 목표 (M-023) */
+  const [detailGoal, setDetailGoal] = useState<GetGoalListResponse | null>(
+    null
+  );
   const { isAuthenticated } = useAuth();
   /**
    * UI
@@ -83,9 +85,22 @@ const GoalSetting = ({
   /**
    * Handlers
    */
-  /* 리뷰 작성 페이지로 이동 handler */
-  const handleNavigateToReview = (goalId: string) => {
-    navigate(`/review/${goalId}`);
+  /* 목표 만들기 폼 열기 handler — 만들기 카드 · 상세의 「새 목표 설정하기」 공용 */
+  const handleOpenCreateGoal = () => {
+    if (isGoalCreationDisabled) {
+      toast.error('현재 체중을 먼저 입력해주세요.');
+      return;
+    }
+    // currentWeight가 0이거나 undefined인 경우 추가 체크
+    if (!currentWeight || currentWeight === 0) {
+      toast.error('현재 체중을 먼저 입력해주세요.');
+      return;
+    }
+    if (isAuthenticated) {
+      setShowCreateGoal(true);
+    } else {
+      setLoginOpen(true);
+    }
   };
 
   /* 설정목표 카드 만료여부 배지 제어 handler */
@@ -202,22 +217,7 @@ const GoalSetting = ({
                   ? 'opacity-50 cursor-not-allowed'
                   : 'cursor-pointer'
               }`}
-              onClick={() => {
-                if (isGoalCreationDisabled) {
-                  toast.error('현재 체중을 먼저 입력해주세요.');
-                  return;
-                }
-                // currentWeight가 0이거나 undefined인 경우 추가 체크
-                if (!currentWeight || currentWeight === 0) {
-                  toast.error('현재 체중을 먼저 입력해주세요.');
-                  return;
-                }
-                if (isAuthenticated) {
-                  setShowCreateGoal(true);
-                } else {
-                  setLoginOpen(true);
-                }
-              }}
+              onClick={handleOpenCreateGoal}
             >
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
@@ -253,11 +253,12 @@ const GoalSetting = ({
                 return (
                   <Card
                     key={goal.goalsId}
-                    className={
+                    onClick={() => setDetailGoal(goal)}
+                    className={`cursor-pointer transition-shadow hover:shadow-md ${
                       goal.isExpired
                         ? 'bg-muted/60 border-muted/50'
                         : 'border-border'
-                    }
+                    }`}
                   >
                     <CardHeader
                       className={`pb-4 ${goal.isExpired ? 'opacity-60' : ''}`}
@@ -273,7 +274,11 @@ const GoalSetting = ({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleDeleteGoalModal(goal.goalsId)}
+                            onClick={(e) => {
+                              // 카드 클릭(상세 열기)으로 번지지 않게
+                              e.stopPropagation();
+                              handleDeleteGoalModal(goal.goalsId);
+                            }}
                             className="h-8 w-8 p-0 text-muted-foreground hover:text-red-600 hover:bg-red-50"
                             title="목표 삭제"
                           >
@@ -414,14 +419,6 @@ const GoalSetting = ({
                               🎉 축하합니다! 목표를 성공적으로 달성했습니다.
                             </p>
                           </div>
-                          <Button
-                            onClick={() => handleNavigateToReview(goal.goalsId)}
-                            className="w-full gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md hover:shadow-lg transition-all"
-                            size="lg"
-                          >
-                            <PenSquare className="h-4 w-4" />
-                            리뷰 작성하기
-                          </Button>
                         </div>
                       )}
                       {progress < 100 && goal.isExpired && (
@@ -432,14 +429,6 @@ const GoalSetting = ({
                               도전해보세요!
                             </p>
                           </div>
-                          <Button
-                            onClick={() => handleNavigateToReview(goal.goalsId)}
-                            className="w-full gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md hover:shadow-lg transition-all"
-                            size="lg"
-                          >
-                            <PenSquare className="h-4 w-4" />
-                            리뷰 작성하기
-                          </Button>
                         </div>
                       )}
                     </CardContent>
@@ -464,6 +453,13 @@ const GoalSetting = ({
             ))}
         </div>
       )}
+      {/* 목표 상세 (M-023) */}
+      <GoalDetailDrawer
+        goal={detailGoal}
+        open={detailGoal != null}
+        onClose={() => setDetailGoal(null)}
+        onCreateGoal={handleOpenCreateGoal}
+      />
     </div>
   );
 };
