@@ -33,24 +33,11 @@ const WeightTrackerPage = () => {
   /* 
     체중 기록 api
   */
-  const { mutate: recordWeightMutation, isPending: isSubmitting } = useMutation(
-    {
+  const { mutateAsync: recordWeightMutation, isPending: isSubmitting } =
+    useMutation({
       mutationFn: async (param: RecordWeightRequest) => {
-        try {
-          const response = await api.post('/weight/recordWeight', param);
-          return response.data;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
-          // API가 없는 경우 임시로 성공 처리
-          if (
-            error.response?.status === 404 ||
-            error.code === 'NETWORK_ERROR'
-          ) {
-            console.warn('recordWeight API not available, simulating success');
-            return { success: true, message: 'Mock success' };
-          }
-          throw error;
-        }
+        const response = await api.post('/weight/recordWeight', param);
+        return response.data;
       },
       onSuccess: () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -94,19 +81,17 @@ const WeightTrackerPage = () => {
           weight: 0,
         }));
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onError: (error: any) => {
+      onError: (error: unknown) => {
         console.error('Record weight error:', error);
-        toast.error(
-          `체중 기록 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`,
-          {
-            icon: '❌',
-            duration: 4000,
-          }
-        );
+        // 실패한 덮어쓰기 정보가 다음 저장 토스트에 섞이지 않게 지운다
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        delete (window as any).updateInfo;
+        toast.error('기록에 실패했어요. 다시 시도해주세요.', {
+          icon: '❌',
+          duration: 4000,
+        });
       },
-    }
-  );
+    });
 
   // 체중 기록 목록 조회 핸들러 (임시로 비활성화)
   const {
@@ -173,13 +158,16 @@ const WeightTrackerPage = () => {
     queryFn: getWeightDataForDashboard,
   });
 
-  const handleRecordWeight = () => {
+  /**
+   * 체중 저장 — 저장에 성공했을 때만 true (입력 창은 true 일 때만 닫는다)
+   */
+  const handleRecordWeight = async (): Promise<boolean> => {
     if (!recordWeightParam.weight || !recordWeightParam.recordDate) {
       toast.error('체중과 날짜를 모두 입력해주세요', {
         icon: '⚠️',
         duration: 3000,
       });
-      return;
+      return false;
     }
 
     // 기존 기록이 있는지 확인
@@ -208,7 +196,13 @@ const WeightTrackerPage = () => {
       };
     }
 
-    recordWeightMutation(dateTimeParam);
+    try {
+      await recordWeightMutation(dateTimeParam);
+      return true;
+    } catch {
+      // 오류 안내는 onError 가 한다
+      return false;
+    }
   };
 
   /* 

@@ -34,7 +34,8 @@ interface WeightDataForDashboard {
 }
 
 interface WeightCreateProps {
-  onClickRecord: () => void;
+  /** 저장 성공 시 true */
+  onClickRecord: () => Promise<boolean>;
   entries: WeightEntry[];
   param: RecordWeightRequest;
   isSubmitting: boolean;
@@ -80,25 +81,19 @@ const WeightCreate = ({
       });
       setShowDuplicateDialog(true);
     } else {
-      // 새로운 날짜 - 바로 진행
-      onClickRecord();
-      // 1초 후에 닫기
-      setTimeout(() => {
-        onClose();
-      }, 1000);
+      // 새로운 날짜 - 바로 진행 · 저장에 성공했을 때만 닫는다
+      const saved = await onClickRecord();
+      if (saved) onClose();
     }
   };
 
   const handleDuplicateConfirm = async () => {
-    if (pendingEntry) {
-      onClickRecord();
-      // 1초 후에 닫기
-      setTimeout(() => {
-        onClose();
-        setPendingEntry(null);
-        setShowDuplicateDialog(false);
-      }, 1000);
-    }
+    if (!pendingEntry) return;
+    const saved = await onClickRecord();
+    setPendingEntry(null);
+    setShowDuplicateDialog(false);
+    // 실패하면 입력 창과 입력값을 남겨 다시 시도할 수 있게 한다
+    if (saved) onClose();
   };
 
   const handleDuplicateCancel = () => {
