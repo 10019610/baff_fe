@@ -17,7 +17,23 @@ import {
 import LoadingSpinnerForButton from './LoadingSpinnerForButton';
 import type { RecordGoalsRequest } from '../types/Goals.api.type';
 import type { PresetDurationType } from '../types/Goals.type';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import {
+  todayKst,
+  addDaysToDateKey,
+  diffDaysBetweenDateKeys,
+} from '../utils/DateUtil';
+
+/** 목표와 현재 체중 차이가 이보다 작으면 유지 목표로 본다 (토스 M-009 와 같은 값) */
+const MAINTAIN_TOLERANCE_KG = 0.05;
+/** 목표 체중 입력 상한 (토스와 같은 값) */
+const MAX_TARGET_WEIGHT_KG = 300;
+
+/** 'YYYY-MM-DD' → 'M월 D일' */
+const formatDateKeyLabel = (key: string) => {
+  const [, month, day] = key.split('-').map(Number);
+  return `${month}월 ${day}일`;
+};
 
 interface GoalsCreateProps {
   currentWeight: number;
@@ -50,10 +66,9 @@ const GoalsCreate = ({
   const [isCustomDuration, setIsCustomDuration] = useState(false);
   const [customEndDate, setCustomEndDate] = useState('');
 
-  /* 내일 날짜 (직접 설정 최소값) */
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split('T')[0];
+  /* 오늘 · 내일 날짜 (KST) — BE 도 KST 오늘에 일수를 더해 종료일을 만든다 (M-007) */
+  const today = todayKst();
+  const minDate = addDaysToDateKey(today, 1);
 
   /* 기간 선택 handler */
   const handleDurationChange = (value: string) => {
@@ -70,16 +85,34 @@ const GoalsCreate = ({
   /* 직접 날짜 선택 handler */
   const handleCustomDateChange = (dateStr: string) => {
     setCustomEndDate(dateStr);
-    const end = new Date(dateStr);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const diffDays = Math.ceil(
-      (end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-    );
-    if (diffDays > 0) {
-      onChangeParam('presetDuration', diffDays);
-    }
+    const diffDays = dateStr ? diffDaysBetweenDateKeys(today, dateStr) : 0;
+    // 오늘 이전 날짜면 0 으로 둬서 저장 버튼이 꺼지게 한다
+    onChangeParam('presetDuration', diffDays > 0 ? diffDays : 0);
   };
+
+  /* 요약 — 토스 목표 만들기(M-009)와 같은 세 줄 (M-024) */
+  const durationDays = param.presetDuration > 0 ? param.presetDuration : null;
+  const endDateLabel =
+    durationDays != null
+      ? formatDateKeyLabel(addDaysToDateKey(today, durationDays))
+      : null;
+
+  /** 현재 체중과 목표 체중의 차이. 체중 기록이 없거나 입력이 불완전하면 null */
+  const plan = useMemo(() => {
+    const target = param.targetWeight;
+    if (!target || target <= 0 || target > MAX_TARGET_WEIGHT_KG || currentWeight <= 0) {
+      return null;
+    }
+    const delta = currentWeight - target;
+    const amount = Math.abs(delta);
+    if (amount < MAINTAIN_TOLERANCE_KG) return { type: 'maintain' as const };
+    return {
+      type: delta > 0 ? ('lose' as const) : ('gain' as const),
+      target,
+      amount,
+      perDay: durationDays != null ? amount / durationDays : null,
+    };
+  }, [param.targetWeight, currentWeight, durationDays]);
 
   /* 폼 유효성 검사 */
   const isFormValid = () => {
@@ -166,30 +199,35 @@ const GoalsCreate = ({
                 />
               </div>
             </div>
-            <div className="p-3 bg-muted rounded-lg h-full">
-              <p className="text-xs text-muted-foreground">
-                현재 체중:{' '}
-                <span className="font-sm">{param.startWeight}kg</span>
-                {param.targetWeight > 0 && (
-                  <>
-                    {' -> 목표 체중: '}
-                    <span className="font-sm">{param.targetWeight}kg</span>
-                    {' ('}
-                    <span
-                      className={
-                        param.targetWeight < currentWeight
-                          ? 'text-green-600'
-                          : 'text-blue-600'
-                      }
-                    >
-                      {param.targetWeight < currentWeight ? '-' : '+'}
-                      {Math.abs(param.targetWeight - currentWeight).toFixed(1)}
-                      kg
-                    </span>
-                    {')'}
-                  </>
-                )}
-              </p>
+            <div className="p-3 bg-muted rounded-lg h-full space-y-1 text-sm">
+              {durationDays != null && (
+                <p className="font-semibold">
+                  오늘부터 {durationDays}일간 · {endDateLabel}까지
+                </p>
+              )}
+              {plan == null && (
+                <p className="text-muted-foreground">
+                  현재 체중 {currentWeight}kg
+                </p>
+              )}
+              {plan?.type === 'maintain' && (
+                <p>지금 체중 {currentWeight}kg를 그대로 지키는 목표예요</p>
+              )}
+              {plan && plan.type !== 'maintain' && (
+                <>
+                  <p>
+                    {currentWeight}kg → {plan.target.toFixed(1)}kg ·{' '}
+                    {plan.amount.toFixed(1)}kg{' '}
+                    {plan.type === 'lose' ? '감량' : '증량'}
+                  </p>
+                  {plan.perDay != null && (
+                    <p>
+                      하루 평균 {plan.perDay.toFixed(2)}kg씩{' '}
+                      {plan.type === 'lose' ? '줄이면' : '늘리면'} 돼요
+                    </p>
+                  )}
+                </>
+              )}
             </div>
             <div className="flex gap-4">
               <MotionButton
